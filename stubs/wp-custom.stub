@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * Custom property extensions for WordPress classes.
+ *
+ * @property string $display_name
+ * @property string $user_email
+ * @property string $user_login
+ * @property string $user_nicename
+ * @property string $user_url
+ * @property string $user_registered
+ * @property string $user_status
+ * @property int    $ID
+ * @property string $phone1
+ * @property string $phone2
+ * @property string $Mitgliedsnummer
+ * @property string $Mitgliedschaft
+ * @property string $SollstundenArbeitsdienst
+ * @property string $user_firstname
+ * @property string $user_lastname
+ * @property string $fangbuch_anonym
+ * @property string $Strasse 
+ * @property string $plz 
+ * @property string $Ort
+ */
+class WP_User
+{
+    /**
+     * @param string $name
+     * @return mixed
+     */
+    public function __get($name) {}
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
+    public function __set($name, $value) {}
+
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function __isset($name) {}
+}

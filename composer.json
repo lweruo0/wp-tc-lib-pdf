@@ -1,0 +1,13 @@
+{
+  "name": "oliver-ruoss/tc-lib-pdf-wp",
+  "description": "WordPress bootstrap for tc-lib-pdf",
+  "version": "1.0.0",
+  "type": "wordpress-plugin",
+  "require": {
+    "php": "^8.2",
+    "tecnickcom/tc-lib-pdf": "^8",
+    "font/pdfa": "^1.0"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

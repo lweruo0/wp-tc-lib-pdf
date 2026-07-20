@@ -1,0 +1,52 @@
+
+*.pyc
+*.pyo
+*.xml
+*.pkl
+
+# Project-files
+.idea/
+.project
+.pydevproject
+.settings/
+*.code-workspace
+
+# =========================
+# Node / npx
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.npm/
+.yarn/
+.pnp.*
+dist/
+build/
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vite/
+.turbo/
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+
+# =========================
+# Composer / PHP
+# =========================
+composer.phar
+vendor/
+composer.lock
+.phpunit.result.cache
+.php-cs-fixer.cache
+phpstan.neon.dist
+*.cache
+storage/
+bootstrap/cache/
