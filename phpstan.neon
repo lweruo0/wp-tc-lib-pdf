@@ -5,7 +5,7 @@ parameters:
         - wp-tc-lib-pdf.php
         - index.php
         - uninstall.php
-        - includes/
+        - includes/example.php
     scanDirectories:
         - vendor/
     scanFiles:
