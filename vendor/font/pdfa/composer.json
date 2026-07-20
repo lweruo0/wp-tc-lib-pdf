@@ -1,0 +1,16 @@
+{
+  "name": "font/pdfa",
+  "description": "Type1 core fonts for PDFA",
+  "type": "library",
+  "homepage": "https://tcpdf.org",
+  "license": "LGPL-3.0",
+  "keywords": [
+    "tc-font-pdf",
+    "PDFA",
+    "font",
+    "core",
+    "PFB"
+  ],
+  "require": {},
+  "require-dev": {}
+}
