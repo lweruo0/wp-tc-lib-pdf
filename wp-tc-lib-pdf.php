@@ -121,18 +121,6 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 	}
 }
 
-if (!class_exists('TCPDF') && class_exists('\Com\Tecnick\Pdf\Tcpdf')) {
-	class_alias('\Com\Tecnick\Pdf\Tcpdf', 'TCPDF');
-}
-
-if (!class_exists('TCPDF_Loader')) {
-	class TCPDF_Loader {
-		public static function init() {
-			Tc_Lib_Pdf_Wp_Bootstrap::init();
-		}
-	}
-}
-
 register_activation_hook(__FILE__, array('Tc_Lib_Pdf_Wp_Bootstrap', 'activate'));
 register_deactivation_hook(__FILE__, array('Tc_Lib_Pdf_Wp_Bootstrap', 'deactivate'));
 
