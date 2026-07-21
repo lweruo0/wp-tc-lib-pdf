@@ -1,0 +1,19 @@
+parameters:
+    level: 5
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - wp-tc-lib-pdf.php
+        - index.php
+        - uninstall.php
+        - includes/example.php
+    scanDirectories:
+        - vendor/
+    scanFiles:
+        - stubs/quform.stub
+    stubFiles:
+        - stubs/wp-custom.stub
+    bootstrapFiles:
+        - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
