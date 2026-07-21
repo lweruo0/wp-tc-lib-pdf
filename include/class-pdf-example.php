@@ -39,13 +39,15 @@ class PdfExample extends PdfTemplate {
 	protected function render(): void {
 		$this->setHeaderText('Sample Document', date('Y-m-d'));
 
-		// Add a page
 		$this->addPage();
 
-		// Add some content
-		$this->setFontSize(24);
-		$this->color->setPdfColor('#1a3a6b');
-		$out = $this->getTextCell(
+		$out = '';
+
+		// Title – large bold
+		$fontBig = $this->font->insert($this->pon, 'helvetica', 'B', 24);
+		$out .= $fontBig['out'];
+		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->getTextCell(
 			txt: 'Example PDF Template',
 			posx: 10,
 			posy: 50,
@@ -56,17 +58,15 @@ class PdfExample extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
 		);
-		echo $out; // phpcs:ignore
 
-		// Add more content
-		$this->setFontSize(12);
-		$this->color->setPdfColor('#555555');
-		$content = "This is an example of a PDF template using tc-lib-pdf.\n\n"
-			. "You can customize this template by extending the PdfExample class.\n\n"
-			. "The header and footer are generated automatically using the PdfHeaderFooterTrait.";
-		
-		$out = $this->getTextCell(
-			txt: $content,
+		// Body text
+		$fontNormal = $this->font->insert($this->pon, 'helvetica', '', 12);
+		$out .= $fontNormal['out'];
+		$out .= $this->color->getPdfColor('#555555');
+		$out .= $this->getTextCell(
+			txt: "This is an example of a PDF template using tc-lib-pdf.\n\n"
+				. "You can customize this template by extending the PdfExample class.\n\n"
+				. "The header and footer are generated automatically using the PdfHeaderFooterTrait.",
 			posx: 10,
 			posy: 80,
 			width: 190,
@@ -76,6 +76,7 @@ class PdfExample extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		echo $out; // phpcs:ignore
+
+		$this->page->addContent($out);
 	}
 }

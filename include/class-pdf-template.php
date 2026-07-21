@@ -68,15 +68,20 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	abstract protected function render(): void;
 
 	/**
-	 * Generate and output the PDF document.
+	 * Generate and output the PDF document as a download.
 	 *
 	 * @param string $filename Optional. Filename for download. Default empty.
 	 *
 	 * @return void
 	 */
 	public function output(string $filename = ''): void {
+		if ($filename !== '') {
+			$this->setPDFFilename($filename);
+		}
+
 		$this->render();
-		parent::output($filename);
+		$rawpdf = $this->getOutPDFString();
+		$this->downloadPDF($rawpdf);
 	}
 
 	/**

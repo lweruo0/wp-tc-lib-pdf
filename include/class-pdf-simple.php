@@ -35,10 +35,13 @@ class PdfSimple extends PdfTemplate {
 	protected function render(): void {
 		$this->addPage();
 
+		$out = '';
+
 		// Main title
-		$this->setFontSize(24);
-		$this->color->setPdfColor('#1a3a6b');
-		$out = $this->getTextCell(
+		$fontBig = $this->font->insert($this->pon, 'helvetica', 'B', 24);
+		$out .= $fontBig['out'];
+		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->getTextCell(
 			txt: 'Simple PDF Document',
 			posx: 10,
 			posy: 20,
@@ -49,18 +52,16 @@ class PdfSimple extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
 		);
-		echo $out; // phpcs:ignore
 
 		// Content
-		$this->setFontSize(12);
-		$this->color->setPdfColor('#333333');
-		$content = "This is a simple PDF template without header and footer.\n\n"
-			. "It demonstrates how to create a basic PDF document with custom content.\n\n"
-			. "You can extend PdfTemplate and override the render() method to create "
-			. "your own PDF layouts and content structures.";
-
-		$out = $this->getTextCell(
-			txt: $content,
+		$fontNormal = $this->font->insert($this->pon, 'helvetica', '', 12);
+		$out .= $fontNormal['out'];
+		$out .= $this->color->getPdfColor('#333333');
+		$out .= $this->getTextCell(
+			txt: "This is a simple PDF template without header and footer.\n\n"
+				. "It demonstrates how to create a basic PDF document with custom content.\n\n"
+				. "You can extend PdfTemplate and override the render() method to create "
+				. "your own PDF layouts and content structures.",
 			posx: 10,
 			posy: 50,
 			width: 190,
@@ -70,15 +71,13 @@ class PdfSimple extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		echo $out; // phpcs:ignore
 
 		// Footer text
-		$this->setFontSize(10);
-		$this->color->setPdfColor('#999999');
-		$footer = "Generated on " . date('Y-m-d H:i:s');
-
-		$out = $this->getTextCell(
-			txt: $footer,
+		$fontSmall = $this->font->insert($this->pon, 'helvetica', '', 10);
+		$out .= $fontSmall['out'];
+		$out .= $this->color->getPdfColor('#999999');
+		$out .= $this->getTextCell(
+			txt: 'Generated on ' . gmdate('Y-m-d H:i:s'),
 			posx: 10,
 			posy: 270,
 			width: 190,
@@ -88,6 +87,7 @@ class PdfSimple extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
 		);
-		echo $out; // phpcs:ignore
+
+		$this->page->addContent($out);
 	}
 }

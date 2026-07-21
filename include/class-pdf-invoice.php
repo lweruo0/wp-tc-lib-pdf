@@ -66,10 +66,17 @@ class PdfInvoice extends PdfTemplate {
 		$this->setHeaderText('Invoice', $this->invoice_date);
 		$this->addPage();
 
-		// Invoice header
-		$this->setFontSize(18);
-		$this->color->setPdfColor('#1a3a6b');
-		$out = $this->getTextCell(
+		$out = '';
+
+		$fontBig = $this->font->insert($this->pon, 'helvetica', 'B', 18);
+		$fontNormal = $this->font->insert($this->pon, 'helvetica', '', 11);
+		$fontSmall = $this->font->insert($this->pon, 'helvetica', '', 10);
+		$fontMid = $this->font->insert($this->pon, 'helvetica', 'B', 12);
+
+		// Invoice heading
+		$out .= $fontBig['out'];
+		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->getTextCell(
 			txt: 'INVOICE',
 			posx: 10,
 			posy: 50,
@@ -80,17 +87,12 @@ class PdfInvoice extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		echo $out; // phpcs:ignore
 
 		// Invoice details
-		$this->setFontSize(11);
-		$this->color->setPdfColor('#555555');
-		$details = "Invoice Number: " . $this->invoice_number . "\n"
-			. "Date: " . $this->invoice_date . "\n"
-			. "Status: Pending";
-
-		$out = $this->getTextCell(
-			txt: $details,
+		$out .= $fontNormal['out'];
+		$out .= $this->color->getPdfColor('#555555');
+		$out .= $this->getTextCell(
+			txt: "Invoice Number: {$this->invoice_number}\nDate: {$this->invoice_date}\nStatus: Pending",
 			posx: 10,
 			posy: 70,
 			width: 95,
@@ -100,12 +102,11 @@ class PdfInvoice extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		echo $out; // phpcs:ignore
 
-		// Bill to section
-		$this->setFontSize(11);
-		$this->color->setPdfColor('#1a3a6b');
-		$out = $this->getTextCell(
+		// Bill to
+		$out .= $fontNormal['out'];
+		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->getTextCell(
 			txt: 'BILL TO:',
 			posx: 10,
 			posy: 110,
@@ -116,13 +117,10 @@ class PdfInvoice extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		echo $out; // phpcs:ignore
 
-		$this->color->setPdfColor('#555555');
-		$address = "Company Name\n123 Main Street\nCity, State 12345\nCountry";
-
-		$out = $this->getTextCell(
-			txt: $address,
+		$out .= $this->color->getPdfColor('#555555');
+		$out .= $this->getTextCell(
+			txt: "Company Name\n123 Main Street\nCity, State 12345\nCountry",
 			posx: 10,
 			posy: 120,
 			width: 95,
@@ -132,14 +130,12 @@ class PdfInvoice extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		echo $out; // phpcs:ignore
 
-		// Items table (simplified)
-		$this->setFontSize(10);
-		$this->color->setPdfColor('#1a3a6b');
-		$table_header = "Description\t\t\tAmount";
-		$out = $this->getTextCell(
-			txt: $table_header,
+		// Items header
+		$out .= $fontSmall['out'];
+		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->getTextCell(
+			txt: 'Description                    Amount',
 			posx: 10,
 			posy: 160,
 			width: 190,
@@ -149,15 +145,10 @@ class PdfInvoice extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		echo $out; // phpcs:ignore
 
-		$this->color->setPdfColor('#555555');
-		$items = "Item 1 - Sample Product\t\t$99.99\n"
-			. "Item 2 - Service\t\t\t$49.99\n"
-			. "Item 3 - Support\t\t\t$29.99";
-
-		$out = $this->getTextCell(
-			txt: $items,
+		$out .= $this->color->getPdfColor('#555555');
+		$out .= $this->getTextCell(
+			txt: "Item 1 - Sample Product        99.99\nItem 2 - Service               49.99\nItem 3 - Support               29.99",
 			posx: 10,
 			posy: 170,
 			width: 190,
@@ -167,13 +158,12 @@ class PdfInvoice extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		echo $out; // phpcs:ignore
 
 		// Total
-		$this->setFontSize(12);
-		$this->color->setPdfColor('#1a3a6b');
-		$out = $this->getTextCell(
-			txt: "TOTAL: $179.97",
+		$out .= $fontMid['out'];
+		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->getTextCell(
+			txt: 'TOTAL: 179.97',
 			posx: 10,
 			posy: 200,
 			width: 190,
@@ -183,6 +173,7 @@ class PdfInvoice extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Right,
 		);
-		echo $out; // phpcs:ignore
+
+		$this->page->addContent($out);
 	}
 }
