@@ -28,6 +28,29 @@ class PdfSimple extends PdfTemplate {
 	}
 
 	/**
+	 * Load data for this template.
+	 *
+	 * @return void
+	 */
+	protected function loadData(): void {
+		$this->setOptions([
+			'accent_color' => '#1a3a6b',
+			'text_color'   => '#333333',
+			'footer_color' => '#999999',
+		]);
+
+		$this->setFormdata([
+			'headline' => 'Simple PDF Document',
+			'body'     => "This is a simple PDF template without header and footer.\n\n"
+				. "It demonstrates how to create a basic PDF document with custom content.\n\n"
+				. "You can extend PdfTemplate and override the render() method to create "
+				. "your own PDF layouts and content structures.",
+		]);
+
+		$this->setAddressdata([]);
+	}
+
+	/**
 	 * Render the PDF document.
 	 *
 	 * @return void
@@ -37,12 +60,16 @@ class PdfSimple extends PdfTemplate {
 
 		$out = '';
 
+		$accentColor = (string) $this->getOption('accent_color', '#1a3a6b');
+		$textColor   = (string) $this->getOption('text_color', '#333333');
+		$footerColor = (string) $this->getOption('footer_color', '#999999');
+
 		// Main title
 		$fontBig = $this->font->insert($this->pon, 'helvetica', 'B', 24);
 		$out .= $fontBig['out'];
-		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->color->getPdfColor($accentColor);
 		$out .= $this->getTextCell(
-			txt: 'Simple PDF Document',
+			txt: (string) $this->getForm('headline', ''),
 			posx: 10,
 			posy: 20,
 			width: 190,
@@ -56,12 +83,9 @@ class PdfSimple extends PdfTemplate {
 		// Content
 		$fontNormal = $this->font->insert($this->pon, 'helvetica', '', 12);
 		$out .= $fontNormal['out'];
-		$out .= $this->color->getPdfColor('#333333');
+		$out .= $this->color->getPdfColor($textColor);
 		$out .= $this->getTextCell(
-			txt: "This is a simple PDF template without header and footer.\n\n"
-				. "It demonstrates how to create a basic PDF document with custom content.\n\n"
-				. "You can extend PdfTemplate and override the render() method to create "
-				. "your own PDF layouts and content structures.",
+			txt: (string) $this->getForm('body', ''),
 			posx: 10,
 			posy: 50,
 			width: 190,
@@ -75,7 +99,7 @@ class PdfSimple extends PdfTemplate {
 		// Footer text
 		$fontSmall = $this->font->insert($this->pon, 'helvetica', '', 10);
 		$out .= $fontSmall['out'];
-		$out .= $this->color->getPdfColor('#999999');
+		$out .= $this->color->getPdfColor($footerColor);
 		$out .= $this->getTextCell(
 			txt: 'Generated on ' . gmdate('Y-m-d H:i:s'),
 			posx: 10,

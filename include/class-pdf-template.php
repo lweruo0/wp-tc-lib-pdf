@@ -12,10 +12,13 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+require_once __DIR__ . '/trait-pdf-data.php';
+
 /**
  * Abstract PDF Template class.
  */
 abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
+	use PdfDataTrait;
 	/**
 	 * Document title.
 	 *
@@ -58,6 +61,17 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	}
 
 	/**
+	 * Load template data into options, formdata and addressdata.
+	 *
+	 * Implement this method in every template to define where the data
+	 * comes from (POST submission, WP options, DB query, etc.).
+	 * Called automatically before render().
+	 *
+	 * @return void
+	 */
+	abstract protected function loadData(): void;
+
+	/**
 	 * Render the PDF document.
 	 *
 	 * This method should be implemented by subclasses to define
@@ -79,6 +93,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 			$this->setPDFFilename($filename);
 		}
 
+		$this->loadData();
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
 		$this->downloadPDF($rawpdf);
@@ -96,6 +111,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 			$this->setPDFFilename($filename);
 		}
 
+		$this->loadData();
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
 		$this->renderPDF($rawpdf);

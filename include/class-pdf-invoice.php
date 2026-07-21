@@ -58,24 +58,63 @@ class PdfInvoice extends PdfTemplate {
 	}
 
 	/**
+	 * Load data for this template.
+	 *
+	 * Populate from a WooCommerce order, custom DB query, or $_POST data
+	 * by overriding this method or calling setFormdata()/setAddressdata()
+	 * on the instance before calling output()/stream().
+	 *
+	 * @return void
+	 */
+	protected function loadData(): void {
+		$this->setOptions([
+			'accent_color' => '#1a3a6b',
+			'text_color'   => '#555555',
+			'currency'     => 'EUR',
+		]);
+
+		$this->setFormdata([
+			'invoice_number' => $this->invoice_number,
+			'invoice_date'   => $this->invoice_date,
+			'status'         => 'Pending',
+			'items'          => [
+				['label' => 'Item 1 - Sample Product', 'amount' => '99.99'],
+				['label' => 'Item 2 - Service',         'amount' => '49.99'],
+				['label' => 'Item 3 - Support',         'amount' => '29.99'],
+			],
+			'total' => '179.97',
+		]);
+
+		$this->setAddressdata([
+			'name'    => 'Company Name',
+			'street'  => '123 Main Street',
+			'city'    => 'City, State 12345',
+			'country' => 'Country',
+		]);
+	}
+
+	/**
 	 * Render the PDF document.
 	 *
 	 * @return void
 	 */
 	protected function render(): void {
-		$this->setHeaderText('Invoice', $this->invoice_date);
+		$this->setHeaderText('Invoice', (string) $this->getForm('invoice_date', $this->invoice_date));
 		$this->addPage();
 
 		$out = '';
 
-		$fontBig = $this->font->insert($this->pon, 'helvetica', 'B', 18);
+		$accentColor = (string) $this->getOption('accent_color', '#1a3a6b');
+		$textColor   = (string) $this->getOption('text_color', '#555555');
+
+		$fontBig    = $this->font->insert($this->pon, 'helvetica', 'B', 18);
 		$fontNormal = $this->font->insert($this->pon, 'helvetica', '', 11);
-		$fontSmall = $this->font->insert($this->pon, 'helvetica', '', 10);
-		$fontMid = $this->font->insert($this->pon, 'helvetica', 'B', 12);
+		$fontSmall  = $this->font->insert($this->pon, 'helvetica', '', 10);
+		$fontMid    = $this->font->insert($this->pon, 'helvetica', 'B', 12);
 
 		// Invoice heading
 		$out .= $fontBig['out'];
-		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->color->getPdfColor($accentColor);
 		$out .= $this->getTextCell(
 			txt: 'INVOICE',
 			posx: 10,
@@ -89,10 +128,14 @@ class PdfInvoice extends PdfTemplate {
 		);
 
 		// Invoice details
+		$invoiceNumber = (string) $this->getForm('invoice_number', 'INV-001');
+		$invoiceDate   = (string) $this->getForm('invoice_date', $this->invoice_date);
+		$status        = (string) $this->getForm('status', 'Pending');
+
 		$out .= $fontNormal['out'];
-		$out .= $this->color->getPdfColor('#555555');
+		$out .= $this->color->getPdfColor($textColor);
 		$out .= $this->getTextCell(
-			txt: "Invoice Number: {$this->invoice_number}\nDate: {$this->invoice_date}\nStatus: Pending",
+			txt: "Invoice Number: {$invoiceNumber}\nDate: {$invoiceDate}\nStatus: {$status}",
 			posx: 10,
 			posy: 70,
 			width: 95,
@@ -104,8 +147,13 @@ class PdfInvoice extends PdfTemplate {
 		);
 
 		// Bill to
+		$name    = (string) $this->getAddress('name', '');
+		$street  = (string) $this->getAddress('street', '');
+		$city    = (string) $this->getAddress('city', '');
+		$country = (string) $this->getAddress('country', '');
+
 		$out .= $fontNormal['out'];
-		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->color->getPdfColor($accentColor);
 		$out .= $this->getTextCell(
 			txt: 'BILL TO:',
 			posx: 10,
@@ -118,9 +166,9 @@ class PdfInvoice extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
-		$out .= $this->color->getPdfColor('#555555');
+		$out .= $this->color->getPdfColor($textColor);
 		$out .= $this->getTextCell(
-			txt: "Company Name\n123 Main Street\nCity, State 12345\nCountry",
+			txt: "{$name}\n{$street}\n{$city}\n{$country}",
 			posx: 10,
 			posy: 120,
 			width: 95,
@@ -131,9 +179,9 @@ class PdfInvoice extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
-		// Items header
+		// Items
 		$out .= $fontSmall['out'];
-		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->color->getPdfColor($accentColor);
 		$out .= $this->getTextCell(
 			txt: 'Description                    Amount',
 			posx: 10,
@@ -146,9 +194,21 @@ class PdfInvoice extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
-		$out .= $this->color->getPdfColor('#555555');
+		$itemLines = '';
+		$items = $this->getForm('items', []);
+		if (is_array($items)) {
+			foreach ($items as $item) {
+				if (is_array($item)) {
+					$label  = (string) ($item['label'] ?? '');
+					$amount = (string) ($item['amount'] ?? '');
+					$itemLines .= str_pad($label, 32) . $amount . "\n";
+				}
+			}
+		}
+
+		$out .= $this->color->getPdfColor($textColor);
 		$out .= $this->getTextCell(
-			txt: "Item 1 - Sample Product        99.99\nItem 2 - Service               49.99\nItem 3 - Support               29.99",
+			txt: rtrim($itemLines),
 			posx: 10,
 			posy: 170,
 			width: 190,
@@ -160,10 +220,11 @@ class PdfInvoice extends PdfTemplate {
 		);
 
 		// Total
+		$total = (string) $this->getForm('total', '0.00');
 		$out .= $fontMid['out'];
-		$out .= $this->color->getPdfColor('#1a3a6b');
+		$out .= $this->color->getPdfColor($accentColor);
 		$out .= $this->getTextCell(
-			txt: 'TOTAL: 179.97',
+			txt: "TOTAL: {$total}",
 			posx: 10,
 			posy: 200,
 			width: 190,

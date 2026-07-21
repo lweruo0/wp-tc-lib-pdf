@@ -32,6 +32,29 @@ class PdfExample extends PdfTemplate {
 	}
 
 	/**
+	 * Load data for this template.
+	 *
+	 * Override this in subclasses or call setOptions()/setFormdata()/setAddressdata()
+	 * from the dispatcher before rendering to inject dynamic data.
+	 *
+	 * @return void
+	 */
+	protected function loadData(): void {
+		$this->setOptions([
+			'accent_color' => '#1a3a6b',
+			'text_color'   => '#555555',
+		]);
+
+		$this->setFormdata([
+			'body_text' => "This is an example of a PDF template using tc-lib-pdf.\n\n"
+				. "You can customize this template by extending the PdfExample class.\n\n"
+				. "The header and footer are generated automatically using the PdfHeaderFooterTrait.",
+		]);
+
+		$this->setAddressdata([]);
+	}
+
+	/**
 	 * Render the PDF document.
 	 *
 	 * @return void
@@ -62,11 +85,9 @@ class PdfExample extends PdfTemplate {
 		// Body text
 		$fontNormal = $this->font->insert($this->pon, 'helvetica', '', 12);
 		$out .= $fontNormal['out'];
-		$out .= $this->color->getPdfColor('#555555');
+		$out .= $this->color->getPdfColor((string) $this->getOption('text_color', '#555555'));
 		$out .= $this->getTextCell(
-			txt: "This is an example of a PDF template using tc-lib-pdf.\n\n"
-				. "You can customize this template by extending the PdfExample class.\n\n"
-				. "The header and footer are generated automatically using the PdfHeaderFooterTrait.",
+			txt: (string) $this->getForm('body_text', ''),
 			posx: 10,
 			posy: 80,
 			width: 190,
