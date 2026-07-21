@@ -68,7 +68,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	abstract protected function render(): void;
 
 	/**
-	 * Generate and output the PDF document as a download.
+	 * Generate and send the PDF as a browser download (Content-Disposition: attachment).
 	 *
 	 * @param string $filename Optional. Filename for download. Default empty.
 	 *
@@ -82,6 +82,23 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
 		$this->downloadPDF($rawpdf);
+	}
+
+	/**
+	 * Generate and stream the PDF inline to the browser (Content-Disposition: inline).
+	 *
+	 * @param string $filename Optional. Filename hint for the browser. Default empty.
+	 *
+	 * @return void
+	 */
+	public function stream(string $filename = ''): void {
+		if ($filename !== '') {
+			$this->setPDFFilename($filename);
+		}
+
+		$this->render();
+		$rawpdf = $this->getOutPDFString();
+		$this->renderPDF($rawpdf);
 	}
 
 	/**
