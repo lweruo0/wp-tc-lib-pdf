@@ -25,8 +25,5 @@ jobs:
   phpstan:
     uses: lweruo0/workflows/.github/workflows/phpstan_and_php_cs_fixer.yml@main
 
-  npm-run-build:
-    uses: lweruo0/workflows/.github/workflows/npm-run-build.yml@main
-
   js-css-minimize:
     uses: lweruo0/workflows/.github/workflows/js_css_minimize.yml@main
