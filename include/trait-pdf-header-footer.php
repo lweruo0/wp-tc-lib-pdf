@@ -177,7 +177,7 @@ trait PdfHeaderFooterTrait {
 				$headerOut .= $subtitleFont['out'];
 				$linkTextW = min($subtitleW, $this->getStringWidth($this->headerSubtitle));
 				if ($this->headerUrl !== '') {
-					$linkTextW = max(0.0, $linkTextW - 0.2);
+					$linkTextW = max(0.0, $linkTextW);
 				}
 
 				$headerOut .= $this->getTextCell(
