@@ -24,10 +24,10 @@ trait PdfHeaderFooterTrait {
 	private const HEADER_H = 12.0;
 
 	/** Width reserved for the header logo (mm). */
-	private const HEADER_LOGO_W = 64.68;
+	private const HEADER_LOGO_W = 65;
 
 	/** Maximum height reserved for the header logo (mm). */
-	private const HEADER_LOGO_H = 27.72;
+	private const HEADER_LOGO_H = 28;
 
 	/** Height of the footer band (mm). */
 	private const FOOTER_H = 10.0;
@@ -75,23 +75,26 @@ trait PdfHeaderFooterTrait {
 			'lineWidth' => 0.5,
 			'lineCap' => 'butt',
 			'lineJoin' => 'miter',
+			'miterLimit' => 10,
 			'dashArray' => [],
 			'dashPhase' => 0,
 			'lineColor' => '#777777',
+			'fillColor' => '#777777',
 		];
+
 
 		$rowHeight = 4.0;
 
 		$out = $this->graph->getStartTransform();
 
 		/* DIN 5008 Form B Anschrift */
-		$out .= $this->graph->getRect(20.0, 45.0, 85.0, 45.0, 'D', $style);
+		$out .= $this->graph->getRect(20.0, 45.0, 85.0, 45.0, 'D', [$style]);
 		/* DIN 5008 Form B Absender */
-		$out .= $this->graph->getRect(125.0, 50.0, 75.0, 40.0, 'D', $style);
+		$out .= $this->graph->getRect(125.0, 50.0, 75.0, 40.0, 'D', [$style]);
 		/* DIN 5008 Form B Textfeld */
-		$out .= $this->graph->getRect(25.0, 98.46, 165.0, 160.0, 'D', $style);
+		$out .= $this->graph->getRect(25.0, 98.46, 165.0, 160.0, 'D', [$style]);
 		/* DIN 5008 Form B Firmenangaben */
-		$out .= $this->graph->getRect(25.0, 265.0, 165.0, 25.0, 'D', $style);
+		$out .= $this->graph->getRect(25.0, 265.0, 165.0, 25.0, 'D', [$style]);
 
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
