@@ -45,7 +45,27 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	 */
 	public function __construct() {
 		parent::__construct();
+		$this->configureTrustedFilePaths();
 		$this->initialize();
+	}
+
+	/**
+	 * Allow tc-lib-pdf to read plugin-local files such as images.
+	 *
+	 * @return void
+	 */
+	protected function configureTrustedFilePaths(): void {
+		$pluginRoot = realpath(__DIR__ . '/..');
+		if ($pluginRoot === false) {
+			return;
+		}
+
+		$allowedPaths = $this->defaultFileAllowedPaths();
+		$allowedPaths[] = $pluginRoot;
+		$allowedPaths = array_values(array_unique($allowedPaths));
+
+		$this->file->setAllowedPaths($allowedPaths);
+		$this->markupFile->setAllowedPaths($allowedPaths);
 	}
 
 	/**
