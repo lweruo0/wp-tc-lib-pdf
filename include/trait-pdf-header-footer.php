@@ -79,7 +79,7 @@ trait PdfHeaderFooterTrait {
 			'dashArray' => [],
 			'dashPhase' => 0,
 			'lineColor' => '#777777',
-			'fillColor' => '#777777',
+			'fillColor' => '#fff',
 		];
 
 
