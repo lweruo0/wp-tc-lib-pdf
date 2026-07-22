@@ -171,7 +171,7 @@ trait PdfHeaderFooterTrait {
 			$subtitleY = $headerY + self::HEADER_H;
 			$subtitleW = max(0.0, $headerLogoLeft - 1.5 - $subtitleX);
 			$subtitleH = 6.0;
-			$headerOut .= $this->color->getPdfColor('#1a5fb4');
+			$headerOut .= $this->color->getPdfColor('#11417a');
 			if ($subtitleW > 0.0) {
 				$subtitleFont = $this->font->insert($this->pon, 'helvetica', '', 12);
 				$headerOut .= $subtitleFont['out'];
@@ -199,10 +199,10 @@ trait PdfHeaderFooterTrait {
 						'lineJoin' => 'miter',
 						'dashArray' => [],
 						'dashPhase' => 0,
-						'lineColor' => '#1a5fb4',
+						'lineColor' => '#11417a',
 					];
 					if ($linkTextW > 0.0) {
-						$underlineY = $subtitleY + $subtitleH - 0.8;
+						$underlineY = $subtitleY + $subtitleH;
 						$headerOut .= $this->graph->getLine(
 							$subtitleX,
 							$underlineY,
