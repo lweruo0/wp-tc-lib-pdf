@@ -148,7 +148,7 @@ trait PdfHeaderFooterTrait {
 
 		// Title – left-aligned, regular
 		if ($this->headerTitle !== '') {
-			$titleFont = $this->font->insert($this->pon, 'helvetica', '', 20);
+			$titleFont = $this->font->insert($this->pon, 'helvetica', '', 21);
 			$headerOut .= $titleFont['out'];
 			$headerOut .= $this->color->getPdfColor('#000');
 			$headerOut .= $this->getTextCell(
@@ -177,7 +177,7 @@ trait PdfHeaderFooterTrait {
 				$headerOut .= $subtitleFont['out'];
 				$linkTextW = min($subtitleW, $this->getStringWidth($this->headerSubtitle));
 				if ($this->headerUrl !== '') {
-					$linkTextW = max(0.0, $linkTextW - 0.6);
+					$linkTextW = max(0.0, $linkTextW - 0.2);
 				}
 
 				$headerOut .= $this->getTextCell(
