@@ -77,16 +77,14 @@ trait PdfHeaderFooterTrait {
 
 		$out = $this->graph->getStartTransform();
 
-		$y = 45.0;
-		for ($i = 0; $i < 9; ++$i) {
-			$out .= $this->graph->getRect(25.0, $y, 165.0, $rowHeight, 'D', $style);
-			$y += $rowHeight;
-		}
-
+		/* DIN 5008 Form B Anschrift */
 		$out .= $this->graph->getRect(20.0, 45.0, 85.0, 45.0, 'D', $style);
-		$out .= $this->graph->getRect(25.0, 57.7, 80.0, 27.3, 'D', $style);
+		/* DIN 5008 Form B Absender */
 		$out .= $this->graph->getRect(125.0, 50.0, 75.0, 40.0, 'D', $style);
-		$out .= $this->graph->getRect(25.0, 100.0, 165.0, $rowHeight, 'D', $style);
+		/* DIN 5008 Form B Textfeld */
+		$out .= $this->graph->getRect(25.0, 98.46, 165.0, 200.0, 'D', $style);
+		/* DIN 5008 Form B Firmenangaben */
+		$out .= $this->graph->getRect(25.0, 267.0, 165.0, 20.0, 'D', $style);
 
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
