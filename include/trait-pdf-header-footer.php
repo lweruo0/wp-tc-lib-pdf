@@ -206,7 +206,7 @@ trait PdfHeaderFooterTrait {
 						$headerOut .= $this->graph->getLine(
 							$subtitleX,
 							$underlineY,
-							$subtitleX + $linkTextW + 4.6,
+							$subtitleX + $linkTextW + 1.0,
 							$underlineY,
 							$underlineStyle,
 						);
