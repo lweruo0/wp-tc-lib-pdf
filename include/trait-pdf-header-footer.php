@@ -24,10 +24,10 @@ trait PdfHeaderFooterTrait {
 	private const HEADER_H = 12.0;
 
 	/** Width reserved for the header logo (mm). */
-	private const HEADER_LOGO_W = 58.8;
+	private const HEADER_LOGO_W = 64.68;
 
 	/** Maximum height reserved for the header logo (mm). */
-	private const HEADER_LOGO_H = 25.2;
+	private const HEADER_LOGO_H = 27.72;
 
 	/** Height of the footer band (mm). */
 	private const FOOTER_H = 10.0;
