@@ -24,10 +24,10 @@ trait PdfHeaderFooterTrait {
 	private const HEADER_H = 12.0;
 
 	/** Width reserved for the header logo (mm). */
-	private const HEADER_LOGO_W = 42.0;
+	private const HEADER_LOGO_W = 84.0;
 
 	/** Maximum height reserved for the header logo (mm). */
-	private const HEADER_LOGO_H = 18.0;
+	private const HEADER_LOGO_H = 36.0;
 
 	/** Height of the footer band (mm). */
 	private const FOOTER_H = 10.0;
@@ -173,6 +173,7 @@ trait PdfHeaderFooterTrait {
 			$subtitleH = 6.0;
 			$headerOut .= $this->color->getPdfColor('#1a5fb4');
 			if ($subtitleW > 0.0) {
+				$linkTextW = min($subtitleW, $this->getStringWidth($this->headerSubtitle));
 				if ($this->headerUrl !== '') {
 					$subtitleLinkFont = $this->font->insert($this->pon, 'helvetica', 'U', 12);
 					$headerOut .= $subtitleLinkFont['out'];
@@ -191,6 +192,25 @@ trait PdfHeaderFooterTrait {
 				);
 
 				if ($this->headerUrl !== '') {
+					$underlineStyle = [
+						'lineWidth' => 0.25,
+						'lineCap' => 'butt',
+						'lineJoin' => 'miter',
+						'dashArray' => [],
+						'dashPhase' => 0,
+						'lineColor' => '#1a5fb4',
+					];
+					if ($linkTextW > 0.0) {
+						$underlineY = $subtitleY + $subtitleH - 0.8;
+						$headerOut .= $this->graph->getLine(
+							$subtitleX,
+							$underlineY,
+							$subtitleX + $linkTextW,
+							$underlineY,
+							$underlineStyle,
+						);
+					}
+
 					$headerOut .= $this->defaultfont['out'];
 				}
 
