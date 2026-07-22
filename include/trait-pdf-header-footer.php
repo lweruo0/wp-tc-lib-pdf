@@ -12,6 +12,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+
 /**
  * Trait for header and footer functionality.
  */
@@ -22,6 +23,9 @@ trait PdfHeaderFooterTrait {
 	/** Height of the header band (mm). */
 	private const HEADER_H = 12.0;
 
+	/** Width reserved for the header logo (mm). */
+	private const HEADER_LOGO_W = 24.0;
+
 	/** Height of the footer band (mm). */
 	private const FOOTER_H = 10.0;
 
@@ -30,6 +34,9 @@ trait PdfHeaderFooterTrait {
 
 	/** Subtitle / date shown right-aligned in the header. */
 	private string $headerSubtitle = '';
+
+	/** Cached image instance ID for the header logo. */
+	private ?int $headerLogoImageId = null;
 
 	/**
 	 * Set the text displayed in the page header.
@@ -88,6 +95,7 @@ trait PdfHeaderFooterTrait {
 		$headerY = self::HF_MARGIN;
 		$headerOut = $this->graph->getStartTransform();
 		$headerOut .= $this->defaultfont['out'];
+		$headerLogoLeft = $rm - self::HEADER_LOGO_W;
 
 		// Title – left-aligned, bold
 		if ($this->headerTitle !== '') {
@@ -110,17 +118,39 @@ trait PdfHeaderFooterTrait {
 
 		// Subtitle – right-aligned
 		if ($this->headerSubtitle !== '') {
+			$subtitleX = $lm + ($tw * 0.65);
+			$subtitleW = max(0.0, $headerLogoLeft - 1.5 - $subtitleX);
 			$headerOut .= $this->color->getPdfColor('#555555');
-			$headerOut .= $this->getTextCell(
-				txt: $this->headerSubtitle,
-				posx: $lm + ($tw * 0.65),
-				posy: $headerY,
-				width: $tw * 0.35,
-				height: self::HEADER_H,
-				offset: 0,
-				linespace: 0,
-				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-				halign: \Com\Tecnick\Pdf\TextHAlign::Right,
+			if ($subtitleW > 0.0) {
+				$headerOut .= $this->getTextCell(
+					txt: $this->headerSubtitle,
+					posx: $subtitleX,
+					posy: $headerY,
+					width: $subtitleW,
+					height: self::HEADER_H,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Right,
+				);
+			}
+		}
+
+		$headerLogoFile = __DIR__ . '/images/logo.png';
+		if (is_file($headerLogoFile)) {
+			if ($this->headerLogoImageId === null) {
+				$this->headerLogoImageId = $this->image->add($headerLogoFile);
+			}
+
+			$logoKey = $this->image->getKey($headerLogoFile);
+			$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_H - 2.0, true);
+			$headerOut .= $this->image->getSetImage(
+				$this->headerLogoImageId,
+				$rm - $logoDim['width'],
+				$headerY + ((self::HEADER_H - $logoDim['height']) / 2),
+				$logoDim['width'],
+				$logoDim['height'],
+				$ph,
 			);
 		}
 
