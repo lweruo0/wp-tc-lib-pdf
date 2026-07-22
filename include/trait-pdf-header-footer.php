@@ -24,10 +24,10 @@ trait PdfHeaderFooterTrait {
 	private const HEADER_H = 12.0;
 
 	/** Width reserved for the header logo (mm). */
-	private const HEADER_LOGO_W = 84.0;
+	private const HEADER_LOGO_W = 58.8;
 
 	/** Maximum height reserved for the header logo (mm). */
-	private const HEADER_LOGO_H = 36.0;
+	private const HEADER_LOGO_H = 25.2;
 
 	/** Height of the footer band (mm). */
 	private const FOOTER_H = 10.0;
@@ -173,10 +173,11 @@ trait PdfHeaderFooterTrait {
 			$subtitleH = 6.0;
 			$headerOut .= $this->color->getPdfColor('#1a5fb4');
 			if ($subtitleW > 0.0) {
+				$subtitleFont = $this->font->insert($this->pon, 'helvetica', '', 12);
+				$headerOut .= $subtitleFont['out'];
 				$linkTextW = min($subtitleW, $this->getStringWidth($this->headerSubtitle));
 				if ($this->headerUrl !== '') {
-					$subtitleLinkFont = $this->font->insert($this->pon, 'helvetica', 'U', 12);
-					$headerOut .= $subtitleLinkFont['out'];
+					$linkTextW = max(0.0, $linkTextW - 0.6);
 				}
 
 				$headerOut .= $this->getTextCell(
@@ -218,7 +219,7 @@ trait PdfHeaderFooterTrait {
 					$annotationId = $this->setLink(
 						posx: $subtitleX,
 						posy: $subtitleY,
-						width: $subtitleW,
+						width: max(0.1, $linkTextW),
 						height: $subtitleH,
 						link: $this->headerUrl,
 					);
