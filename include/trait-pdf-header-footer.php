@@ -52,6 +52,56 @@ trait PdfHeaderFooterTrait {
 	}
 
 	/**
+	 * Draw DIN letter helper guides on the current page.
+	 *
+	 * This is a tc-lib-pdf port of the old TCPDF helper layout.
+	 *
+	 * @return void
+	 */
+	public function gen_hilfslinien(): void {
+		$pid = $this->page->getPageId();
+		if ($pid < 0) {
+			return;
+		}
+
+		$style = [
+			'lineWidth' => 0.5,
+			'lineCap' => 'butt',
+			'lineJoin' => 'miter',
+			'dashArray' => [],
+			'dashPhase' => 0,
+			'lineColor' => '#777777',
+		];
+
+		$curfont = $this->font->getCurrentFont();
+		$rowHeight = max(0.1, $this->toUnit((float) $curfont['height']));
+
+		$out = $this->graph->getStartTransform();
+
+		$y = 45.0;
+		for ($i = 0; $i < 9; ++$i) {
+			$out .= $this->graph->getRect(25.0, $y, 165.0, $rowHeight, 'D', $style);
+			$y += $rowHeight;
+		}
+
+		$out .= $this->graph->getRect(20.0, 45.0, 85.0, 45.0, 'D', $style);
+		$out .= $this->graph->getRect(25.0, 57.7, 80.0, 27.3, 'D', $style);
+		$out .= $this->graph->getRect(125.0, 50.0, 75.0, 40.0, 'D', $style);
+		$out .= $this->graph->getRect(25.0, 100.0, 165.0, $rowHeight, 'D', $style);
+
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
+	}
+
+
+
+
+
+
+
+
+
+	/**
 	 * Generates the repeating header and footer for every page.
 	 *
 	 * This method is called automatically by setPageContext() whenever a new
@@ -66,6 +116,8 @@ trait PdfHeaderFooterTrait {
 			$pid = $this->page->getPageId();
 		}
 
+		$this->gen_hilfslinien();
+
 		// Insert the default font once and cache it for subsequent pages.
 		if (!isset($this->defaultfont)) {
 			$this->defaultfont = $this->font->insert($this->pon, 'helvetica', '', 9);
@@ -78,15 +130,6 @@ trait PdfHeaderFooterTrait {
 		$lm = self::HF_MARGIN; // left margin x
 		$rm = $pw - self::HF_MARGIN; // right margin x
 		$tw = $pw - (2 * self::HF_MARGIN); // usable band width
-
-		$lineStyle = [
-			'lineWidth' => 0.25,
-			'lineCap' => 'butt',
-			'lineJoin' => 'miter',
-			'dashArray' => [],
-			'dashPhase' => 0,
-			'lineColor' => '#555555',
-		];
 
 		$out = '';
 
@@ -154,9 +197,6 @@ trait PdfHeaderFooterTrait {
 			);
 		}
 
-		// Separator line below the header
-		$headerLineY = $headerY + self::HEADER_H;
-		$headerOut .= $this->graph->getLine($lm, $headerLineY, $rm, $headerLineY, $lineStyle);
 		$headerOut .= $this->graph->getStopTransform();
 
 		$out .= $this->beginArtifact('Pagination', 'Header');
@@ -168,9 +208,6 @@ trait PdfHeaderFooterTrait {
 		$footerLineY = $ph - self::HF_MARGIN - self::FOOTER_H;
 		$footerOut = $this->graph->getStartTransform();
 		$footerOut .= $this->defaultfont['out'];
-
-		// Separator line above the footer
-		$footerOut .= $this->graph->getLine($lm, $footerLineY, $rm, $footerLineY, $lineStyle);
 
 		// Page number – centred
 		$footerOut .= $this->color->getPdfColor('#555555');
