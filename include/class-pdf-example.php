@@ -60,7 +60,7 @@ class PdfExample extends PdfTemplate {
 	 * @return void
 	 */
 	protected function render(): void {
-		$this->setHeaderText('Sample Document', date('Y-m-d'));
+		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
 
 		$this->addPage();
 

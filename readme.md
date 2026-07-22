@@ -137,7 +137,7 @@ class PdfReportWithFooter extends PdfTemplate {
     }
 
     protected function render(): void {
-        $this->setHeaderText('Bericht', date('Y-m-d'));
+		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
         $this->addPage();
 
         // Ihr Inhalt hier
@@ -272,7 +272,7 @@ class PdfCustomReport extends PdfTemplate {
     }
 
     protected function render(): void {
-        $this->setHeaderText('Custom Report', $this->report_date);
+		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
         $this->addPage();
 
         // Render data

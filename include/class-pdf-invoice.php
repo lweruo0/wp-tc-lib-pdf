@@ -99,7 +99,7 @@ class PdfInvoice extends PdfTemplate {
 	 * @return void
 	 */
 	protected function render(): void {
-		$this->setHeaderText('Invoice', (string) $this->getForm('invoice_date', $this->invoice_date));
+		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
 		$this->addPage();
 
 		$out = '';

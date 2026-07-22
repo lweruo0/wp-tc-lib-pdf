@@ -35,6 +35,9 @@ trait PdfHeaderFooterTrait {
 	/** Subtitle / date shown right-aligned in the header. */
 	private string $headerSubtitle = '';
 
+	/** URL for the header logo link. */
+	private string $headerUrl = '';
+
 	/** Cached image instance ID for the header logo. */
 	private ?int $headerLogoImageId = null;
 
@@ -46,9 +49,10 @@ trait PdfHeaderFooterTrait {
 	 *
 	 * @return void
 	 */
-	public function setHeaderText(string $title, string $subtitle = ''): void {
+	public function setHeaderText(string $title, string $subtitle = '', string $url = ''): void {
 		$this->headerTitle = $title;
 		$this->headerSubtitle = $subtitle;
+		$this->headerUrl = $url;
 	}
 
 	/**
@@ -82,9 +86,9 @@ trait PdfHeaderFooterTrait {
 		/* DIN 5008 Form B Absender */
 		$out .= $this->graph->getRect(125.0, 50.0, 75.0, 40.0, 'D', $style);
 		/* DIN 5008 Form B Textfeld */
-		$out .= $this->graph->getRect(25.0, 98.46, 165.0, 200.0, 'D', $style);
+		$out .= $this->graph->getRect(25.0, 98.46, 165.0, 160.0, 'D', $style);
 		/* DIN 5008 Form B Firmenangaben */
-		$out .= $this->graph->getRect(25.0, 267.0, 165.0, 20.0, 'D', $style);
+		$out .= $this->graph->getRect(25.0, 265.0, 165.0, 25.0, 'D', $style);
 
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
@@ -133,20 +137,22 @@ trait PdfHeaderFooterTrait {
 		// ---- HEADER ------------------------------------------------
 
 		$headerY = self::HF_MARGIN;
+		$headerTitleX = 25.0;
+		$headerTitleW = ($tw * 0.65) - ($headerTitleX - $lm);
 		$headerOut = $this->graph->getStartTransform();
 		$headerOut .= $this->defaultfont['out'];
 		$headerLogoLeft = $rm - self::HEADER_LOGO_W;
 
 		// Title – left-aligned, bold
 		if ($this->headerTitle !== '') {
-			$bfontBold = $this->font->insert($this->pon, 'helvetica', 'B', 10);
+			$bfontBold = $this->font->insert($this->pon, 'helvetica', 'B', 22);
 			$headerOut .= $bfontBold['out'];
-			$headerOut .= $this->color->getPdfColor('#1a3a6b');
+			$headerOut .= $this->color->getPdfColor('#000');
 			$headerOut .= $this->getTextCell(
 				txt: $this->headerTitle,
-				posx: $lm,
+				posx: $headerTitleX,
 				posy: $headerY,
-				width: $tw * 0.65,
+				width: $headerTitleW,
 				height: self::HEADER_H,
 				offset: 0,
 				linespace: 0,
@@ -156,23 +162,36 @@ trait PdfHeaderFooterTrait {
 			$headerOut .= $this->defaultfont['out'];
 		}
 
-		// Subtitle – right-aligned
+		// Subtitle – below title, left-aligned
 		if ($this->headerSubtitle !== '') {
-			$subtitleX = $lm + ($tw * 0.65);
+			$subtitleX = $headerTitleX;
+			$subtitleY = $headerY + self::HEADER_H;
 			$subtitleW = max(0.0, $headerLogoLeft - 1.5 - $subtitleX);
-			$headerOut .= $this->color->getPdfColor('#555555');
+			$subtitleH = 6.0;
+			$headerOut .= $this->color->getPdfColor('#1a5fb4');
 			if ($subtitleW > 0.0) {
 				$headerOut .= $this->getTextCell(
 					txt: $this->headerSubtitle,
 					posx: $subtitleX,
-					posy: $headerY,
+					posy: $subtitleY,
 					width: $subtitleW,
-					height: self::HEADER_H,
+					height: $subtitleH,
 					offset: 0,
 					linespace: 0,
 					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-					halign: \Com\Tecnick\Pdf\TextHAlign::Right,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 				);
+
+				if ($this->headerUrl !== '') {
+					$annotationId = $this->setLink(
+						posx: $subtitleX,
+						posy: $subtitleY,
+						width: $subtitleW,
+						height: $subtitleH,
+						link: $this->headerUrl,
+					);
+					$this->page->addAnnotRef($annotationId);
+				}
 			}
 		}
 
