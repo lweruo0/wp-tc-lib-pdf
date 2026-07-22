@@ -228,7 +228,7 @@ trait PdfHeaderFooterTrait {
 			}
 		}
 
-		$headerLogoFile = __DIR__ . '/images/logo.png';
+		$headerLogoFile = __DIR__ . '/images/logo_bfv2.png';
 		if (is_file($headerLogoFile)) {
 			if ($this->headerLogoImageId === null) {
 				$this->headerLogoImageId = $this->image->add($headerLogoFile);
