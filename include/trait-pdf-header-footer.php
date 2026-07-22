@@ -202,11 +202,11 @@ trait PdfHeaderFooterTrait {
 						'lineColor' => '#11417a',
 					];
 					if ($linkTextW > 0.0) {
-						$underlineY = $subtitleY + $subtitleH;
+						$underlineY = $subtitleY + $subtitleH - 0.8;
 						$headerOut .= $this->graph->getLine(
 							$subtitleX,
 							$underlineY,
-							$subtitleX + $linkTextW,
+							$subtitleX + $linkTextW + 0.3,
 							$underlineY,
 							$underlineStyle,
 						);
