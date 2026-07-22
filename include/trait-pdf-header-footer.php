@@ -24,7 +24,10 @@ trait PdfHeaderFooterTrait {
 	private const HEADER_H = 12.0;
 
 	/** Width reserved for the header logo (mm). */
-	private const HEADER_LOGO_W = 24.0;
+	private const HEADER_LOGO_W = 42.0;
+
+	/** Maximum height reserved for the header logo (mm). */
+	private const HEADER_LOGO_H = 18.0;
 
 	/** Height of the footer band (mm). */
 	private const FOOTER_H = 10.0;
@@ -143,10 +146,10 @@ trait PdfHeaderFooterTrait {
 		$headerOut .= $this->defaultfont['out'];
 		$headerLogoLeft = $rm - self::HEADER_LOGO_W;
 
-		// Title – left-aligned, bold
+		// Title – left-aligned, regular
 		if ($this->headerTitle !== '') {
-			$bfontBold = $this->font->insert($this->pon, 'helvetica', 'B', 22);
-			$headerOut .= $bfontBold['out'];
+			$titleFont = $this->font->insert($this->pon, 'helvetica', '', 20);
+			$headerOut .= $titleFont['out'];
 			$headerOut .= $this->color->getPdfColor('#000');
 			$headerOut .= $this->getTextCell(
 				txt: $this->headerTitle,
@@ -211,11 +214,11 @@ trait PdfHeaderFooterTrait {
 			}
 
 			$logoKey = $this->image->getKey($headerLogoFile);
-			$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_H - 2.0, true);
+			$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
 			$headerOut .= $this->image->getSetImage(
 				$this->headerLogoImageId,
 				$rm - $logoDim['width'],
-				$headerY + ((self::HEADER_H - $logoDim['height']) / 2),
+				$headerY + ((self::HEADER_LOGO_H - $logoDim['height']) / 2),
 				$logoDim['width'],
 				$logoDim['height'],
 				$ph,
