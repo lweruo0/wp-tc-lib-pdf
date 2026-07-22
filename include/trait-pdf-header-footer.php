@@ -73,8 +73,7 @@ trait PdfHeaderFooterTrait {
 			'lineColor' => '#777777',
 		];
 
-		$curfont = $this->font->getCurrentFont();
-		$rowHeight = max(0.1, $this->toUnit((float) $curfont['height']));
+		$rowHeight = 4.0;
 
 		$out = $this->graph->getStartTransform();
 
@@ -116,12 +115,12 @@ trait PdfHeaderFooterTrait {
 			$pid = $this->page->getPageId();
 		}
 
-		$this->gen_hilfslinien();
-
 		// Insert the default font once and cache it for subsequent pages.
 		if (!isset($this->defaultfont)) {
-			$this->defaultfont = $this->font->insert($this->pon, 'helvetica', '', 9);
+			$this->defaultfont = $this->font->insert($this->pon, 'helvetica', '', 12);
 		}
+
+		$this->gen_hilfslinien();
 
 		$page = $this->page->getPage($pid);
 		$pw = $page['width'];
