@@ -137,8 +137,8 @@ trait PdfHeaderFooterTrait {
 		// ---- HEADER ------------------------------------------------
 
 		$headerY = self::HF_MARGIN;
-		$headerTitleX = 25.0;
-		$headerTitleW = ($tw * 0.65) - ($headerTitleX - $lm);
+		$headerTitleX = 20.0;
+		$headerTitleW = $tw - ($headerTitleX - $lm);
 		$headerOut = $this->graph->getStartTransform();
 		$headerOut .= $this->defaultfont['out'];
 		$headerLogoLeft = $rm - self::HEADER_LOGO_W;
@@ -170,6 +170,11 @@ trait PdfHeaderFooterTrait {
 			$subtitleH = 6.0;
 			$headerOut .= $this->color->getPdfColor('#1a5fb4');
 			if ($subtitleW > 0.0) {
+				if ($this->headerUrl !== '') {
+					$subtitleLinkFont = $this->font->insert($this->pon, 'helvetica', 'U', 12);
+					$headerOut .= $subtitleLinkFont['out'];
+				}
+
 				$headerOut .= $this->getTextCell(
 					txt: $this->headerSubtitle,
 					posx: $subtitleX,
@@ -181,6 +186,10 @@ trait PdfHeaderFooterTrait {
 					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 				);
+
+				if ($this->headerUrl !== '') {
+					$headerOut .= $this->defaultfont['out'];
+				}
 
 				if ($this->headerUrl !== '') {
 					$annotationId = $this->setLink(
