@@ -249,10 +249,10 @@ trait PdfRechnungsdatenTrait {
 		$greyHex = sprintf('#%02x%02x%02x', $grey, $grey, $grey);
 
 		$cells = [
-			['w' => $w1, 'txt' => $t1, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Left],
-			['w' => $w2, 'txt' => $t2, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Left],
-			['w' => $w3, 'txt' => $t3, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Right],
-			['w' => $w4, 'txt' => $t4, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Right],
+			['w' => $w1, 'txt' => $t1, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Center],
+			['w' => $w2, 'txt' => $t2, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Center],
+			['w' => $w3, 'txt' => $t3, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Center],
+			['w' => $w4, 'txt' => $t4, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Center],
 		];
 
 		$textFont = $this->font->insert($this->pon, 'helvetica', '', 11);
@@ -266,22 +266,27 @@ trait PdfRechnungsdatenTrait {
 				continue;
 			}
 
+			$innerX = $cursorX + 1.0;
+			$innerW = max(0.0, $cellW - 2.0);
+
 			$out .= $this->color->getPdfColor($greyHex);
 			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'F');
 
 			$out .= $this->color->getPdfColor('#000000');
-			$out .= $this->getTextCell(
-				txt: (string) $cell['txt'],
-				posx: $cursorX,
-				posy: $y,
-				width: $cellW,
-				height: $h,
-				offset: 0,
-				linespace: 0,
-				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-				halign: $cell['halign'],
-				drawcell: false,
-			);
+			if ($innerW > 0.0) {
+				$out .= $this->getTextCell(
+					txt: (string) $cell['txt'],
+					posx: $innerX,
+					posy: $y,
+					width: $innerW,
+					height: $h,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+					halign: $cell['halign'],
+					drawcell: false,
+				);
+			}
 
 			$cursorX += $cellW;
 		}
