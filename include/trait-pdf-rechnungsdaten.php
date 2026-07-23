@@ -243,6 +243,7 @@ trait PdfRechnungsdatenTrait {
 		string $t3,
 		string $t4,
 		int $grey,
+		string $fontstyle = '',
 	): string {
 
 		$grey = max(0, min(255, $grey));
@@ -255,7 +256,7 @@ trait PdfRechnungsdatenTrait {
 			['w' => $w4, 'txt' => $t4, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Right],
 		];
 
-		$textFont = $this->font->insert($this->pon, 'helvetica', '', 11);
+		$textFont = $this->font->insert($this->pon, 'helvetica', $fontstyle, 11);
 		$out = $this->graph->getStartTransform();
 		$out .= $textFont['out'];
 		$cursorX = $x;
@@ -308,8 +309,9 @@ trait PdfRechnungsdatenTrait {
 		string $t3,
 		string $t4,
 		int $grey,
+		string $fontstyle = '',
 	): void {
-		$this->page->addContent($this->generiere_Zeile($x, $y, $h, $w1, $w2, $w3, $w4, $t1, $t2, $t3, $t4, $grey));
+		$this->page->addContent($this->generiere_Zeile($x, $y, $h, $w1, $w2, $w3, $w4, $t1, $t2, $t3, $t4, $grey, $fontstyle));
 	}
 
 
