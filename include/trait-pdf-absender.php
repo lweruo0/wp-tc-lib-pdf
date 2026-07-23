@@ -22,7 +22,7 @@ trait PdfAbsenderTrait {
 	private const ABSENDER_X = 125.0;
 
 	/** Default Y position for sender area (mm). */
-	private const ABSENDER_Y = 50.0;
+	private const ABSENDER_Y = 47.0;
 
 	/** Default width for sender area (mm). */
 	private const ABSENDER_W = 85.0;
