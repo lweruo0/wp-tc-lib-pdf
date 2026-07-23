@@ -82,9 +82,6 @@ trait PdfHeaderFooterTrait {
 			'fillColor' => '#fff',
 		];
 
-
-		$rowHeight = 4.0;
-
 		$out = $this->graph->getStartTransform();
 
 		/* DIN 5008 Form B Anschrift */
@@ -282,4 +279,111 @@ trait PdfHeaderFooterTrait {
 
 		return $out;
 	}
+
+
+	public function generate_footer_adresses() {
+		$baseX = 25.0;
+		$colW = 41.25;
+		$rowH = 4.2;
+		$y = 265.0;
+
+		$fontTinyBold = $this->font->insert($this->pon, 'helvetica', 'B', 8);
+		$fontTiny = $this->font->insert($this->pon, 'helvetica', '', 8);
+
+		$out = $this->graph->getStartTransform();
+		$out .= $this->color->getPdfColor('#000000');
+
+		$drawFooterRow = function (float $rowY, array $values) use ($baseX, $colW, $rowH): string {
+			$rowOut = '';
+			for ($i = 0; $i < 4; ++$i) {
+				$rowOut .= $this->getTextCell(
+					txt: (string) ($values[$i] ?? ''),
+					posx: $baseX + ($i * $colW),
+					posy: $rowY,
+					width: $colW,
+					height: $rowH,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				);
+			}
+
+			return $rowOut;
+		};
+
+		$out .= $fontTinyBold['out'];
+		$out .= $drawFooterRow($y, ['1. Vorsitzender', '2. Vorsitzender', 'Kassier', 'Schriftf\u00fchrer']);
+
+		$y += $rowH;
+		$out .= $fontTiny['out'];
+		$out .= $drawFooterRow($y, [
+			(string) $this->getAddress('name_1v', ''),
+			(string) $this->getAddress('name_2v', ''),
+			(string) $this->getAddress('name_kassier', ''),
+			(string) $this->getAddress('name_schriftfuehrer', ''),
+		]);
+
+		$y += $rowH;
+		$out .= $drawFooterRow($y, [
+			(string) $this->getAddress('strasse_1v', ''),
+			(string) $this->getAddress('strasse_2v', ''),
+			(string) $this->getAddress('strasse_kassier', ''),
+			(string) $this->getAddress('strasse_schriftfuehrer', ''),
+		]);
+
+		$y += $rowH;
+		$out .= $drawFooterRow($y, [
+			(string) $this->getAddress('ort_1v', ''),
+			(string) $this->getAddress('ort_2v', ''),
+			(string) $this->getAddress('ort_kassier', ''),
+			(string) $this->getAddress('ort_schriftfuehrer', ''),
+		]);
+
+		$y += $rowH;
+		$out .= $drawFooterRow($y, [
+			(string) $this->getAddress('tel_1v', ''),
+			(string) $this->getAddress('tel_2v', ''),
+			(string) $this->getAddress('tel_kassier', ''),
+			(string) $this->getAddress('tel_schriftfuehrer', ''),
+		]);
+
+		$y += ($rowH * 1.5);
+		$out .= $fontTinyBold['out'];
+		$out .= $this->getTextCell(
+			txt: 'Bankverbindung',
+			posx: $baseX,
+			posy: $y,
+			width: 165.0,
+			height: $rowH,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
+		$y += $rowH;
+		$out .= $fontTiny['out'];
+		$bankLine = (string) $this->getAddress('name_verein', '')
+			. ',   ' . (string) $this->getAddress('bank_verein', '')
+			. ',   BIC: ' . (string) $this->getAddress('bic_verein', '')
+			. ',   IBAN: ' . (string) $this->getAddress('iban_verein', '');
+		$out .= $this->getTextCell(
+			txt: $bankLine,
+			posx: $baseX,
+			posy: $y,
+			width: 165.0,
+			height: $rowH,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
+	}
+
+
+
 }

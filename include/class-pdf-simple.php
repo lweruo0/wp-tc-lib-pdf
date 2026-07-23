@@ -46,8 +46,8 @@ class PdfSimple extends PdfTemplate {
 				. "You can extend PdfTemplate and override the render() method to create "
 				. "your own PDF layouts and content structures.",
 		]);
-
-		$this->setAddressdata([]);
+		$adressData = get_option ( 'bfv_adressen' );
+		$this->setAddressdata($adressData);
 	}
 
 	/**
