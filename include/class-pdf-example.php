@@ -82,34 +82,21 @@ class PdfExample extends PdfTemplate {
 
 		$out = '';
 
-		// Title – large bold
-		$fontBig = $this->font->insert($this->pon, 'helvetica', 'B', 24);
-		$out .= $fontBig['out'];
-		$out .= $this->color->getPdfColor('#1a3a6b');
-		$out .= $this->getTextCell(
-			txt: 'Example PDF Template',
-			posx: 10,
-			posy: 50,
-			width: 190,
-			height: 20,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-		);
 
+		/* DIN 5008 Form B Textfeld */
+		// $out .= $this->graph->getRect(25.0, 98.46, 165.0, 160.0, 'D', [$style]);
 		// Body text
 		$fontNormal = $this->font->insert($this->pon, 'helvetica', '', 12);
 		$out .= $fontNormal['out'];
 		$out .= $this->color->getPdfColor((string) $this->getOption('text_color', '#555555'));
 		$out .= $this->getTextCell(
 			txt: (string) $this->getForm('body_text', ''),
-			posx: 10,
-			posy: 80,
-			width: 190,
+			posx: 25,
+			posy: 98.46,
+			width: 165,
 			height: 100,
 			offset: 0,
-			linespace: 5,
+			linespace: 1,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
