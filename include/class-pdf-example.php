@@ -83,7 +83,6 @@ class PdfExample extends PdfTemplate {
 		$this->addPage();
 		$this->add_adress_field();
 		$this->add_falzmarken();
-
 		$out = '';
 
 
