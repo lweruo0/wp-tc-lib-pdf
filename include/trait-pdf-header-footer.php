@@ -65,10 +65,10 @@ trait PdfHeaderFooterTrait {
 	 *
 	 * @return void
 	 */
-	public function gen_hilfslinien(): void {
+	public function generate_debug_helpers(): string {
 		$pid = $this->page->getPageId();
 		if ($pid < 0) {
-			return;
+			return '';
 		}
 
 		$style = [
@@ -94,38 +94,116 @@ trait PdfHeaderFooterTrait {
 		$out .= $this->graph->getRect(25.0, 265.0, 165.0, 25.0, 'D', [$style]);
 
 		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
+		return $out;
 	}
 
 
 
+	public function generate_footer_adresses() {
+		$baseX = 25.0;
+		$colW = 41.25;
+		$rowH = 4.2;
+		$y = 265.0;
 
+		$fontTinyBold = $this->font->insert($this->pon, 'helvetica', 'B', 8);
+		$fontTiny = $this->font->insert($this->pon, 'helvetica', '', 8);
 
+		$out = $this->graph->getStartTransform();
+		$out .= $this->color->getPdfColor('#000000');
 
+		$drawFooterRow = function (float $rowY, array $values) use ($baseX, $colW, $rowH): string {
+			$rowOut = '';
+			for ($i = 0; $i < 4; ++$i) {
+				$rowOut .= $this->getTextCell(
+					txt: (string) ($values[$i] ?? ''),
+					posx: $baseX + ($i * $colW),
+					posy: $rowY,
+					width: $colW,
+					height: $rowH,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				);
+			}
 
+			return $rowOut;
+		};
 
+		$out .= $fontTinyBold['out'];
+		$out .= $drawFooterRow($y, ['1. Vorsitzender', '2. Vorsitzender', 'Kassier', 'Schriftf\u00fchrer']);
 
-	/**
-	 * Generates the repeating header and footer for every page.
-	 *
-	 * This method is called automatically by setPageContext() whenever a new
-	 * page is added, provided enableDefaultPageContent(true) has been called.
-	 *
-	 * @param int $pid Page index (0-based).
-	 *
-	 * @return string Raw PDF stream prepended to the page content.
-	 */
-	public function defaultPageContent(int $pid = -1): string {
-		if ($pid < 0) {
-			$pid = $this->page->getPageId();
-		}
+		$y += $rowH;
+		$out .= $fontTiny['out'];
+		$out .= $drawFooterRow($y, [
+			(string) $this->getAddress('name_1v', ''),
+			(string) $this->getAddress('name_2v', ''),
+			(string) $this->getAddress('name_kassier', ''),
+			(string) $this->getAddress('name_schriftfuehrer', ''),
+		]);
 
-		// Insert the default font once and cache it for subsequent pages.
-		if (!isset($this->defaultfont)) {
-			$this->defaultfont = $this->font->insert($this->pon, 'helvetica', '', 12);
-		}
+		$y += $rowH;
+		$out .= $drawFooterRow($y, [
+			(string) $this->getAddress('strasse_1v', ''),
+			(string) $this->getAddress('strasse_2v', ''),
+			(string) $this->getAddress('strasse_kassier', ''),
+			(string) $this->getAddress('strasse_schriftfuehrer', ''),
+		]);
 
-		$this->gen_hilfslinien();
+		$y += $rowH;
+		$out .= $drawFooterRow($y, [
+			(string) $this->getAddress('ort_1v', ''),
+			(string) $this->getAddress('ort_2v', ''),
+			(string) $this->getAddress('ort_kassier', ''),
+			(string) $this->getAddress('ort_schriftfuehrer', ''),
+		]);
+
+		$y += $rowH;
+		$out .= $drawFooterRow($y, [
+			(string) $this->getAddress('tel_1v', ''),
+			(string) $this->getAddress('tel_2v', ''),
+			(string) $this->getAddress('tel_kassier', ''),
+			(string) $this->getAddress('tel_schriftfuehrer', ''),
+		]);
+
+		$y += ($rowH * 1.5);
+		$out .= $fontTinyBold['out'];
+		$out .= $this->getTextCell(
+			txt: 'Bankverbindung',
+			posx: $baseX,
+			posy: $y,
+			width: 165.0,
+			height: $rowH,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
+		$y += $rowH;
+		$out .= $fontTiny['out'];
+		$bankLine = (string) $this->getAddress('name_verein', '')
+			. ',   ' . (string) $this->getAddress('bank_verein', '')
+			. ',   BIC: ' . (string) $this->getAddress('bic_verein', '')
+			. ',   IBAN: ' . (string) $this->getAddress('iban_verein', '');
+		$out .= $this->getTextCell(
+			txt: $bankLine,
+			posx: $baseX,
+			posy: $y,
+			width: 165.0,
+			height: $rowH,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
+		$out .= $this->graph->getStopTransform();
+		return $out;
+	}
+
+	public function generate_header(int $pid) {
+
 
 		$page = $this->page->getPage($pid);
 		$pw = $page['width'];
@@ -135,9 +213,6 @@ trait PdfHeaderFooterTrait {
 		$rm = $pw - self::HF_MARGIN; // right margin x
 		$tw = $pw - (2 * self::HF_MARGIN); // usable band width
 
-		$out = '';
-
-		// ---- HEADER ------------------------------------------------
 
 		$headerY = self::HF_MARGIN;
 		$headerTitleX = 20.0;
@@ -246,143 +321,52 @@ trait PdfHeaderFooterTrait {
 			);
 		}
 
-		$headerOut .= $this->graph->getStopTransform();
+		$headerOut .= $this->graph->getStopTransform();	
+		return $headerOut;
+	}
 
+
+	/**
+	 * Generates the repeating header and footer for every page.
+	 *
+	 * This method is called automatically by setPageContext() whenever a new
+	 * page is added, provided enableDefaultPageContent(true) has been called.
+	 *
+	 * @param int $pid Page index (0-based).
+	 *
+	 * @return string Raw PDF stream prepended to the page content.
+	 */
+	public function defaultPageContent(int $pid = -1): string {
+		if ($pid < 0) {
+			$pid = $this->page->getPageId();
+		}
+
+		// Insert the default font once and cache it for subsequent pages.
+		if (!isset($this->defaultfont)) {
+			$this->defaultfont = $this->font->insert($this->pon, 'helvetica', '', 12);
+		}
+
+
+
+		$out = '';
+		// ---- HEADER ------------------------------------------------
 		$out .= $this->beginArtifact('Pagination', 'Header');
-		$out .= $headerOut;
+		$out .= $this->generate_header($pid);
 		$out .= $this->endArtifact();
 
 		// ---- FOOTER ------------------------------------------------
-
-		$footerLineY = $ph - self::HF_MARGIN - self::FOOTER_H;
-		$footerOut = $this->graph->getStartTransform();
-		$footerOut .= $this->defaultfont['out'];
-
-		// Page number – centred
-		$footerOut .= $this->color->getPdfColor('#555555');
-		$footerOut .= $this->getTextCell(
-			txt: 'Page ' . ($pid + 1),
-			posx: $lm,
-			posy: $footerLineY,
-			width: $tw,
-			height: self::FOOTER_H,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-		);
-		$footerOut .= $this->graph->getStopTransform();
-
 		$out .= $this->beginArtifact('Pagination', 'Footer');
-		$out .= $footerOut;
+		$out .= $this->generate_footer_adresses();
 		$out .= $this->endArtifact();
+
+		$helpersOut = $this->generate_debug_helpers();
+		$this->page->addContent($helpersOut);
 
 		return $out;
 	}
 
 
-	public function generate_footer_adresses() {
-		$baseX = 25.0;
-		$colW = 41.25;
-		$rowH = 4.2;
-		$y = 265.0;
 
-		$fontTinyBold = $this->font->insert($this->pon, 'helvetica', 'B', 8);
-		$fontTiny = $this->font->insert($this->pon, 'helvetica', '', 8);
-
-		$out = $this->graph->getStartTransform();
-		$out .= $this->color->getPdfColor('#000000');
-
-		$drawFooterRow = function (float $rowY, array $values) use ($baseX, $colW, $rowH): string {
-			$rowOut = '';
-			for ($i = 0; $i < 4; ++$i) {
-				$rowOut .= $this->getTextCell(
-					txt: (string) ($values[$i] ?? ''),
-					posx: $baseX + ($i * $colW),
-					posy: $rowY,
-					width: $colW,
-					height: $rowH,
-					offset: 0,
-					linespace: 0,
-					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-				);
-			}
-
-			return $rowOut;
-		};
-
-		$out .= $fontTinyBold['out'];
-		$out .= $drawFooterRow($y, ['1. Vorsitzender', '2. Vorsitzender', 'Kassier', 'Schriftf\u00fchrer']);
-
-		$y += $rowH;
-		$out .= $fontTiny['out'];
-		$out .= $drawFooterRow($y, [
-			(string) $this->getAddress('name_1v', ''),
-			(string) $this->getAddress('name_2v', ''),
-			(string) $this->getAddress('name_kassier', ''),
-			(string) $this->getAddress('name_schriftfuehrer', ''),
-		]);
-
-		$y += $rowH;
-		$out .= $drawFooterRow($y, [
-			(string) $this->getAddress('strasse_1v', ''),
-			(string) $this->getAddress('strasse_2v', ''),
-			(string) $this->getAddress('strasse_kassier', ''),
-			(string) $this->getAddress('strasse_schriftfuehrer', ''),
-		]);
-
-		$y += $rowH;
-		$out .= $drawFooterRow($y, [
-			(string) $this->getAddress('ort_1v', ''),
-			(string) $this->getAddress('ort_2v', ''),
-			(string) $this->getAddress('ort_kassier', ''),
-			(string) $this->getAddress('ort_schriftfuehrer', ''),
-		]);
-
-		$y += $rowH;
-		$out .= $drawFooterRow($y, [
-			(string) $this->getAddress('tel_1v', ''),
-			(string) $this->getAddress('tel_2v', ''),
-			(string) $this->getAddress('tel_kassier', ''),
-			(string) $this->getAddress('tel_schriftfuehrer', ''),
-		]);
-
-		$y += ($rowH * 1.5);
-		$out .= $fontTinyBold['out'];
-		$out .= $this->getTextCell(
-			txt: 'Bankverbindung',
-			posx: $baseX,
-			posy: $y,
-			width: 165.0,
-			height: $rowH,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
-
-		$y += $rowH;
-		$out .= $fontTiny['out'];
-		$bankLine = (string) $this->getAddress('name_verein', '')
-			. ',   ' . (string) $this->getAddress('bank_verein', '')
-			. ',   BIC: ' . (string) $this->getAddress('bic_verein', '')
-			. ',   IBAN: ' . (string) $this->getAddress('iban_verein', '');
-		$out .= $this->getTextCell(
-			txt: $bankLine,
-			posx: $baseX,
-			posy: $y,
-			width: 165.0,
-			height: $rowH,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
-
-		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
-	}
 
 
 
