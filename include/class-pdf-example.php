@@ -20,6 +20,7 @@ require_once __DIR__ . '/trait-pdf-header-footer.php';
  */
 class PdfExample extends PdfTemplate {
 	use PdfHeaderFooterTrait;
+	use PdfAdressTrait;
 
 	/**
 	 * Constructor.
@@ -46,10 +47,22 @@ class PdfExample extends PdfTemplate {
 		]);
 
 		$this->setFormdata([
+
+			'first_name' => 'John',
+			'last_name'  => 'Doe',
+			'street'     => '123 Main Street',
+			'zip'        => '12345',
+			'city'       => 'Sample City',
+			'email'      => 'john.doe@example.com',
+
 			'body_text' => "This is an example of a PDF template using tc-lib-pdf.\n\n"
 				. "You can customize this template by extending the PdfExample class.\n\n"
 				. "The header and footer are generated automatically using the PdfHeaderFooterTrait.",
 		]);
+
+
+
+
 
 		$adressData = get_option ( 'bfv_adressen' );
 		$this->setAddressdata($adressData);
@@ -64,6 +77,7 @@ class PdfExample extends PdfTemplate {
 		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
 
 		$this->addPage();
+		$this->generate_adress_field();
 
 		$out = '';
 

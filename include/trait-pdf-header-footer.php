@@ -94,12 +94,10 @@ trait PdfHeaderFooterTrait {
 		return $out;
 	}
 
-
-
 	public function generate_footer_adresses() {
 		$baseX = 25.0;
 		$colW = 41.25;
-		$rowH = 4.2;
+		$rowH = 3.8;
 		$y = 260.0;
 
 		$fontTinyBold = $this->font->insert($this->pon, 'helvetica', 'B', 8);
@@ -342,8 +340,6 @@ trait PdfHeaderFooterTrait {
 		if (!isset($this->defaultfont)) {
 			$this->defaultfont = $this->font->insert($this->pon, 'helvetica', '', 12);
 		}
-
-
 
 		$out = '';
 		// ---- HEADER ------------------------------------------------
