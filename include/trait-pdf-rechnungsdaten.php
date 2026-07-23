@@ -289,7 +289,9 @@ trait PdfRechnungsdatenTrait {
 	}
 
 	public function add_Zeile(
+		float $x,
 		float $y,
+		float $h,
 		float $w1,
 		float $w2,
 		float $w3,
@@ -300,7 +302,7 @@ trait PdfRechnungsdatenTrait {
 		string $t4,
 		int $grey,
 	): void {
-		$this->page->addContent($this->generiere_Zeile($y, $w1, $w2, $w3, $w4, $t1, $t2, $t3, $t4, $grey));
+		$this->page->addContent($this->generiere_Zeile($x, $y, $h, $w1, $w2, $w3, $w4, $t1, $t2, $t3, $t4, $grey));
 	}
 
 
