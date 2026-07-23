@@ -25,7 +25,7 @@ trait PdfAbsenderTrait {
 	private const ABSENDER_Y = 50.0;
 
 	/** Default width for sender area (mm). */
-	private const ABSENDER_W = 75.0;
+	private const ABSENDER_W = 85.0;
 
 	/** Default height for sender area (mm). */
 	private const ABSENDER_H = 40.0;
@@ -120,7 +120,7 @@ trait PdfAbsenderTrait {
 			width: max(0.0, $width),
 			height: max(0.0, $height),
 			offset: 0,
-			linespace: -1,
+			linespace: -0.2,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
