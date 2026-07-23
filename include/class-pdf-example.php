@@ -14,6 +14,7 @@ if (!defined('ABSPATH')) {
 
 require_once __DIR__ . '/class-pdf-template.php';
 require_once __DIR__ . '/trait-pdf-header-footer.php';
+require_once __DIR__ . '/trait-pdf-adress.php';
 
 /**
  * Example PDF Template with header and footer.
