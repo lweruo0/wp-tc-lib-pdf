@@ -16,6 +16,7 @@ require_once __DIR__ . '/class-pdf-template.php';
 require_once __DIR__ . '/trait-pdf-header-footer.php';
 require_once __DIR__ . '/trait-pdf-adress.php';
 require_once __DIR__ . '/trait-pdf-falzmarken.php';
+require_once __DIR__ . '/trait-pdf-absender.php';
 
 /**
  * Example PDF Template with header and footer.
@@ -24,6 +25,7 @@ class PdfExample extends PdfTemplate {
 	use PdfHeaderFooterTrait;
 	use PdfAdressTrait;
 	use PdfFalzmarkenTrait;
+	use PdfAbsenderTrait;
 
 	/**
 	 * Constructor.
@@ -83,6 +85,7 @@ class PdfExample extends PdfTemplate {
 		$this->addPage();
 		$this->add_adress_field();
 		$this->add_falzmarken();
+		$this->add_absender();
 		$out = '';
 
 

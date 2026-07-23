@@ -12,7 +12,6 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-
 /**
  * Trait for header and footer functionality.
  */
