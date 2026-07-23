@@ -71,7 +71,7 @@ trait PdfAdressTrait {
 	 * @param bool      $drawFrame Whether to draw a visible frame.
 	 * @param ?string[] $lines     Optional custom lines. Null uses addressdata.
 	 *
-	 * @return string Raw PDF stream.
+	 * @return void
 	 */
 	public function generate_adress_field(
 		float $x = self::ADDRESS_FIELD_X,
@@ -80,7 +80,7 @@ trait PdfAdressTrait {
 		float $height = self::ADDRESS_FIELD_H,
 		bool $drawFrame = false,
 		?array $lines = null,
-	): string {
+	): void {
 		$addressLines = $lines ?? $this->getAdressFieldLines();
 		$text = implode("\n", $addressLines);
 
