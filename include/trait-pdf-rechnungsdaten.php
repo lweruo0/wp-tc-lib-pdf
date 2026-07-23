@@ -50,7 +50,7 @@ trait PdfRechnungsdatenTrait {
 		/* formdata */
 		$zahlungsfrist = trim((string) $this->getForm('zahlungsfrist', ''));
 		$rechnungsnummer = trim((string) $this->getForm('rechnungsnummer', ''));
-		$brutto = trim((string) $this->getForm('brutto', ''));
+		$brutto = trim((string) $this->getForm('brutto', 0.0));
 
 		/* Fotoueberweisung */
 		/* https://de.wikipedia.org/wiki/EPC-QR-Code */
