@@ -249,10 +249,10 @@ trait PdfRechnungsdatenTrait {
 		$greyHex = sprintf('#%02x%02x%02x', $grey, $grey, $grey);
 
 		$cells = [
-			['w' => $w1, 'txt' => $t1, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Center],
-			['w' => $w2, 'txt' => $t2, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Center],
-			['w' => $w3, 'txt' => $t3, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Center],
-			['w' => $w4, 'txt' => $t4, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Center],
+			['w' => $w1, 'txt' => $t1, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Left],
+			['w' => $w2, 'txt' => $t2, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Left],
+			['w' => $w3, 'txt' => $t3, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Right],
+			['w' => $w4, 'txt' => $t4, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Right],
 		];
 
 		$textFont = $this->font->insert($this->pon, 'helvetica', '', 11);
@@ -282,7 +282,7 @@ trait PdfRechnungsdatenTrait {
 					height: $h,
 					offset: 0,
 					linespace: 0,
-					valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 					halign: $cell['halign'],
 					drawcell: false,
 				);
