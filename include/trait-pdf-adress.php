@@ -19,7 +19,7 @@ trait PdfAdressTrait {
 	private const ADDRESS_FIELD_X = 25.0;
 
 	/** Default Y position for the address field (mm). */
-	private const ADDRESS_FIELD_Y = 50.0;
+	private const ADDRESS_FIELD_Y = 45.0;
 
 	/** Default width of the address field (mm). */
 	private const ADDRESS_FIELD_W = 80.0;

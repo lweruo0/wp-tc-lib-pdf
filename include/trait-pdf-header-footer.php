@@ -54,45 +54,6 @@ trait PdfHeaderFooterTrait {
 		$this->headerUrl = $url;
 	}
 
-	/**
-	 * Draw DIN letter helper guides on the current page.
-	 *
-	 * This is a tc-lib-pdf port of the old TCPDF helper layout.
-	 *
-	 * @return string Raw PDF stream to be added to the page content.
-	 */
-	public function generate_debug_helpers(): string {
-		$pid = $this->page->getPageId();
-		if ($pid < 0) {
-			return '';
-		}
-
-		$style = [
-			'lineWidth' => 0.5,
-			'lineCap' => 'butt',
-			'lineJoin' => 'miter',
-			'miterLimit' => 10,
-			'dashArray' => [],
-			'dashPhase' => 0,
-			'lineColor' => '#777777',
-			'fillColor' => '#fff',
-		];
-
-		$out = $this->graph->getStartTransform();
-
-		/* DIN 5008 Form B Anschrift */
-		$out .= $this->graph->getRect(20.0, 45.0, 85.0, 45.0, 'D', [$style]);
-		/* DIN 5008 Form B Absender */
-		$out .= $this->graph->getRect(125.0, 50.0, 75.0, 40.0, 'D', [$style]);
-		/* DIN 5008 Form B Textfeld */
-		$out .= $this->graph->getRect(25.0, 98.46, 165.0, 160.0, 'D', [$style]);
-		/* DIN 5008 Form B Firmenangaben */
-		$out .= $this->graph->getRect(25.0, 265.0, 165.0, 25.0, 'D', [$style]);
-
-		$out .= $this->graph->getStopTransform();
-		return $out;
-	}
-
 	public function generate_footer_adresses() {
 		$baseX = 25.0;
 		$colW = 41.25;
@@ -350,9 +311,6 @@ trait PdfHeaderFooterTrait {
 		$out .= $this->beginArtifact('Pagination', 'Footer');
 		$out .= $this->generate_footer_adresses();
 		$out .= $this->endArtifact();
-
-		$helpersOut = $this->generate_debug_helpers();
-		$this->page->addContent($helpersOut);
 
 		return $out;
 	}

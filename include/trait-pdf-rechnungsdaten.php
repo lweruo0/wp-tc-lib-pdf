@@ -22,13 +22,13 @@ trait PdfRechnungsdatenTrait {
 	private const RECHNUNG_X = 125.0;
 
 	/** Default Y position for invoice data area (mm). */
-	private const RECHNUNG_Y = 98.0;
+	private const RECHNUNG_Y = 71.0;
 
 	/** Default width for invoice data area (mm). */
 	private const RECHNUNG_W = 75.0;
 
 	/** Default height for invoice data area (mm). */
-	private const RECHNUNG_H = 38.0;
+	private const RECHNUNG_H = 24.0;
 
 	/**
 	 * Build invoice data rows from form data.
@@ -75,7 +75,7 @@ trait PdfRechnungsdatenTrait {
 			'bank_verein' => $bank_verein,
 			'zahlungsfrist' => $zahlungsfrist,
 			'rechnungsnummer' => $rechnungsnummer,
-			'brutto' => $brutto,
+			'brutto' => number_format ( $brutto, 2, ',', '' ) . ' €',
 		);
 	}
 
@@ -101,6 +101,8 @@ trait PdfRechnungsdatenTrait {
 	): string {
 		$data = $rows ?? $this->getRechnungsdaten();
 		$out = $this->graph->getStartTransform();
+		$out .= $this->color->getPdfColor('#f1f1f1');
+		$out .= $this->graph->getRect($x, $y, $width, $height, 'F');
 
 		if ($drawFrame) {
 			$frameStyle = [[
@@ -114,34 +116,28 @@ trait PdfRechnungsdatenTrait {
 			$out .= $this->graph->getRect($x, $y, $width, $height, 'D', $frameStyle);
 		}
 
-		$innerX = $x + 2.0;
-		$innerY = $y + 2.0;
-		$innerW = max(0.0, $width - 4.0);
-		$innerH = max(0.0, $height - 4.0);
-		$rowH = 5.0;
-		$labelW = min(26.0, $innerW * 0.45);
+		$innerX = $x + 1.0;
+		$innerW = max(0.0, $width - 2.0);
+		$rowH = 4.0;
 
-		$labelFont = $this->font->insert($this->pon, 'helvetica', 'B', 9);
-		$valueFont = $this->font->insert($this->pon, 'helvetica', '', 9);
+		$labelFont = $this->font->insert($this->pon, 'helvetica', '', 11);
+		$valueFont = $this->font->insert($this->pon, 'helvetica', '', 11);
 
-		$cursorY = $innerY;
-		$maxY = $innerY + $innerH;
+		$cursorY = $y + 1.0;;
+
 
 
 		$dataRows = [
-			['label' => 'IBAN:', 'value' => $data['iban_verein']],
-			['label' => 'BIC:', 'value' => $data['bic_verein']],
-			['label' => 'Rechnungsbetrag:', 'value' => $data['brutto']],
-			['label' => 'Zahlungsfrist:', 'value' => $data['zahlungsfrist']],
-			['label' => 'Verwendungszweck:', 'value' => $data['rechnungsnummer']],
+			['label' => 'IBAN:', 'value' => $data['iban_verein'], 'w_korrektur' => -0.5],
+			['label' => 'BIC:', 'value' => $data['bic_verein'], 'w_korrektur' => 0.0],
+			['label' => 'Rechnungsbetrag:', 'value' => $data['brutto'], 'w_korrektur' => 0.0],
+			['label' => 'Zahlungsfrist:', 'value' => $data['zahlungsfrist'], 'w_korrektur' => 0.0],
+			['label' => 'Verwendungszweck:', 'value' => $data['rechnungsnummer'], 'w_korrektur' => 0.0],
 
 		];
 
 
 		foreach ($dataRows as $row) {
-			if ($cursorY + $rowH > $maxY) {
-				break;
-			}
 
 			$out .= $labelFont['out'];
 			$out .= $this->color->getPdfColor('#000000');
@@ -149,42 +145,65 @@ trait PdfRechnungsdatenTrait {
 				txt: $row['label'],
 				posx: $innerX,
 				posy: $cursorY,
-				width: $labelW,
+				width: $innerW,
 				height: $rowH,
 				offset: 0,
 				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			);
+
+			if ($row['label'] === '') {
+				$cursorY += $rowH*1.1;
+				continue;
+			}
 
 			$out .= $valueFont['out'];
 			$out .= $this->color->getPdfColor('#333333');
 			$out .= $this->getTextCell(
 				txt: $row['value'],
-				posx: $innerX + $labelW,
+				posx: $innerX,
 				posy: $cursorY,
-				width: max(0.0, $innerW - $labelW),
+				width: $innerW + $row['w_korrektur'],
 				height: $rowH,
 				offset: 0,
 				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Right,
 			);
 
-			$cursorY += $rowH;
+			$cursorY += $rowH*1.1;
 		}
 
 		$qrContent = (string) ($data['qr_content'] ?? '');
 		if ($qrContent !== '') {
+			$qrX = $x - $height - 4.0;
+			$qrY = $y;
 			$out .= $this->getBarcode(
 				type: 'QRCODE,M',
 				code: $qrContent,
-				posx: $x - 30.0,
-				posy: $y,
-				width: 26,
-				height: 26,
+				posx: $qrX,
+				posy: $qrY,
+				width: $height,
+				height: $height,
 				padding: [0, 0, 0, 0],
 				style: [],
+			);
+
+			$qrCaptionFont = $this->font->insert($this->pon, 'helvetica', '', 8);
+			$out .= $qrCaptionFont['out'];
+			$out .= $this->color->getPdfColor('#333333');
+			$out .= $this->getTextCell(
+				txt: 'Fotoüberweisung',
+				posx: $qrX,
+				posy: $qrY + $height + 0.6,
+				width: $height,
+				height: 3.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
 			);
 		}
 
