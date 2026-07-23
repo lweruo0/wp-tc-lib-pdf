@@ -48,13 +48,12 @@ class PdfExample extends PdfTemplate {
 		]);
 
 		$this->setFormdata([
-
-			'first_name' => 'John',
-			'last_name'  => 'Doe',
-			'street'     => '123 Main Street',
-			'zip'        => '12345',
-			'city'       => 'Sample City',
-			'email'      => 'john.doe@example.com',
+			'first_name' => 'Bruno',
+			'last_name'  => 'Karitzky',
+			'street'     => 'Grimmelfinger Weg 71',
+			'zip'        => '89077',
+			'city'       => 'Ulm',
+			'email'      => 'karitzky@example.com',
 			'sender'	 => 'Bezirksfischerei-Verein e.V. Ehingen/Donau, Postfach 1340, 89573 Ehingen',
 			'returnme'	 => 'falls unzustellbar, bitte zurück',
 

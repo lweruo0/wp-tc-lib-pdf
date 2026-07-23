@@ -16,16 +16,16 @@ if (!defined('ABSPATH')) {
  */
 trait PdfAdressTrait {
 	/** Default X position for the address field (mm). */
-	private const ADDRESS_FIELD_X = 20.0;
+	private const ADDRESS_FIELD_X = 25.0;
 
 	/** Default Y position for the address field (mm). */
-	private const ADDRESS_FIELD_Y = 45.0;
+	private const ADDRESS_FIELD_Y = 50.0;
 
 	/** Default width of the address field (mm). */
-	private const ADDRESS_FIELD_W = 85.0;
+	private const ADDRESS_FIELD_W = 80.0;
 
 	/** Default height of the address field (mm). */
-	private const ADDRESS_FIELD_H = 45.0;
+	private const ADDRESS_FIELD_H = 40.0;
 
 	/**
 	 * Build address lines from addressdata.
@@ -120,9 +120,9 @@ trait PdfAdressTrait {
 
 		$backBlockH = 0.0;
 		if ($backText !== '') {
-			$backFont = $this->font->insert($this->pon, 'helvetica', '', 8);
+			$backFont = $this->font->insert($this->pon, 'helvetica', 'B', 6);
 			$out .= $backFont['out'];
-			$out .= $this->color->getPdfColor('#666666');
+			//$out .= $this->color->getPdfColor('#666666');
 			$backBlockH = min($innerH, (count($backLines) * 3.0) + 0.5);
 			$out .= $this->getTextCell(
 				txt: $backText,
@@ -131,7 +131,7 @@ trait PdfAdressTrait {
 				width: $innerW,
 				height: $backBlockH,
 				offset: 0,
-				linespace: 2,
+				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			);
@@ -141,10 +141,11 @@ trait PdfAdressTrait {
 			$gap = $backBlockH > 0.0 ? 2.0 : 0.0;
 			$addressY = $innerY + $backBlockH + $gap;
 			$addressH = max(0.0, $innerH - $backBlockH - $gap);
+			$addressColor = str_contains($addressText, '@') ? '#666666' : '#000000';
 
 			$addressFont = $this->font->insert($this->pon, 'helvetica', '', 12);
 			$out .= $addressFont['out'];
-			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->color->getPdfColor($addressColor);
 			$out .= $this->getTextCell(
 				txt: $addressText,
 				posx: $innerX,
@@ -152,7 +153,7 @@ trait PdfAdressTrait {
 				width: $innerW,
 				height: $addressH,
 				offset: 0,
-				linespace: 4,
+				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			);
