@@ -255,7 +255,7 @@ trait PdfRechnungsdatenTrait {
 			['w' => $w4, 'txt' => $t4, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Right],
 		];
 
-		$textFont = $this->font->insert($this->pon, 'helvetica', '', 10);
+		$textFont = $this->font->insert($this->pon, 'helvetica', '', 11);
 		$out = $this->graph->getStartTransform();
 		$out .= $textFont['out'];
 		$cursorX = $x;

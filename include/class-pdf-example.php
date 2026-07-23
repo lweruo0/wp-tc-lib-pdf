@@ -91,10 +91,10 @@ class PdfExample extends PdfTemplate {
 		$this->add_rechnungsdaten();
 
 		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
-		$this->add_Zeile(25, 100, 4, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
-		$this->add_Zeile(25, 104, 4, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 245);
-		$this->add_Zeile(25, 108, 4, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 230);
-		$this->add_Zeile(25, 112, 4, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 245);
-		$this->add_Zeile(25, 116, 4, 100.0, 20.0, 22.5, 22.5, 'Rechnungsbetrag', '', '', '25,00 €', 230);
+		$this->add_Zeile(25, 100, 5, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
+		$this->add_Zeile(25, 104, 5, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 245);
+		$this->add_Zeile(25, 108, 5, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 230);
+		$this->add_Zeile(25, 112, 5, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 245);
+		$this->add_Zeile(25, 116, 5, 100.0, 20.0, 22.5, 22.5, 'Rechnungsbetrag', '', '', '25,00 €', 230);
 	}
 }
