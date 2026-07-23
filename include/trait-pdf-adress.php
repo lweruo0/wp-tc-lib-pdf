@@ -97,7 +97,6 @@ trait PdfAdressTrait {
 		$backLines = $this->getAdressFieldLinesBack();
 		$addressLines = $lines ?? $this->getAdressFieldLines();
 		$backText = implode("\n", $backLines);
-		$addressText = implode("\n", $addressLines);
 
 		$out = $this->graph->getStartTransform();
 
@@ -137,26 +136,38 @@ trait PdfAdressTrait {
 			);
 		}
 
-		if ($addressText !== '') {
+		if ($addressLines !== []) {
 			$gap = $backBlockH > 0.0 ? 2.0 : 0.0;
 			$addressY = $innerY + $backBlockH + $gap;
 			$addressH = max(0.0, $innerH - $backBlockH - $gap);
-			$addressColor = str_contains($addressText, '@') ? '#666666' : '#000000';
+			$lineH = 4.0;
+			$maxY = $addressY + $addressH;
+			$cursorY = $addressY;
 
 			$addressFont = $this->font->insert($this->pon, 'helvetica', '', 12);
 			$out .= $addressFont['out'];
-			$out .= $this->color->getPdfColor($addressColor);
-			$out .= $this->getTextCell(
-				txt: $addressText,
-				posx: $innerX,
-				posy: $addressY,
-				width: $innerW,
-				height: $addressH,
-				offset: 0,
-				linespace: 0,
-				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			);
+
+			foreach ($addressLines as $line) {
+				if ($cursorY + $lineH > $maxY) {
+					break;
+				}
+
+				$addressColor = str_contains((string) $line, '@') ? '#666666' : '#000000';
+				$out .= $this->color->getPdfColor($addressColor);
+				$out .= $this->getTextCell(
+					txt: (string) $line,
+					posx: $innerX,
+					posy: $cursorY,
+					width: $innerW,
+					height: $lineH,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				);
+
+				$cursorY += $lineH;
+			}
 		}
 
 		$out .= $this->graph->getStopTransform();
