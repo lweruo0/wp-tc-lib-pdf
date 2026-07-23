@@ -110,17 +110,17 @@ trait PdfAbsenderTrait {
 			$out .= $this->graph->getRect($x, $y, $width, $height, 'D', $frameStyle);
 		}
 
-		$font = $this->font->insert($this->pon, 'helvetica', '', 9);
+		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
 		$out .= $font['out'];
 		$out .= $this->color->getPdfColor('#000000');
 		$out .= $this->getTextCell(
 			txt: $text,
-			posx: $x + 2.0,
-			posy: $y + 2.0,
-			width: max(0.0, $width - 4.0),
-			height: max(0.0, $height - 4.0),
+			posx: $x,
+			posy: $y,
+			width: max(0.0, $width),
+			height: max(0.0, $height),
 			offset: 0,
-			linespace: 2,
+			linespace: -1,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);

@@ -242,7 +242,7 @@ trait PdfHeaderFooterTrait {
 			$subtitleH = 6.0;
 			$headerOut .= $this->color->getPdfColor('#11417a');
 			if ($subtitleW > 0.0) {
-				$subtitleFont = $this->font->insert($this->pon, 'helvetica', '', 12);
+				$subtitleFont = $this->font->insert($this->pon, 'helvetica', '', 11);
 				$headerOut .= $subtitleFont['out'];
 				$linkTextW = min($subtitleW, $this->getStringWidth($this->headerSubtitle));
 				if ($this->headerUrl !== '') {

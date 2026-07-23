@@ -137,14 +137,14 @@ trait PdfAdressTrait {
 		}
 
 		if ($addressLines !== []) {
-			$gap = $backBlockH > 0.0 ? 7.0 : 2.0;
-			$addressY = $innerY + $backBlockH;
+			$gap = $backBlockH > 0.0 ? 5.0 : 2.0;
+			$addressY = $innerY + $backBlockH + $gap;
 			$addressH = max(0.0, $innerH - $backBlockH - $gap);
 			$lineH = 4.0;
 			$maxY = $addressY + $addressH;
 			$cursorY = $addressY;
 
-			$addressFont = $this->font->insert($this->pon, 'helvetica', '', 12);
+			$addressFont = $this->font->insert($this->pon, 'helvetica', '', 11);
 			$out .= $addressFont['out'];
 
 			foreach ($addressLines as $line) {
