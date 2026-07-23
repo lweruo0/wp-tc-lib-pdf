@@ -84,7 +84,7 @@ trait PdfAdressTrait {
 	 * @param bool      $drawFrame Whether to draw a visible frame.
 	 * @param ?string[] $lines     Optional custom lines. Null uses addressdata.
 	 *
-	 * @return void
+	 * @return string Raw PDF stream for the address field.
 	 */
 	public function generate_adress_field(
 		float $x = self::ADDRESS_FIELD_X,
@@ -93,7 +93,7 @@ trait PdfAdressTrait {
 		float $height = self::ADDRESS_FIELD_H,
 		bool $drawFrame = false,
 		?array $lines = null,
-	): void {
+	): string {
 		$backLines = $this->getAdressFieldLinesBack();
 		$addressLines = $lines ?? $this->getAdressFieldLines();
 		$backText = implode("\n", $backLines);
@@ -171,6 +171,30 @@ trait PdfAdressTrait {
 		}
 
 		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
+        return $out;
 	}
+
+	/**
+	 * Draw Address field directly on the current page.
+	 *
+	 * @param float     $x         Left position in mm.
+	 * @param float     $y         Top position in mm.
+	 * @param float     $width     Field width in mm.
+	 * @param float     $height    Field height in mm.
+	 * @param bool      $drawFrame Whether to draw a visible frame.
+	 * @param ?string[] $lines     Optional custom lines. Null uses addressdata.
+	 *
+	 * @return void
+	 */
+	public function add_adress_field(
+		float $x = self::ADDRESS_FIELD_X,
+		float $y = self::ADDRESS_FIELD_Y,
+		float $width = self::ADDRESS_FIELD_W,
+		float $height = self::ADDRESS_FIELD_H,
+		bool $drawFrame = false,
+		?array $lines = null,
+	): void {
+        $this->page->addContent($this->generate_adress_field($x, $y, $width, $height, $drawFrame, $lines));
+	}
+
 }

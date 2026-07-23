@@ -71,7 +71,7 @@ trait PdfFalzmarkenTrait {
 	 *
 	 * @return void
 	 */
-	public function add_falzmarken_to_page(?array $yPositions = null, string $color = '#666666', float $lineWidth = 0.25): void {
+	public function add_falzmarken(?array $yPositions = null, string $color = '#666666', float $lineWidth = 0.25): void {
 		$this->page->addContent($this->generate_falzmarken($yPositions, $color, $lineWidth));
 	}
 }

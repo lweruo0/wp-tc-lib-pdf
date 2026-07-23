@@ -81,7 +81,8 @@ class PdfExample extends PdfTemplate {
 		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
 
 		$this->addPage();
-		$this->generate_adress_field();
+		$this->add_adress_field();
+		$this->add_falzmarken();
 
 		$out = '';
 
