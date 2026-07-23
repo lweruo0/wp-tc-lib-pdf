@@ -231,7 +231,9 @@ trait PdfRechnungsdatenTrait {
 	}
 
 	public function generiere_Zeile(
+		float $x,
 		float $y,
+		float $h,
 		float $w1,
 		float $w2,
 		float $w3,
@@ -242,8 +244,6 @@ trait PdfRechnungsdatenTrait {
 		string $t4,
 		int $grey,
 	): string {
-		$x = 25.0; // Rand nach DIN 5008 Typ B
-		$rowHeight = 4.0;
 
 		$grey = max(0, min(255, $grey));
 		$greyHex = sprintf('#%02x%02x%02x', $grey, $grey, $grey);
@@ -265,7 +265,7 @@ trait PdfRechnungsdatenTrait {
 			}
 
 			$out .= $this->color->getPdfColor($greyHex);
-			$out .= $this->graph->getRect($cursorX, $y, $cellW, $rowHeight, 'F');
+			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'F');
 
 			$out .= $this->color->getPdfColor('#000000');
 			$out .= $this->getTextCell(
@@ -273,7 +273,7 @@ trait PdfRechnungsdatenTrait {
 				posx: $cursorX,
 				posy: $y,
 				width: $cellW,
-				height: $rowHeight,
+				height: $h,
 				offset: 0,
 				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
