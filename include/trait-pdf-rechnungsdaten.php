@@ -229,4 +229,81 @@ trait PdfRechnungsdatenTrait {
 	): void {
 		$this->page->addContent($this->generate_rechnungsdaten($x, $y, $width, $height, $drawFrame, $rows));
 	}
+
+	public function generiere_Zeile(
+		float $y,
+		float $w1,
+		float $w2,
+		float $w3,
+		float $w4,
+		string $t1,
+		string $t2,
+		string $t3,
+		string $t4,
+		int $grey,
+	): string {
+		$x = 25.0; // Rand nach DIN 5008 Typ B
+		$rowHeight = 4.0;
+
+		$grey = max(0, min(255, $grey));
+		$greyHex = sprintf('#%02x%02x%02x', $grey, $grey, $grey);
+
+		$cells = [
+			['w' => $w1, 'txt' => $t1, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Left],
+			['w' => $w2, 'txt' => $t2, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Left],
+			['w' => $w3, 'txt' => $t3, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Right],
+			['w' => $w4, 'txt' => $t4, 'halign' => \Com\Tecnick\Pdf\TextHAlign::Right],
+		];
+
+		$out = $this->graph->getStartTransform();
+		$cursorX = $x;
+
+		foreach ($cells as $cell) {
+			$cellW = (float) $cell['w'];
+			if ($cellW <= 0.0) {
+				continue;
+			}
+
+			$out .= $this->color->getPdfColor($greyHex);
+			$out .= $this->graph->getRect($cursorX, $y, $cellW, $rowHeight, 'F');
+
+			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->getTextCell(
+				txt: (string) $cell['txt'],
+				posx: $cursorX,
+				posy: $y,
+				width: $cellW,
+				height: $rowHeight,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: $cell['halign'],
+				drawcell: false,
+			);
+
+			$cursorX += $cellW;
+		}
+
+		$out .= $this->graph->getStopTransform();
+		return $out;
+	}
+
+	public function add_Zeile(
+		float $y,
+		float $w1,
+		float $w2,
+		float $w3,
+		float $w4,
+		string $t1,
+		string $t2,
+		string $t3,
+		string $t4,
+		int $grey,
+	): void {
+		$this->page->addContent($this->generiere_Zeile($y, $w1, $w2, $w3, $w4, $t1, $t2, $t3, $t4, $grey));
+	}
+
+
+
+
 }

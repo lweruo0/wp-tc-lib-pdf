@@ -66,10 +66,6 @@ class PdfExample extends PdfTemplate {
 			'email'      => 'kassler@example.com',
 			'sender'	 => 'Bezirksfischerei-Verein e.V. Ehingen/Donau, Postfach 1340, 89573 Ehingen',
 			'returnme'	 => 'falls unzustellbar, bitte zurück',
-
-			'body_text' => "This is an example of a PDF template using tc-lib-pdf.\n\n"
-				. "You can customize this template by extending the PdfExample class.\n\n"
-				. "The header and footer are generated automatically using the PdfHeaderFooterTrait.",
 		]);
 
 
@@ -93,27 +89,12 @@ class PdfExample extends PdfTemplate {
 		$this->add_falzmarken();
 		$this->add_absender();
 		$this->add_rechnungsdaten();
-		$out = '';
 
-
-		/* DIN 5008 Form B Textfeld */
-		// $out .= $this->graph->getRect(25.0, 98.46, 165.0, 160.0, 'D', [$style]);
-		// Body text
-		$fontNormal = $this->font->insert($this->pon, 'helvetica', '', 12);
-		$out .= $fontNormal['out'];
-		$out .= $this->color->getPdfColor((string) $this->getOption('text_color', '#555555'));
-		$out .= $this->getTextCell(
-			txt: (string) $this->getForm('body_text', ''),
-			posx: 25,
-			posy: 98.46,
-			width: 165,
-			height: 100,
-			offset: 0,
-			linespace: 1,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
-
-		$this->page->addContent($out);
+		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
+		$this->add_Zeile(98.46, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
+		$this->add_Zeile(102.86, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 245);
+		$this->add_Zeile(107.26, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 245);
+		$this->add_Zeile(111.66, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 230);
+		$this->add_Zeile(116.06, 100.0, 20.0, 22.5, 22.5, 'Rechnungsbetrag', '', '', '25,00 €', 230);
 	}
 }
