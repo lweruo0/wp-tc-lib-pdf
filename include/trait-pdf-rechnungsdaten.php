@@ -153,11 +153,6 @@ trait PdfRechnungsdatenTrait {
 				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			);
 
-			if ($row['label'] === '') {
-				$cursorY += $rowH*1.1;
-				continue;
-			}
-
 			$out .= $valueFont['out'];
 			$out .= $this->color->getPdfColor('#333333');
 			$out .= $this->getTextCell(
