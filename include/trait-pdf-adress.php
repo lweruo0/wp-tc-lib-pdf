@@ -61,6 +61,19 @@ trait PdfAdressTrait {
 		return $lines;
 	}
 
+	public function getAdressFieldLinesBack(): array {
+		$sender = trim((string) $this->getForm('sender', ''));
+        $returnme = trim((string) $this->getForm('returnme', ''));
+
+		$lines = [];
+		foreach ([$sender, $returnme] as $line) {
+			if ($line !== '') {
+				$lines[] = $line;
+			}
+		}
+		return $lines;
+	}
+
 	/**
 	 * Render the address field and return raw PDF output.
 	 *
@@ -81,8 +94,10 @@ trait PdfAdressTrait {
 		bool $drawFrame = false,
 		?array $lines = null,
 	): void {
+		$backLines = $this->getAdressFieldLinesBack();
 		$addressLines = $lines ?? $this->getAdressFieldLines();
-		$text = implode("\n", $addressLines);
+		$backText = implode("\n", $backLines);
+		$addressText = implode("\n", $addressLines);
 
 		$out = $this->graph->getStartTransform();
 
@@ -98,23 +113,52 @@ trait PdfAdressTrait {
 			$out .= $this->graph->getRect($x, $y, $width, $height, 'D', $frameStyle);
 		}
 
-		$font = $this->font->insert($this->pon, 'helvetica', '', 10);
-		$out .= $font['out'];
-		$out .= $this->color->getPdfColor('#000000');
-		$out .= $this->getTextCell(
-			txt: $text,
-			posx: $x + 2.0,
-			posy: $y + 2.0,
-			width: max(0.0, $width - 4.0),
-			height: max(0.0, $height - 4.0),
-			offset: 0,
-			linespace: 4,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
+		$innerX = $x + 2.0;
+		$innerY = $y + 2.0;
+		$innerW = max(0.0, $width - 4.0);
+		$innerH = max(0.0, $height - 4.0);
+
+		$backBlockH = 0.0;
+		if ($backText !== '') {
+			$backFont = $this->font->insert($this->pon, 'helvetica', '', 8);
+			$out .= $backFont['out'];
+			$out .= $this->color->getPdfColor('#666666');
+			$backBlockH = min($innerH, (count($backLines) * 3.0) + 0.5);
+			$out .= $this->getTextCell(
+				txt: $backText,
+				posx: $innerX,
+				posy: $innerY,
+				width: $innerW,
+				height: $backBlockH,
+				offset: 0,
+				linespace: 2,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			);
+		}
+
+		if ($addressText !== '') {
+			$gap = $backBlockH > 0.0 ? 2.0 : 0.0;
+			$addressY = $innerY + $backBlockH + $gap;
+			$addressH = max(0.0, $innerH - $backBlockH - $gap);
+
+			$addressFont = $this->font->insert($this->pon, 'helvetica', '', 12);
+			$out .= $addressFont['out'];
+			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->getTextCell(
+				txt: $addressText,
+				posx: $innerX,
+				posy: $addressY,
+				width: $innerW,
+				height: $addressH,
+				offset: 0,
+				linespace: 4,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			);
+		}
 
 		$out .= $this->graph->getStopTransform();
-
-        $this->page->addContent($out);
+		$this->page->addContent($out);
 	}
 }
