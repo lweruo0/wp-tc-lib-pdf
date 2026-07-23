@@ -54,6 +54,10 @@ class PdfExample extends PdfTemplate {
 		]);
 
 		$this->setFormdata([
+
+			'brutto' => 25.00,
+			'zahlungsfrist' => '10.07.2026',
+			'rechnungsnummer' => '2026-P-0151',
 			'first_name' => 'Bruno',
 			'last_name'  => 'Karitzky',
 			'street'     => 'Grimmelfinger Weg 71',
