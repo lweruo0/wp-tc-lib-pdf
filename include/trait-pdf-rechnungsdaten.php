@@ -41,22 +41,42 @@ trait PdfRechnungsdatenTrait {
 	 *
 	 * @return array<int, array{label: string, value: string}>
 	 */
-	public function getRechnungsdatenRows(): array {
-
-
+	public function getRechnungsdaten(): array {
+		/* addressdata */
+		$name_verein = trim((string) $this->getAddress('name_verein', ''));
 		$bic_verein = trim((string) $this->getAddress('bic_verein', ''));
 		$iban_verein = trim((string) $this->getAddress('iban_verein', ''));
 		$bank_verein = trim((string) $this->getAddress('bank_verein', ''));
+		/* formdata */
+		$zahlungsfrist = trim((string) $this->getForm('zahlungsfrist', ''));
+		$rechnungsnummer = trim((string) $this->getForm('rechnungsnummer', ''));
+		$brutto = trim((string) $this->getForm('brutto', ''));
 
+		/* Fotoueberweisung */
+		/* https://de.wikipedia.org/wiki/EPC-QR-Code */
+		$qr_content = "BCD" . PHP_EOL;
+		$qr_content .= "002" . PHP_EOL;
+		$qr_content .= "1" . PHP_EOL;
+		$qr_content .= "SCT" . PHP_EOL;
+		$qr_content .= $bic_verein . PHP_EOL;
+		$qr_content .= $name_verein . PHP_EOL;
+		$qr_content .= $iban_verein . PHP_EOL;
+		$qr_content .= "EUR" . number_format ( $brutto, 2, '.', '' ) . PHP_EOL;
+		$qr_content .= PHP_EOL;
+		$qr_content .= PHP_EOL;
+		$qr_content .= $rechnungsnummer . PHP_EOL;
+		$qr_content .= PHP_EOL;
 
-		$rows = [
-			['label' => 'Rechnungsnr.', 'value' => trim((string) $this->getForm('invoice_number', ''))],
-			['label' => 'Rechnungsdatum', 'value' => trim((string) $this->getForm('invoice_date', ''))],
-			['label' => 'Kundennummer', 'value' => trim((string) $this->getForm('customer_number', ''))],
-			['label' => 'Faelligkeit', 'value' => trim((string) $this->getForm('due_date', ''))],
-		];
-
-		return array_values(array_filter($rows, static fn(array $row): bool => $row['value'] !== ''));
+		return array(
+			'qr_content' => $qr_content,
+			'name_verein' => $name_verein,
+			'bic_verein' => $bic_verein,
+			'iban_verein' => $iban_verein,
+			'bank_verein' => $bank_verein,
+			'zahlungsfrist' => $zahlungsfrist,
+			'rechnungsnummer' => $rechnungsnummer,
+			'brutto' => $brutto,
+		);
 	}
 
 	/**
@@ -79,7 +99,7 @@ trait PdfRechnungsdatenTrait {
 		bool $drawFrame = false,
 		?array $rows = null,
 	): string {
-		$dataRows = $rows ?? $this->getRechnungsdatenRows();
+		$data = $rows ?? $this->getRechnungsdaten();
 		$out = $this->graph->getStartTransform();
 
 		if ($drawFrame) {
@@ -106,6 +126,17 @@ trait PdfRechnungsdatenTrait {
 
 		$cursorY = $innerY;
 		$maxY = $innerY + $innerH;
+
+
+		$dataRows = [
+			['label' => 'IBAN:', 'value' => $data['iban_verein']],
+			['label' => 'BIC:', 'value' => $data['bic_verein']],
+			['label' => 'Rechnungsbetrag:', 'value' => $data['brutto']],
+			['label' => 'Zahlungsfrist:', 'value' => $data['zahlungsfrist']],
+			['label' => 'Verwendungszweck:', 'value' => $data['rechnungsnummer']],
+
+		];
+
 
 		foreach ($dataRows as $row) {
 			if ($cursorY + $rowH > $maxY) {
@@ -142,6 +173,21 @@ trait PdfRechnungsdatenTrait {
 
 			$cursorY += $rowH;
 		}
+
+		$qrContent = (string) ($data['qr_content'] ?? '');
+		if ($qrContent !== '') {
+			$out .= $this->getBarcode(
+				type: 'QRCODE,M',
+				code: $qrContent,
+				posx: $x - 30.0,
+				posy: $y,
+				width: 26,
+				height: 26,
+				padding: [0, 0, 0, 0],
+				style: [],
+			);
+		}
+
 
 		$out .= $this->graph->getStopTransform();
 		return $out;
