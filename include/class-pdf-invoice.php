@@ -85,12 +85,8 @@ class PdfInvoice extends PdfTemplate {
 			'total' => '179.97',
 		]);
 
-		$this->setAddressdata([
-			'name'    => 'Company Name',
-			'street'  => '123 Main Street',
-			'city'    => 'City, State 12345',
-			'country' => 'Country',
-		]);
+		$adressData = get_option ( 'bfv_adressen' );
+		$this->setAddressdata($adressData);
 	}
 
 	/**

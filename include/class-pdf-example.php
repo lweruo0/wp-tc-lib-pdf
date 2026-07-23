@@ -51,7 +51,8 @@ class PdfExample extends PdfTemplate {
 				. "The header and footer are generated automatically using the PdfHeaderFooterTrait.",
 		]);
 
-		$this->setAddressdata([]);
+		$adressData = get_option ( 'bfv_adressen' );
+		$this->setAddressdata($adressData);
 	}
 
 	/**
