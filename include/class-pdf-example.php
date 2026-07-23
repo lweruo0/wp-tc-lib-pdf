@@ -15,6 +15,7 @@ if (!defined('ABSPATH')) {
 require_once __DIR__ . '/class-pdf-template.php';
 require_once __DIR__ . '/trait-pdf-header-footer.php';
 require_once __DIR__ . '/trait-pdf-adress.php';
+require_once __DIR__ . '/trait-pdf-falzmarken.php';
 
 /**
  * Example PDF Template with header and footer.
@@ -22,6 +23,7 @@ require_once __DIR__ . '/trait-pdf-adress.php';
 class PdfExample extends PdfTemplate {
 	use PdfHeaderFooterTrait;
 	use PdfAdressTrait;
+	use PdfFalzmarkenTrait;
 
 	/**
 	 * Constructor.

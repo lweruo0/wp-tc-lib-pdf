@@ -98,7 +98,7 @@ trait PdfHeaderFooterTrait {
 		$baseX = 25.0;
 		$colW = 41.25;
 		$rowH = 3.8;
-		$y = 260.0;
+		$y = 264.0;
 
 		$fontTinyBold = $this->font->insert($this->pon, 'helvetica', 'B', 8);
 		$fontTiny = $this->font->insert($this->pon, 'helvetica', '', 8);

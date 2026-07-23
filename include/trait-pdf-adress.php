@@ -137,8 +137,8 @@ trait PdfAdressTrait {
 		}
 
 		if ($addressLines !== []) {
-			$gap = $backBlockH > 0.0 ? 2.0 : 0.0;
-			$addressY = $innerY + $backBlockH + $gap;
+			$gap = $backBlockH > 0.0 ? 7.0 : 2.0;
+			$addressY = $innerY + $backBlockH;
 			$addressH = max(0.0, $innerH - $backBlockH - $gap);
 			$lineH = 4.0;
 			$maxY = $addressY + $addressH;
@@ -166,7 +166,7 @@ trait PdfAdressTrait {
 					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 				);
 
-				$cursorY += $lineH;
+				$cursorY += $lineH*1.1;
 			}
 		}
 
