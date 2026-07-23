@@ -29,9 +29,6 @@ trait PdfHeaderFooterTrait {
 	/** Maximum height reserved for the header logo (mm). */
 	private const HEADER_LOGO_H = 28;
 
-	/** Height of the footer band (mm). */
-	private const FOOTER_H = 10.0;
-
 	/** Document title shown left-aligned in the header. */
 	private string $headerTitle = '';
 
@@ -63,7 +60,7 @@ trait PdfHeaderFooterTrait {
 	 *
 	 * This is a tc-lib-pdf port of the old TCPDF helper layout.
 	 *
-	 * @return void
+	 * @return string Raw PDF stream to be added to the page content.
 	 */
 	public function generate_debug_helpers(): string {
 		$pid = $this->page->getPageId();
@@ -103,7 +100,7 @@ trait PdfHeaderFooterTrait {
 		$baseX = 25.0;
 		$colW = 41.25;
 		$rowH = 4.2;
-		$y = 265.0;
+		$y = 260.0;
 
 		$fontTinyBold = $this->font->insert($this->pon, 'helvetica', 'B', 8);
 		$fontTiny = $this->font->insert($this->pon, 'helvetica', '', 8);
@@ -131,7 +128,7 @@ trait PdfHeaderFooterTrait {
 		};
 
 		$out .= $fontTinyBold['out'];
-		$out .= $drawFooterRow($y, ['1. Vorsitzender', '2. Vorsitzender', 'Kassier', 'Schriftf\u00fchrer']);
+		$out .= $drawFooterRow($y, ['1. Vorsitzender', '2. Vorsitzender', 'Kassier', 'Schriftführer']);
 
 		$y += $rowH;
 		$out .= $fontTiny['out'];
@@ -166,7 +163,7 @@ trait PdfHeaderFooterTrait {
 			(string) $this->getAddress('tel_schriftfuehrer', ''),
 		]);
 
-		$y += ($rowH * 1.5);
+		$y += ($rowH * 1.1);
 		$out .= $fontTinyBold['out'];
 		$out .= $this->getTextCell(
 			txt: 'Bankverbindung',

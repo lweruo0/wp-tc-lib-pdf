@@ -127,8 +127,8 @@ class Pdf_Dispatcher {
 	 */
 	private function verify_nonce(): bool {
         return true;
-		$nonce = sanitize_text_field(wp_unslash($_GET['nonce']));
-		return wp_verify_nonce($nonce, 'get_pdf_render');
+		// $nonce = sanitize_text_field(wp_unslash($_GET['nonce']));
+		// return wp_verify_nonce($nonce, 'get_pdf_render');
 	}
 
 	/**
