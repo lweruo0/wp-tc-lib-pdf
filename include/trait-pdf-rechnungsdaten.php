@@ -39,7 +39,7 @@ trait PdfRechnungsdatenTrait {
 	 * - customer_number
 	 * - due_date
 	 *
-	 * @return array<int, array{label: string, value: string}>
+	 * @return array
 	 */
 	public function getRechnungsdaten(): array {
 		/* addressdata */
@@ -50,7 +50,7 @@ trait PdfRechnungsdatenTrait {
 		/* formdata */
 		$zahlungsfrist = trim((string) $this->getForm('zahlungsfrist', ''));
 		$rechnungsnummer = trim((string) $this->getForm('rechnungsnummer', ''));
-		$brutto = trim((string) $this->getForm('brutto', 0.0));
+		$brutto = $this->getForm('brutto', 0.0);
 
 		/* Fotoueberweisung */
 		/* https://de.wikipedia.org/wiki/EPC-QR-Code */
@@ -184,8 +184,8 @@ trait PdfRechnungsdatenTrait {
 				code: $qrContent,
 				posx: $qrX,
 				posy: $qrY,
-				width: $height,
-				height: $height,
+				width: (int) $height,
+				height: (int) $height,
 				padding: [0, 0, 0, 0],
 				style: [],
 			);
