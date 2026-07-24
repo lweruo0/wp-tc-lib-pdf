@@ -160,7 +160,6 @@ wp-tc-lib-pdf/
 │   ├── class-pdf-simple.php             # Simple template
 │   └── pdf-template-examples.php        # Usage examples
 ├── PDF_TEMPLATES_README.md              # Documentation
-├── pdf-templates-config.json            # Configuration
 └── ARCHITECTURE.md                      # This file
 ```
 

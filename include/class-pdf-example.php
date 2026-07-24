@@ -68,10 +68,6 @@ class PdfExample extends PdfTemplate {
 			'returnme'	 => 'falls unzustellbar, bitte zurück',
 		]);
 
-
-
-
-
 		$adressData = get_option ( 'bfv_adressen' );
 		$this->setAddressdata($adressData);
 	}

@@ -13,22 +13,41 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/class-pdf-registry.php';
-require_once __DIR__ . '/class-pdf-template.php';
-require_once __DIR__ . '/trait-pdf-header-footer.php';
-
 // Register available PDF templates
-require_once __DIR__ . '/class-pdf-example.php';
 PdfRegistry::register('example', 'PdfExample', __DIR__ . '/class-pdf-example.php');
-
-require_once __DIR__ . '/class-pdf-invoice.php';
 PdfRegistry::register('invoice', 'PdfInvoice', __DIR__ . '/class-pdf-invoice.php');
 
-require_once __DIR__ . '/class-pdf-simple.php';
 PdfRegistry::register('simple', 'PdfSimple', __DIR__ . '/class-pdf-simple.php');
 
 // Add more templates here as needed:
 // require_once __DIR__ . '/class-pdf-custom.php';
 // PdfRegistry::register('custom', 'PdfCustom', __DIR__ . '/class-pdf-custom.php');
+
+
+/* 
+
+https://bfv-ehingen.de/?erlaubnis=2026-P-0148&key=31e86617aad37a3a3902a560e69c7e79
+https://bfv-ehingen.de/?rechnung=2026-P-0148&key=31e86617aad37a3a3902a560e69c7e79
+https://bfv-ehingen.de/?mahnung=2026-P-0147&key=68115147e855ecdcd7c9395b5bbe8ff9
+https://bfv-ehingen.de/?mahnung=2026-P-0150&key=df1510b97ae9f6a1620591b4f7f8807f&nr=2
+
+https://bfv-ehingen.de/?arbeitsdienstliste=1&dienst=17.01.2026&mgn=282&nonce=45042c927a
+
+https://bfv-ehingen.de/?jugendteilnehmerliste=1&veranstaltung=12.09.2026&mgn=282&nonce=45042c927a
+
+https://bfv-ehingen.de/?rechnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e
+https://bfv-ehingen.de/?mahnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e
+https://bfv-ehingen.de/?mahnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e&nr=2
+
+https://bfv-ehingen.de/?fpdf=1&yy=2025
+
+https://bfv-ehingen.de/?infoblatt-antrag=1&mn=244
+https://bfv-ehingen.de/?mitgliedsantrag=1&mn=244&vn=Alexander&n=Lammert&y=2026&key=cc11bdd3e4e5c1263e0a76c5745d23d2
+https://bfv-ehingen.de/?rechnungantrag=244&key=45042c927a
+
+*/
+
+
 
 /**
  * PDF Dispatcher class.
