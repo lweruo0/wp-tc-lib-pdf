@@ -59,6 +59,9 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		$this->SetAuthor($author);
 
 		$documenttype = $this->getForm('documenttype');
+		if ($documenttype === null) {
+			$documenttype = 'PDF Document';
+		}
 		$this->SetTitle ( $documenttype );
 		$this->SetSubject ( $documenttype );
 		$this->SetKeywords ( $documenttype );
