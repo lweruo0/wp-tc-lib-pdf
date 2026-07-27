@@ -1,6 +1,6 @@
 <?php
 /**
- * PDF Header Footer Trait.
+ * PDF HeaderTrait.
  *
  * Provides header and footer functionality for PDF documents.
  * Can be combined with other traits via multiple inheritance simulation.
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 /**
  * Trait for header and footer functionality.
  */
-trait PdfHeaderFooterTrait {
+trait PdfHeaderTrait {
 	/** Horizontal margin used by the header and footer bands (mm). */
 	private const HF_MARGIN = 10.0;
 
@@ -52,109 +52,6 @@ trait PdfHeaderFooterTrait {
 		$this->headerTitle = $title;
 		$this->headerSubtitle = $subtitle;
 		$this->headerUrl = $url;
-	}
-
-	public function generate_footer_adresses() {
-		$baseX = 25.0;
-		$colW = 41.25;
-		$rowH = 3.8;
-		$y = 264.0;
-
-		$fontTinyBold = $this->font->insert($this->pon, 'helvetica', 'B', 8);
-		$fontTiny = $this->font->insert($this->pon, 'helvetica', '', 8);
-
-		$out = $this->graph->getStartTransform();
-		$out .= $this->color->getPdfColor('#000000');
-
-		$drawFooterRow = function (float $rowY, array $values) use ($baseX, $colW, $rowH): string {
-			$rowOut = '';
-			for ($i = 0; $i < 4; ++$i) {
-				$rowOut .= $this->getTextCell(
-					txt: (string) ($values[$i] ?? ''),
-					posx: $baseX + ($i * $colW),
-					posy: $rowY,
-					width: $colW,
-					height: $rowH,
-					offset: 0,
-					linespace: 0,
-					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-				);
-			}
-
-			return $rowOut;
-		};
-
-		$out .= $fontTinyBold['out'];
-		$out .= $drawFooterRow($y, ['1. Vorsitzender', '2. Vorsitzender', 'Kassier', 'Schriftführer']);
-
-		$y += $rowH;
-		$out .= $fontTiny['out'];
-		$out .= $drawFooterRow($y, [
-			(string) $this->getAddress('name_1v', ''),
-			(string) $this->getAddress('name_2v', ''),
-			(string) $this->getAddress('name_kassier', ''),
-			(string) $this->getAddress('name_schriftfuehrer', ''),
-		]);
-
-		$y += $rowH;
-		$out .= $drawFooterRow($y, [
-			(string) $this->getAddress('strasse_1v', ''),
-			(string) $this->getAddress('strasse_2v', ''),
-			(string) $this->getAddress('strasse_kassier', ''),
-			(string) $this->getAddress('strasse_schriftfuehrer', ''),
-		]);
-
-		$y += $rowH;
-		$out .= $drawFooterRow($y, [
-			(string) $this->getAddress('ort_1v', ''),
-			(string) $this->getAddress('ort_2v', ''),
-			(string) $this->getAddress('ort_kassier', ''),
-			(string) $this->getAddress('ort_schriftfuehrer', ''),
-		]);
-
-		$y += $rowH;
-		$out .= $drawFooterRow($y, [
-			(string) $this->getAddress('tel_1v', ''),
-			(string) $this->getAddress('tel_2v', ''),
-			(string) $this->getAddress('tel_kassier', ''),
-			(string) $this->getAddress('tel_schriftfuehrer', ''),
-		]);
-
-		$y += ($rowH * 1.1);
-		$out .= $fontTinyBold['out'];
-		$out .= $this->getTextCell(
-			txt: 'Bankverbindung',
-			posx: $baseX,
-			posy: $y,
-			width: 165.0,
-			height: $rowH,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
-
-		$y += $rowH;
-		$out .= $fontTiny['out'];
-		$bankLine = (string) $this->getAddress('name_verein', '')
-			. ',   ' . (string) $this->getAddress('bank_verein', '')
-			. ',   BIC: ' . (string) $this->getAddress('bic_verein', '')
-			. ',   IBAN: ' . (string) $this->getAddress('iban_verein', '');
-		$out .= $this->getTextCell(
-			txt: $bankLine,
-			posx: $baseX,
-			posy: $y,
-			width: 165.0,
-			height: $rowH,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
-
-		$out .= $this->graph->getStopTransform();
-		return $out;
 	}
 
 	public function generate_header(int $pid) {
@@ -305,11 +202,6 @@ trait PdfHeaderFooterTrait {
 		// ---- HEADER ------------------------------------------------
 		$out .= $this->beginArtifact('Pagination', 'Header');
 		$out .= $this->generate_header($pid);
-		$out .= $this->endArtifact();
-
-		// ---- FOOTER ------------------------------------------------
-		$out .= $this->beginArtifact('Pagination', 'Footer');
-		$out .= $this->generate_footer_adresses();
 		$out .= $this->endArtifact();
 
 		return $out;

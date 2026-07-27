@@ -24,6 +24,11 @@ if (!defined('ABSPATH')) {
  *   class PdfMyTemplate extends PdfTemplate {
  *       use PdfDataTrait;
  *
+ *       public function __construct() {
+ *           $this->initializeUrlData();  // Load $_GET parameters
+ *           $this->setFolderName('bfv_erlaubnisschein');  // Set storage folder name
+ *       }
+ *
  *       protected function loadData(): void {
  *           $this->setOptions([
  *               'show_logo' => true,
@@ -40,11 +45,14 @@ if (!defined('ABSPATH')) {
  *               'city'    => 'Musterstadt',
  *               'country' => 'DE',
  *           ]);
+ *           $this->createStorageFolder();  // Ensure storage folder exists
  *       }
  *
  *       protected function render(): void {
  *           $name = $this->getAddress('name');
  *           $color = $this->getOption('accent_color', '#000000');
+ *           $page = $this->getUrl('page', 1);
+ *           $storagePath = $this->getStoragePath();
  *           // ...
  *       }
  *   }
@@ -70,6 +78,24 @@ trait PdfDataTrait {
 	 * @var array<string, mixed>
 	 */
 	private array $addressdata = [];
+
+	/**
+	 * URL / query string parameters.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $urldata = [];
+
+	/**
+	 * PDF storage folder name (appended to wp_upload_dir()['basedir']).
+	 * Each template must set this via setFolderName().
+	 *
+	 * @var string
+	 */
+	private string $folderName = '';
+
+
+
 
 	// -----------------------------------------------------------------------
 	// Setters – bulk replace
@@ -106,6 +132,28 @@ trait PdfDataTrait {
 	 */
 	public function setAddressdata(array $addressdata): void {
 		$this->addressdata = $addressdata;
+	}
+
+	/**
+	 * Replace the entire urldata array.
+	 *
+	 * @param array<string, mixed> $urldata
+	 *
+	 * @return void
+	 */
+	public function setUrldata(array $urldata): void {
+		$this->urldata = $urldata;
+	}
+
+	/**
+	 * Set the PDF storage folder name.
+	 *
+	 * @param string $folderName The folder name (appended to wp_upload_dir()['basedir']).
+	 *
+	 * @return void
+	 */
+	public function setFolderName(string $folderName): void {
+		$this->folderName = $folderName;
 	}
 
 	// -----------------------------------------------------------------------
@@ -148,6 +196,18 @@ trait PdfDataTrait {
 		$this->addressdata[$key] = $value;
 	}
 
+	/**
+	 * Set a single urldata value.
+	 *
+	 * @param string $key
+	 * @param mixed  $value
+	 *
+	 * @return void
+	 */
+	public function setUrl(string $key, mixed $value): void {
+		$this->urldata[$key] = $value;
+	}
+
 	// -----------------------------------------------------------------------
 	// Getters – single key with default
 	// -----------------------------------------------------------------------
@@ -188,6 +248,18 @@ trait PdfDataTrait {
 		return $this->addressdata[$key] ?? $default;
 	}
 
+	/**
+	 * Get a single urldata value.
+	 *
+	 * @param string $key
+	 * @param mixed  $default Returned when the key is not set.
+	 *
+	 * @return mixed
+	 */
+	public function getUrl(string $key, mixed $default = null): mixed {
+		return $this->urldata[$key] ?? $default;
+	}
+
 	// -----------------------------------------------------------------------
 	// Getters – full arrays
 	// -----------------------------------------------------------------------
@@ -217,5 +289,71 @@ trait PdfDataTrait {
 	 */
 	public function getAllAddressdata(): array {
 		return $this->addressdata;
+	}
+
+	/**
+	 * Get the full urldata array.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function getAllUrldata(): array {
+		return $this->urldata;
+	}
+
+	// -----------------------------------------------------------------------
+	// Initialization
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Initialize URL data from $_GET or $_POST.
+	 *
+	 * Call this in your class constructor or during initialization.
+	 *
+	 * @param array<string, mixed>|null $source Data source (defaults to $_GET)
+	 *
+	 * @return void
+	 */
+	public function initializeUrlData(?array $source = null): void {
+		$source = $source ?? $_GET;
+		$this->setUrldata($source);
+	}
+
+	// -----------------------------------------------------------------------
+	// Storage
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Get the full storage path for PDF files.
+	 *
+	 * @return string The full path to the storage folder, or empty string if folder name not set.
+	 */
+	public function getStoragePath(): string {
+		if ($this->folderName === '') {
+			return '';
+		}
+		$uploadDir = wp_upload_dir();
+		return $uploadDir['basedir'] . '/' . $this->folderName;
+	}
+
+	/**
+	 * Create the PDF storage folder if it doesn't exist.
+	 *
+	 * Must call setFolderName() first to define the folder name.
+	 * or pass a folder name as argument.
+	 *
+	 * @return bool True if folder exists or was created, false on error.
+	 */
+	public function createStorageFolder(?string $folderName = null): bool {
+		if ($folderName !== null && $folderName !== '') {
+			$this->setFolderName($folderName);
+		}
+		$path = $this->getStoragePath();
+		if ($path === '') {
+			return false;
+		}
+		if (is_dir($path)) {
+			return true;
+		}
+		return wp_mkdir_p($path);
 	}
 }

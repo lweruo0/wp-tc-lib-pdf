@@ -1,0 +1,95 @@
+<?php
+/**
+ * Example PDF Template class.
+ *
+ * Demonstrates how to create a PDF template with header/footer.
+ * Uses PdfHeaderFooterTrait for header and footer functionality.
+ *
+ * @package WordPress Plugin Template/Includes
+ */
+
+if (!defined('ABSPATH')) {
+	exit;
+}
+
+require_once __DIR__ . '/class-pdf-template.php';
+require_once __DIR__ . '/trait-pdf-header-footer.php';
+require_once __DIR__ . '/trait-pdf-adress.php';
+require_once __DIR__ . '/trait-pdf-falzmarken.php';
+require_once __DIR__ . '/trait-pdf-absender.php';
+require_once __DIR__ . '/trait-pdf-rechnungsdaten.php';
+
+/**
+ * Example PDF Template with header and footer.
+ */
+class PdfRechnungHuette extends PdfTemplate {
+	use PdfHeaderFooterTrait;
+	use PdfAdressTrait;
+	use PdfFalzmarkenTrait;
+	use PdfAbsenderTrait;
+	use PdfRechnungsdatenTrait;
+
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		parent::__construct();
+		$this->enableDefaultPageContent(true); // Enable default header/footer and page content
+		$this->initializeUrlData(); // Load $_GET parameters into $this->urldata
+	}
+
+	/**
+	 * Load data for this template.
+	 *
+	 * Override this in subclasses or call setOptions()/setFormdata()/setAddressdata()
+	 * from the dispatcher before rendering to inject dynamic data.
+	 *
+	 * @return void
+	 */
+	protected function loadData(): void {
+		$this->setOptions([
+			'accent_color' => '#1a3a6b',
+			'text_color'   => '#555555',
+		]);
+
+		$this->setFormdata([
+			'brutto' => 25.00,
+			'zahlungsfrist' => '10.07.2026',
+			'rechnungsnummer' => '2026-P-0151',
+			'first_name' => 'Bruno',
+			'last_name'  => 'Kasssssler',
+			'street'     => 'Lindenstraße 94',
+			'zip'        => '89099',
+			'city'       => 'Ulm',
+			'email'      => 'kassler@example.com',
+			'sender'	 => 'Bezirksfischerei-Verein e.V. Ehingen/Donau, Postfach 1340, 89573 Ehingen',
+			'returnme'	 => 'falls unzustellbar, bitte zurück',
+		]);
+
+		$adressData = get_option ( 'bfv_adressen' );
+		$this->setAddressdata($adressData);
+		$this->createStorageFolder('bfv_huette');
+	}
+
+	/**
+	 * Render the PDF document.
+	 *
+	 * @return void
+	 */
+	protected function render(): void {
+		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
+
+		$this->addPage();
+		$this->add_adress_field();
+		$this->add_falzmarken();
+		$this->add_absender();
+		$this->add_rechnungsdaten();
+
+		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
+		$this->add_Zeile(25, 100, 6, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
+		$this->add_Zeile(25, 106, 6, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 245);
+		$this->add_Zeile(25, 112, 6, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 230);
+		$this->add_Zeile(25, 118, 6, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 245);
+		$this->add_Zeile(25, 124, 6, 100.0, 20.0, 22.5, 22.5, 'Rechnungsbetrag', '', '', '25,00 €', 230, 'BU');
+	}
+}

@@ -14,38 +14,46 @@ if (!defined('ABSPATH')) {
 
 require_once __DIR__ . '/class-pdf-registry.php';
 // Register available PDF templates
-PdfRegistry::register('example', 'PdfExample', __DIR__ . '/class-pdf-example.php');
-PdfRegistry::register('invoice', 'PdfInvoice', __DIR__ . '/class-pdf-invoice.php');
 
-PdfRegistry::register('simple', 'PdfSimple', __DIR__ . '/class-pdf-simple.php');
+// https://bfv-ehingen.de/?rechnung=2026-P-0148&key=31e86617aad37a3a3902a560e69c7e79
+PdfRegistry::register('rechnung_erlaubnis', 'PdfRechnungErlaubnis', __DIR__ . '/class-pdf-rechnung-erlaubnis.php');
+// https://bfv-ehingen.de/?rechnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e
+PdfRegistry::register('rechnung_merchandise', 'PdfRechnungMerchandise', __DIR__ . '/class-pdf-rechnung-merchandise.php');
+// https://bfv-ehingen.de/?rechnungantrag=244&key=45042c927a
+PdfRegistry::register('rechnung_antrag', 'PdfRechnungMitgliedsantrag', __DIR__ . '/class-pdf-rechnung-mitgliedsantrag.php');
+// PdfRegistry::register('rechnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
+PdfRegistry::register('rechnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
+// PdfRegistry::register('rechnung_vorbereitungslehrgang', 'PdfRechnungVorbereitungslehrgang', __DIR__ . '/class-pdf-rechnung-vorbereitungslehrgang.php');
+
+// https://bfv-ehingen.de/?mahnung=2026-P-0147&key=68115147e855ecdcd7c9395b5bbe8ff9
+PdfRegistry::register('mahnung_erlaubnis', 'PdfRechnungErlaubnis', __DIR__ . '/class-pdf-rechnung-erlaubnis.php');
+// https://bfv-ehingen.de/?mahnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e
+PdfRegistry::register('mahnung_merchandise', 'PdfRechnungMerchandise', __DIR__ . '/class-pdf-rechnung-merchandise.php');
+// https://bfv-ehingen.de/?mahnung_antrag=244&key=45042c927a
+PdfRegistry::register('mahnung_antrag', 'PdfRechnungMitgliedsantrag', __DIR__ . '/class-pdf-rechnung-mitgliedsantrag.php');
+// PdfRegistry::register('mahnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
+PdfRegistry::register('mahnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
+
+// https://bfv-ehingen.de/?arbeitsdienstliste=1&dienst=17.01.2026&mgn=282&nonce=45042c927a
+PdfRegistry::register('liste_arbeitsdienst', 'PdfListeArbeitsdienst', __DIR__ . '/class-pdf-liste-arbeitsdienst.php');
+// https://bfv-ehingen.de/?jugendteilnehmerliste=1&veranstaltung=12.09.2026&mgn=282&nonce=45042c927a
+PdfRegistry::register('liste_jugendveranstaltung', 'PdfListeJugendveranstaltung', __DIR__ . '/class-pdf-liste-jugendveranstaltung.php');
+
+//https://bfv-ehingen.de/?erlaubnis=2026-P-0148&key=31e86617aad37a3a3902a560e69c7e79
+PdfRegistry::register('erlaubnisschein', 'PdfErlaubnisschein', __DIR__ . '/class-pdf-erlaubnisschein.php');
+
+//https://bfv-ehingen.de/?fpdf=1&yy=2025
+PdfRegistry::register('fangstatistik', 'PdfFangstatistik', __DIR__ . '/class-pdf-fangstatistik.php');
+
+// https://bfv-ehingen.de/?mitgliedsantrag=1&mn=244&vn=Alexander&n=Lammert&y=2026&key=cc11bdd3e4e5c1263e0a76c5745d23d2
+PdfRegistry::register('mitgliedsantrag', 'PdfMitgliedsantrag', __DIR__ . '/class-pdf-mitgliedsantrag.php');
+// https://bfv-ehingen.de/?infoblatt-antrag=1&mn=244
+PdfRegistry::register('mitgliedsantraginfo', 'PdfMitgliedsantrag', __DIR__ . '/class-pdf-mitgliedsantrag.php');
+
 
 // Add more templates here as needed:
 // require_once __DIR__ . '/class-pdf-custom.php';
 // PdfRegistry::register('custom', 'PdfCustom', __DIR__ . '/class-pdf-custom.php');
-
-
-/* 
-
-https://bfv-ehingen.de/?erlaubnis=2026-P-0148&key=31e86617aad37a3a3902a560e69c7e79
-https://bfv-ehingen.de/?rechnung=2026-P-0148&key=31e86617aad37a3a3902a560e69c7e79
-https://bfv-ehingen.de/?mahnung=2026-P-0147&key=68115147e855ecdcd7c9395b5bbe8ff9
-https://bfv-ehingen.de/?mahnung=2026-P-0150&key=df1510b97ae9f6a1620591b4f7f8807f&nr=2
-
-https://bfv-ehingen.de/?arbeitsdienstliste=1&dienst=17.01.2026&mgn=282&nonce=45042c927a
-
-https://bfv-ehingen.de/?jugendteilnehmerliste=1&veranstaltung=12.09.2026&mgn=282&nonce=45042c927a
-
-https://bfv-ehingen.de/?rechnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e
-https://bfv-ehingen.de/?mahnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e
-https://bfv-ehingen.de/?mahnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e&nr=2
-
-https://bfv-ehingen.de/?fpdf=1&yy=2025
-
-https://bfv-ehingen.de/?infoblatt-antrag=1&mn=244
-https://bfv-ehingen.de/?mitgliedsantrag=1&mn=244&vn=Alexander&n=Lammert&y=2026&key=cc11bdd3e4e5c1263e0a76c5745d23d2
-https://bfv-ehingen.de/?rechnungantrag=244&key=45042c927a
-
-*/
 
 
 
