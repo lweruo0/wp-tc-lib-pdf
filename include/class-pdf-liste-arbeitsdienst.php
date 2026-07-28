@@ -45,7 +45,7 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 		]);
 
 		$this->setFormdata([
-
+			'documenttype' => 'Liste Arbeitsdienst',
 			'brutto' => 25.00,
 			'zahlungsfrist' => '10.07.2026',
 			'rechnungsnummer' => '2026-P-0151',
