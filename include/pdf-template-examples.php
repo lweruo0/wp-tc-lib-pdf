@@ -178,6 +178,7 @@ get_header();
 get_footer();
 */
 
+/*
 // Example 8: Custom data with PDF template
 function generate_invoice_pdf( $invoice_data ) {
 	if ( ! class_exists( 'PdfInvoice' ) ) {
@@ -194,6 +195,7 @@ function generate_invoice_pdf( $invoice_data ) {
 		return new WP_Error( 'pdf_error', $e->getMessage() );
 	}
 }
+*/
 
 // Example 9: AJAX handler for PDF generation
 function register_pdf_ajax() {

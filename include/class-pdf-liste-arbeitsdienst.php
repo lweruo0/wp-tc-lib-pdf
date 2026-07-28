@@ -14,12 +14,14 @@ if (!defined('ABSPATH')) {
 
 require_once __DIR__ . '/class-pdf-template.php';
 require_once __DIR__ . '/trait-pdf-header.php';
+require_once __DIR__ . '/trait-pdf-teilnehmerliste.php';
 
 /**
  * Example PDF Template with header and footer.
  */
 class PdfListeArbeitsdienst extends PdfTemplate {
 	use PdfHeaderTrait;
+	use PdfTeilnehmerlisteTrait;
 
 	/**
 	 * Constructor.
@@ -44,6 +46,21 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 			'text_color'   => '#555555',
 		]);
 
+		$dienst = $this->getUrl('dienst', '');
+		
+		if (function_exists('bfvarbeitsdienst')) {
+
+
+			$instance = bfvarbeitsdienst();
+
+
+			$anmeldungen = $instance->get_Anmeldungen_dienst($_REQUEST ['dienst'], [
+				'limit' => 1000,
+			]);
+
+		}
+
+		
 		$this->setFormdata([
 			'documenttype' => 'Liste Arbeitsdienst',
 			'brutto' => 25.00,
@@ -71,5 +88,13 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 	 */
 	protected function render(): void {
 		$this->addPage();
+
+		$x = 20; // Starting X position for the table
+		$y = 100; // Starting Y position for the table
+		$h = 6; // Height of each row
+		$this->add_Zeile8($x, $y, $h, 7.0, 42.0, 43, 11.0, 15.0, 15.0, 12.0, 30.0, "", "Name, Vorname", "Beruf", "MNr.", "Beginn", "Ende", "Std.", "Unterschrift", 230);
+		$y+=$h;
+		$this->add_Zeile8($x, $y, $h, 7.0, 42.0, 43, 11.0, 15.0, 15.0, 12.0, 30.0, "", "", "", "", "", "", "", "", 230);
+
 	}
 }
