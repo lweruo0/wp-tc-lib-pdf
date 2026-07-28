@@ -63,8 +63,8 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 			'anmeldungen' => $anmeldungen,
 		]);
 
-		//$adressData = get_option ( 'bfv_adressen' );
-		//$this->setAddressdata($adressData);
+		$adressData = get_option ( 'bfv_adressen' );
+		$this->setAddressdata($adressData);
 		//$this->createStorageFolder( 'bfv_arbeitsdienst' );
 	}
 

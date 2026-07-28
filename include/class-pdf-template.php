@@ -54,14 +54,11 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	 */
 	protected function initialize(): void {
 
-		$author = $this->getAddress ( 'name_verein' );
+		$author = $this->getAddress ( 'name_verein',  '' );
 		$this->SetCreator($author);
 		$this->SetAuthor($author);
 
-		$documenttype = $this->getForm('documenttype');
-		if ($documenttype === null) {
-			$documenttype = 'PDF Document';
-		}
+		$documenttype = $this->getForm('documenttype', '');
 		$this->SetTitle ( $documenttype );
 		$this->SetSubject ( $documenttype );
 		$this->SetKeywords ( $documenttype );
