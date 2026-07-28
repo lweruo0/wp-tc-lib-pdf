@@ -93,7 +93,7 @@ trait PdfTeilnehmerlisteTrait {
 				$out .= $this->getTextCell(
 					txt: (string) $cell['txt'],
 					posx: $innerX,
-					posy: $y + ($h / 2.0),
+					posy: $y,
 					width: $innerW,
 					height: $h,
 					offset: 0,
