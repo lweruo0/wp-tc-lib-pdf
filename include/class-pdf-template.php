@@ -88,13 +88,24 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	/**
 	 * Generate and send the PDF as a browser download (Content-Disposition: attachment).
 	 *
-	 * @param string $filename Optional. Filename for download. Default empty.
+	 * If a filename is set via setFileNameAbs() and the file exists on the filesystem,
+	 * it will be served from the cache. Otherwise, it will be generated on-the-fly.
 	 *
 	 * @return void
 	 */
-	public function output(string $filename = ''): void {
-		if ($filename !== '') {
-			$this->setPDFFilename($filename);
+	public function output(): void {
+		$filename = $this->getFileNameAbs();
+		if ($filename !== '' && file_exists($filename)) {
+			header ( "Expires: 0" );
+			header ( "Cache-Control: must-revalidate" );
+			header ( 'Cache-Control: pre-check=0, post-check=0, max-age=0', false );
+			header ( 'Expires: Sat, 26 Jul 1997 05:00:00 GMT' ); // Date in the past
+			header ( 'Last-Modified: ' . gmdate ( 'D, d M Y H:i:s' ) . ' GMT' );
+			header ( "Pragma: public" );
+			header ( "Content-type: application/pdf" );
+			header ( "Content-Disposition: attachment; filename=\"" . basename ( $filename ) . "\"" );
+			readfile ( "{$filename}" );
+			exit ();
 		}
 
 		$this->loadData();
@@ -107,19 +118,63 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	/**
 	 * Generate and stream the PDF inline to the browser (Content-Disposition: inline).
 	 *
-	 * @param string $filename Optional. Filename hint for the browser. Default empty.
+	 * If a filename is set via setFileNameAbs() and the file exists on the filesystem,
+	 * it will be served from the cache. Otherwise, it will be generated on-the-fly.
 	 *
 	 * @return void
 	 */
-	public function stream(string $filename = ''): void {
-		if ($filename !== '') {
-			$this->setPDFFilename($filename);
+	public function stream(): void {
+		$filename = $this->getFileNameAbs();
+		if ($filename !== '' && file_exists($filename)) {
+			header ( "Expires: 0" );
+			header ( "Cache-Control: must-revalidate" );
+			header ( 'Cache-Control: pre-check=0, post-check=0, max-age=0', false );
+			header ( 'Expires: Sat, 26 Jul 1997 05:00:00 GMT' ); // Date in the past
+			header ( 'Last-Modified: ' . gmdate ( 'D, d M Y H:i:s' ) . ' GMT' );
+			header ( "Pragma: public" );
+			header ( "Content-type: application/pdf" );
+			header ( "Content-Disposition: inline; filename=\"" . basename ( $filename ) . "\"" );
+			readfile ( "{$filename}" );
+			exit ();
 		}
+
 		$this->loadData();
 		$this->initialize();
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
 		$this->renderPDF($rawpdf);
+	}
+
+	/**
+	 * Save the PDF to the filesystem.
+	 *
+	 * Creates the storage folder if it doesn't exist and saves the rendered PDF.
+	 * The filename must be set via setFileNameAbs() or setFileNameAbsWithFolder().
+	 *
+	 * @return bool True on success, false on failure.
+	 */
+	public function save(): bool {
+		$filename = $this->getFileNameAbs();
+		if ($filename === '') {
+			return false;
+		}
+
+		// Create directory if it doesn't exist
+		$dir = dirname($filename);
+		if (!is_dir($dir)) {
+			if (!wp_mkdir_p($dir)) {
+				return false;
+			}
+		}
+
+		// Generate PDF
+		$this->loadData();
+		$this->initialize();
+		$this->render();
+		$rawpdf = $this->getOutPDFString();
+
+		// Save to file
+		return file_put_contents($filename, $rawpdf) !== false;
 	}
 
 }

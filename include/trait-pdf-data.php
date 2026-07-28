@@ -94,7 +94,12 @@ trait PdfDataTrait {
 	 */
 	private string $folderName = '';
 
-
+	/**
+	 * PDF file name (with full path).
+	 *
+	 * @var string
+	 */
+	private string $fileName = '';
 
 
 	// -----------------------------------------------------------------------
@@ -206,6 +211,46 @@ trait PdfDataTrait {
 	 */
 	public function setUrl(string $key, mixed $value): void {
 		$this->urldata[$key] = $value;
+	}
+
+	/**
+	 * Set the absolute file name for the PDF including the folder name.
+	 *
+	 * Combines the storage folder path with the given file name.
+	 *
+	 * @param string $fileName The file name (without path).
+	 *
+	 * @return void
+	 */
+	public function setFileName(string $fileName): void {
+		$this->fileName = $fileName;
+	}
+
+	/**
+	 * Set the absolute file name for the PDF including the folder name.
+	 *
+	 * Combines the storage folder path with the given file name.
+	 *
+	 * @param string $fileName The file name (without path).
+	 *
+	 * @return void
+	 */
+	public function getFileName(): string {
+		return $this->fileName;
+	}
+
+	/**
+	 * Get the absolute file name for the PDF.
+	 *
+	 * @return string The absolute file name (with full path), or empty string if not set.
+	 */
+	public function getFileNameAbs(): string {
+		$storagePath = $this->getStoragePath();
+		if ($storagePath !== '') {
+			return $storagePath . '/' . $this->fileName;
+		} else {
+			return $this->fileName;
+		}
 	}
 
 	// -----------------------------------------------------------------------

@@ -60,6 +60,7 @@ class PdfMitgliedsantrag extends PdfTemplate {
 		$adressData = get_option ( 'bfv_adressen' );
 		$this->setAddressdata($adressData);
 		$this->createStorageFolder('bfv_mitgliedsantrag');
+
 	}
 
 	/**
