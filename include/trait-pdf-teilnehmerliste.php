@@ -71,22 +71,6 @@ trait PdfTeilnehmerlisteTrait {
 		$out .= $textFont['out'];
 		$cursorX = $x;
 
-		// Draw cell backgrounds
-		foreach ($cells as $cell) {
-			$cellW = (float) $cell['w'];
-			if ($cellW <= 0.0) {
-				continue;
-			}
-
-			$out .= $this->color->getPdfColor($greyHex);
-			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'F');
-
-			$cursorX += $cellW;
-		}
-
-		// Draw cell borders and text
-		$out .= $this->color->getPdfColor('#000000');
-		$cursorX = $x;
 		foreach ($cells as $cell) {
 			$cellW = (float) $cell['w'];
 			if ($cellW <= 0.0) {
@@ -96,27 +80,20 @@ trait PdfTeilnehmerlisteTrait {
 			$innerX = $cursorX + 1.0;
 			$innerW = max(0.0, $cellW - 2.0);
 
-			// Draw only left and bottom borders (right and top are drawn by next cell or final border)
-			if ($cursorX === $x) {
-				// First cell: draw left border
-				$out .= $this->graph->getLine($cursorX, $y, $cursorX, $y + $h);
-			}
-			// Draw bottom border
-			$out .= $this->graph->getLine($cursorX, $y + $h, $cursorX + $cellW, $y + $h);
-			// Draw vertical line between cells
-			$out .= $this->graph->getLine($cursorX + $cellW, $y, $cursorX + $cellW, $y + $h);
+			// Draw cell background
+			$out .= $this->color->getPdfColor($greyHex);
+			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'F');
 
-			// Draw top border only on first cell
-			if ($cursorX === $x) {
-				$out .= $this->graph->getLine($cursorX, $y, $cursorX + $cellW, $y);
-			}
+			// Draw cell border
+			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'S', ['line_width' => 0.3]);
 
 			// Draw cell text
 			if ($innerW > 0.0) {
 				$out .= $this->getTextCell(
 					txt: (string) $cell['txt'],
 					posx: $innerX,
-					posy: $y + ($h / 2.0),
+					posy: $y,
 					width: $innerW,
 					height: $h,
 					offset: 0,
