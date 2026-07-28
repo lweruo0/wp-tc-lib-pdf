@@ -80,15 +80,20 @@ trait PdfTeilnehmerlisteTrait {
 			$innerX = $cursorX + 1.0;
 			$innerW = max(0.0, $cellW - 2.0);
 
+			// Draw cell background
 			$out .= $this->color->getPdfColor($greyHex);
 			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'F');
 
+			// Draw cell border
 			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h);
+
+			// Draw cell text
 			if ($innerW > 0.0) {
 				$out .= $this->getTextCell(
 					txt: (string) $cell['txt'],
 					posx: $innerX,
-					posy: $y,
+					posy: $y + ($h / 2.0),
 					width: $innerW,
 					height: $h,
 					offset: 0,
