@@ -49,36 +49,23 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 		$dienst = $this->getUrl('dienst', '');
 		
 		if (function_exists('bfvarbeitsdienst')) {
-
-
 			$instance = bfvarbeitsdienst();
-
-
-			$anmeldungen = $instance->get_Anmeldungen_dienst($_REQUEST ['dienst'], [
+			$dienst = $this->getUrl('dienst', '');
+			$anmeldungen = $instance->get_Anmeldungen_dienst($dienst, [
 				'limit' => 1000,
 			]);
-
+		} else {
+			$anmeldungen = [];
 		}
 
-		
 		$this->setFormdata([
 			'documenttype' => 'Liste Arbeitsdienst',
-			'brutto' => 25.00,
-			'zahlungsfrist' => '10.07.2026',
-			'rechnungsnummer' => '2026-P-0151',
-			'first_name' => 'Bruno',
-			'last_name'  => 'Kasssssler',
-			'street'     => 'Lindenstraße 94',
-			'zip'        => '89099',
-			'city'       => 'Ulm',
-			'email'      => 'kassler@example.com',
-			'sender'	 => 'Bezirksfischerei-Verein e.V. Ehingen/Donau, Postfach 1340, 89573 Ehingen',
-			'returnme'	 => 'falls unzustellbar, bitte zurück',
+			'anmeldungen' => $anmeldungen,
 		]);
 
-		$adressData = get_option ( 'bfv_adressen' );
-		$this->setAddressdata($adressData);
-		$this->createStorageFolder('bfv_mitgliedsantrag');
+		//$adressData = get_option ( 'bfv_adressen' );
+		//$this->setAddressdata($adressData);
+		//$this->createStorageFolder( 'bfv_arbeitsdienst' );
 	}
 
 	/**
@@ -93,7 +80,7 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 		$y = 100; // Starting Y position for the table
 		$h = 6; // Height of each row
 		$this->add_Zeile8($x, $y, $h, 7.0, 42.0, 43, 11.0, 15.0, 15.0, 12.0, 30.0, "", "Name, Vorname", "Beruf", "MNr.", "Beginn", "Ende", "Std.", "Unterschrift", 230);
-		$y+=$h;
+		$y+=2*$h;
 		$this->add_Zeile8($x, $y, $h, 7.0, 42.0, 43, 11.0, 15.0, 15.0, 12.0, 30.0, "", "", "", "", "", "", "", "", 230);
 
 	}
