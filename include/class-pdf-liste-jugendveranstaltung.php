@@ -33,11 +33,11 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 	/* column widths for the table */
 	private const COL_WIDTHS = [
 		7.0,  // Nr.
-		36.0, // Name, Vorname
-		36.0, // Tel.
-		36.0, // Tel. Erz
+		10.0, // MNr.
+		35.0, // Name, Vorname
+		35.0, // Tel.
+		35.0, // Tel. Erz
 		65.0, // Anwesenheit/Fänge
-		0, // 
 		0, // 
 		0, // 
 	];
@@ -155,11 +155,11 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 						  self::COL_WIDTHS[6],
 						  self::COL_WIDTHS[7], 
 						  "", 
+						  "MNr.", 
 						  "Teilnehmer", 
 						  "Tel.", 
 						  "Tel. Erz.", 
 						  "Anwesenheit/Fänge", 
-						  "", 
 						  "", 
 						  "",
 						  230);
@@ -171,7 +171,7 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 	 * @param float $y The Y position for the header line.
 	 * @return void
 	 */
-	protected function add_line_table(float $y, int|string $nr, string $text2, string $text3, string $text4): void {
+	protected function add_line_table(float $y, int|string $mnr, int|string $nr, string $text2, string $text3, string $text4): void {
 		$this->add_Zeile8(self::TABLE_POSITION_X, 
 						  $y, 
 						  self::ROW_HEIGHT,
@@ -184,10 +184,11 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 						  self::COL_WIDTHS[6],
 						  self::COL_WIDTHS[7],  
 						  (string) $nr,
+						  (string) $mnr,
 						  $text2, 
 						  $text3, 
 						  $text4, 
-						  " ", " ", " ", " ", 255);
+						  " ", " ", " ", 255);
 	}
 
 
@@ -226,13 +227,13 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 				$nr = 0;
 			}
 			$nr++;
-			$this->add_line_table($y, $nr, $anmeldung['name'], $anmeldung['tel'], $anmeldung['tel_erz']);
+			$this->add_line_table($y, $nr, $anmeldung['mnr'], $anmeldung['name'], $anmeldung['tel'], $anmeldung['tel_erz']);
 			$y += self::ROW_HEIGHT;
 		}
         $Anzahl_leerzeilen = self::ROWS_PER_PAGE - $nr;
         for ($i = 1; $i <= $Anzahl_leerzeilen; $i++) {
 			$nr++;
-			$this->add_line_table($y, $nr, " ", " ", " ");
+			$this->add_line_table($y, $nr, " "," ", " ", " ");
 			$y += self::ROW_HEIGHT;
 
 		}					
