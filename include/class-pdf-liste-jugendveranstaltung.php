@@ -63,7 +63,7 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 		$this->setOptions([		]);
 	
 		if (function_exists('pdfjugendteilnehmerliste')) {
-			$instance = pdfjugendteilnehmerliste();
+			$instance = bfvjugend();
 			$veranstaltung = $this->getUrl('veranstaltung', '');
 			$anmeldungen = $instance->get_Anmeldungen_Veranstaltung($veranstaltung, [
 				'limit' => 1000,
