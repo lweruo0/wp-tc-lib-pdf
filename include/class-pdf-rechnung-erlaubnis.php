@@ -105,9 +105,11 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$rechnung_name = $this->getForm('rechnung_name', '');
 		$rechnung_vorname = $this->getForm('rechnung_vorname', '');
 		$rechnung_anrede = $this->getForm('rechnung_anrede', 'Herr');
+		$rechnungsnummer = $this->getForm('rechnungsnummer', '');
 
 		$out = $this->graph->getStartTransform();
-		$font = $this->font->insert($this->pon, 'helvetica', '', 14);
+		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
+		$fontb = $this->font->insert($this->pon, 'helvetica', 'B', 11);
 		$out .= $font['out'];
 		$out .= $this->color->getPdfColor('#000000');
 
@@ -125,6 +127,23 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
+
+
+		$text = 'Rechnung Nr. ' . $rechnungsnummer;
+
+		$y = 110;
+		$out .= $this->getTextCell(
+			txt: $text,
+			posx: 250.0,
+			posy: $y,
+			width: 165.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
 
 		$y += 10;
 		$greetingText = ($rechnung_anrede == 'Frau') 
