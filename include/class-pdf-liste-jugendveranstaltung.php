@@ -89,17 +89,34 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 		$out = $this->graph->getStartTransform();
 		$lineH = 7.0;
 
+		// "Jugendveranstaltung am: ..."
+		$font = $this->font->insert($this->pon, 'helvetica', '', 14);
+		$out .= $font['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Jugendveranstaltung am: ' . $this->getUrl('veranstaltung', ''),
+			posx: 20.0,
+			posy: 10.0,
+			width: 170.0,
+			height: $lineH,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
+
 		// text lines
 		$fontN = $this->font->insert($this->pon, 'helvetica', '', 14);
 		$out .= $fontN['out'];
 		$safetyLines = [
-			'Jugendleiter: _____________________________________________________',
-			'________________________________________________________________',
-			'________________________________________________________________',
-			'________________________________________________________________',
-			'________________________________________________________________',
+			'Jugendleiter: __________________________________________________',
+			'______________________________________________________________',
+			'______________________________________________________________',
+			'______________________________________________________________',
+			'______________________________________________________________',
 		];
-		$y = 28.0 + $lineH + 1.0;
+		$y = 20.0 + $lineH + 1.0;
 		foreach ($safetyLines as $line) {
 			$out .= $this->getTextCell(
 				txt: $line,
