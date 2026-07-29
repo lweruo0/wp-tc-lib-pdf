@@ -133,7 +133,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 		$out .= $this->getTextCell(
 			txt: $greetingText,
-			posx: 20.0,
+			posx: 25.0,
 			posy: $y,
 			width: 165.0,
 			height: 5.0,
@@ -144,14 +144,12 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		);
 
 
-		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
 
 		$text = 'für den von uns am ' . $this->getForm('date', '') . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
 		$y += 10;
 		$out .= $this->getTextCell(
 			txt: $text,
-			posx: 20.0,
+			posx: 25.0,
 			posy: $y,
 			width: 165.0,
 			height: 5.0,
@@ -160,6 +158,11 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
+
+
+
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
 
 		$y += 30;
 		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
