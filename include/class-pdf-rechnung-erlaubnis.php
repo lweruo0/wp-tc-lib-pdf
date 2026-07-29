@@ -108,16 +108,29 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$rechnungsnummer = $this->getForm('rechnungsnummer', '');
 
 		$out = $this->graph->getStartTransform();
-		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
 		$fontb = $this->font->insert($this->pon, 'helvetica', 'B', 11);
+		$out .= $fontb['out'];
+
+		$y = 115;
+		$out .= $this->getTextCell(
+			txt: 'Rechnung Nr. ' . $rechnungsnummer,
+			posx: 25.0,
+			posy: $y,
+			width: 165.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
+		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
 		$out .= $font['out'];
 		$out .= $this->color->getPdfColor('#000000');
 
-		$text = 'Ehingen, den ' . $this->getForm('date', '');
-
 		$y = 110;
 		$out .= $this->getTextCell(
-			txt: $text,
+			txt: 'Ehingen, den ' . $this->getForm('date', ''),
 			posx: 120.0,
 			posy: $y,
 			width: 165.0,
@@ -129,20 +142,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		);
 
 
-		$text = 'Rechnung Nr. ' . $rechnungsnummer;
 
-		$y = 110;
-		$out .= $this->getTextCell(
-			txt: $text,
-			posx: 25.0,
-			posy: $y,
-			width: 165.0,
-			height: 5.0,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
 
 
 		$y += 10;
