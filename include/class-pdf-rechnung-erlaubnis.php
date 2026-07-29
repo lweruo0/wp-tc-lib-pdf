@@ -29,6 +29,9 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 	use PdfAbsenderTrait;
 	use PdfRechnungsdatenTrait;
 
+	/** Height of each row (mm). */
+	private const ROW_HEIGHT = 6;
+
 	/**
 	 * Constructor.
 	 */
@@ -110,10 +113,11 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 		$text = 'Ehingen, den ' . $this->getForm('date', '');
 
+		$y = 110;
 		$out .= $this->getTextCell(
 			txt: $text,
 			posx: 120.0,
-			posy: 55.0,
+			posy: $y,
 			width: 165.0,
 			height: 5.0,
 			offset: 0,
@@ -122,7 +126,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
-
+		$y += 10;
 		$greetingText = ($rechnung_anrede == 'Frau') 
 			? "Sehr geehrte Frau " . $rechnung_name . ','
 			: "Sehr geehrter Herr " . $rechnung_name . ',';
@@ -130,7 +134,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$out .= $this->getTextCell(
 			txt: $greetingText,
 			posx: 20.0,
-			posy: 65.0,
+			posy: $y,
 			width: 165.0,
 			height: 5.0,
 			offset: 0,
@@ -144,11 +148,11 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$this->page->addContent($out);
 
 		$text = 'für den von uns am ' . $this->getForm('date', '') . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
-
+		$y += 10;
 		$out .= $this->getTextCell(
 			txt: $text,
 			posx: 20.0,
-			posy: 75.0,
+			posy: $y,
 			width: 165.0,
 			height: 5.0,
 			offset: 0,
@@ -157,12 +161,16 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
-
+		$y += 30;
 		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
-		$this->add_Zeile(25, 100, 6, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
-		$this->add_Zeile(25, 106, 6, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 245);
-		$this->add_Zeile(25, 112, 6, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 230);
-		$this->add_Zeile(25, 118, 6, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 245);
-		$this->add_Zeile(25, 124, 6, 100.0, 20.0, 22.5, 22.5, 'Rechnungsbetrag', '', '', '25,00 €', 230, 'BU');
+		$this->add_Zeile(25, 100, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
+		$y += self::ROW_HEIGHT;
+		$this->add_Zeile(25, 106, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 245);
+		$y += self::ROW_HEIGHT;
+		$this->add_Zeile(25, 112, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 230);
+		$y += self::ROW_HEIGHT;
+		$this->add_Zeile(25, 118, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 245);
+		$y += self::ROW_HEIGHT;
+		$this->add_Zeile(25, 124, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Rechnungsbetrag', '', '', '25,00 €', 230, 'BU');
 	}
 }
