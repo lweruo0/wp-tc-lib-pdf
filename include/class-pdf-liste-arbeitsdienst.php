@@ -107,8 +107,8 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 		);
 
 		// "Sicherheitshinweis:" (underlined)
-		$fontU = $this->font->insert($this->pon, 'helvetica', 'U', $textSize);
-		$out .= $fontU['out'];
+		$fontB = $this->font->insert($this->pon, 'helvetica', 'B', $textSize);
+		$out .= $fontB['out'];
 		$out .= $this->getTextCell(
 			txt: 'Sicherheitshinweis:',
 			posx: 20.0,
@@ -146,9 +146,8 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 			);
 			$y += $lineH;
 		}
-
 		// Confirmation lines (underlined)
-		$out .= $fontU['out'];
+		$out .= $fontB['out'];
 		$confirmLines = [
 			'Mit meiner Unterschrift bestätige ich, dass ich diese Sicherheitsanweisungen zur',
 			'Kenntnis genommen habe und sie befolgen werde.',
