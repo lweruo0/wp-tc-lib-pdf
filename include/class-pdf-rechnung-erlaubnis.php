@@ -163,14 +163,14 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 		$y += 30;
 		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
-		$this->add_Zeile(25, 100, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
+		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
 		$y += self::ROW_HEIGHT;
-		$this->add_Zeile(25, 106, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 245);
+		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 245);
 		$y += self::ROW_HEIGHT;
-		$this->add_Zeile(25, 112, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 230);
+		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 230);
 		$y += self::ROW_HEIGHT;
-		$this->add_Zeile(25, 118, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 245);
+		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 245);
 		$y += self::ROW_HEIGHT;
-		$this->add_Zeile(25, 124, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Rechnungsbetrag', '', '', '25,00 €', 230, 'BU');
+		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Rechnungsbetrag', '', '', '25,00 €', 230, 'BU');
 	}
 }
