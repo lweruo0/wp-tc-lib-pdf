@@ -38,36 +38,27 @@ class PdfErlaubnisschein extends PdfTemplate {
 	 */
 	protected function loadData(): void {
 
+		$rechnungsnummer = $this->getUrl('nr', '');
 		$options = get_option ( 'bfv_erlaubnisschein' );
 		$this->setOptions($options);
 
+		$adressData = get_option ( 'bfv_adressen' );
+		$this->setAddressdata($adressData);
+		$this->createStorageFolder('bfv_erlaubnisschein');
+		//$this->setFileName("rechnung_$rechnungsnummer.pdf");
 
-		$instance = bfverlaubnisscheine ();
-
-		$rechnungsnummer = $this->getUrl('nr', ''); // Load $_GET parameters into $this->urldata
-		$formdata = $instance->get_formdata_by_rechnungsnummer ( $rechnungsnummer );
+		if (function_exists('bfverlaubnisscheine')) {
+			$instance = bfverlaubnisscheine ();
+			$formdata = $instance->get_formdata_by_rechnungsnummer ( $rechnungsnummer );
+		} else {
+			$formdata = [];
+		}
 
 		$formdata['documenttype'] = 'Erlaubnisschein';
 		$formdata['returnme'] = 'falls unzustellbar, bitte zurück';
+		$this->setFormdata($formdata);
 
-		$this->setFormdata([
-			'documenttype' => 'Erlaubnisschein',
-			'brutto' => 25.00,
-			'zahlungsfrist' => '10.07.2026',
-			'rechnungsnummer' => '2026-P-0151',
-			'first_name' => 'Bruno',
-			'last_name'  => 'Kasssssler',
-			'street'     => 'Lindenstraße 94',
-			'zip'        => '89099',
-			'city'       => 'Ulm',
-			'email'      => 'kassler@example.com',
-			'sender'	 => 'Bezirksfischerei-Verein e.V. Ehingen/Donau, Postfach 1340, 89573 Ehingen',
-			'returnme'	 => 'falls unzustellbar, bitte zurück',
-		]);
 
-		$adressData = get_option ( 'bfv_adressen' );
-		$this->setAddressdata($adressData);
-		$this->createStorageFolder('bfv_mitgliedsantrag');
 	}
 
 	/**

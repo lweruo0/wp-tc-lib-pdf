@@ -88,19 +88,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$this->setFormdata($formdata);
 	}
 
-	/**
-	 * Render the PDF document.
-	 *
-	 * @return void
-	 */
-	protected function render(): void {
-		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
-
-		$this->addPage();
-		$this->add_adress_field();
-		$this->add_falzmarken();
-		$this->add_absender();
-		$this->add_rechnungsdaten();
+	protected function add_anschreiben_rechnung(): void {
 
 		$rechnung_name = $this->getForm('rechnung_name', '');
 		$rechnung_vorname = $this->getForm('rechnung_vorname', '');
@@ -110,7 +98,6 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$out = $this->graph->getStartTransform();
 		$fontb = $this->font->insert($this->pon, 'helvetica', 'B', 11);
 		$out .= $fontb['out'];
-
 		$y = 115;
 		$out .= $this->getTextCell(
 			txt: 'Rechnung Nr. ' . $rechnungsnummer,
@@ -127,7 +114,6 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
 		$out .= $font['out'];
 		$out .= $this->color->getPdfColor('#000000');
-
 		$y = 110;
 		$out .= $this->getTextCell(
 			txt: 'Ehingen, den ' . $this->getForm('date', ''),
@@ -140,10 +126,6 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-
-
-
-
 
 		$y += 16;
 		$greetingText = ($rechnung_anrede == 'Frau') 
@@ -162,8 +144,6 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
-
-
 		$text = 'für den von uns am ' . $this->getForm('date', '') . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
 		$y += 5;
 		$out .= $this->getTextCell(
@@ -178,18 +158,104 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);	
+	}
 
+	protected function add_rechnung_block() {
 
+		$out = $this->graph->getStartTransform();
+		$y += self::ROW_HEIGHT * 2;
+		$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230 );
+		$y += self::ROW_HEIGHT * 1.5;
+		$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Erlaubnisschein ' . $this->getForm('vorname', '') . ' ' . $this->getForm('name', ''), '', '', '', 255 );
+
+		$y += self::ROW_HEIGHT * 1;
+		if ($this->getForm('tage', 0) > 1) {
+			$this->gen_Zeile ( $y, 75, 30, 30, 30, 'vom ' . $this->getForm('von', '') . ' bis ' . $this->getForm('bis', ''), $this->getForm('tage', 0) . ' Tage', number_format ( $this->getForm('einzel_preis_netto', 0), 2, ',', '' ) . ' €', number_format ( $this->getForm('preis_netto', 0), 2, ',', '' ) . ' €', 255 );
+		} else {
+			$this->gen_Zeile ( $y, 75, 30, 30, 30, 'am ' . $this->getForm('von', ''), '1 Tag', number_format ( $this->getForm('einzel_preis_netto', 0), 2, ',', '' ) . ' €', number_format ( $this->getForm('preis_netto', 0), 2, ',', '' ) . ' €', 255 );
+		}
+		if ($this->getForm('preis_versand_netto', 0) > 0) {
+			$y += self::ROW_HEIGHT * 1.5;
+			$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Druck-/Versandkostenpauschale', '', '', number_format ( $this->getForm('preis_versand_netto', 0), 2, ',', '' ) . ' €', 255 );
+		}
+
+		if ($this->getForm('rabatt_netto', 0) > 0) {
+			$y += self::ROW_HEIGHT * 1.5;
+			$this->gen_Zeile ( $y, 125, 5, 5, 30, 'Rabatt (' . $this->getForm('rabattcode', '') . ')', '', '', '-' . number_format ( $this->getForm('rabatt_netto', 0), 2, ',', '' ) . ' €', 255 );
+		}
+
+		$y += self::ROW_HEIGHT * 3;
+		$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Nettobetrag', '', '', number_format ( $this->getForm('netto', 0), 2, ',', '' ) . ' €', 255 );
+
+		if ($this->getForm('steuersatz', 0) > 0) {
+			$y += self::ROW_HEIGHT;
+			$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Umsatzsteuer ' . $this->getForm('steuersatz', 0) . '%', '', '', number_format ( $this->getForm('steuer', 0), 2, ',', '' ) . ' €', 255 );
+		}
+		$this->SetFont ( 'Helvetica', 'BU', $this->FontSize_TEXT_LETTER );
+		$y += self::ROW_HEIGHT;
+		$this->gen_Zeile ( $y, 100, 5, 30, 30, 'Rechnungsbetrag', '', '', number_format ( $this->getForm('brutto', 0), 2, ',', '' ) . ' €', 230 );
+		$this->SetFont ( 'Helvetica', '', $this->FontSize_TEXT_LETTER );
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
+	}
 
-		$y += 30;
+	protected function add_rechnung_block2($y) {
+		$out = $this->graph->getStartTransform();
+		$text = 'Der Rechnungsbetrag von ' . number_format ( $this->getForm('brutto', 0), 2, ',', '' ) . ' € ist spätestens zum ' . $this->getForm('zahlungsfrist', '') . ' fällig.';
+		$text .= 'Nach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht ';
+		$text .= 'innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das ';
+		$text .= 'Rechnungsdatum dem Leistungsdatum.';
+
+		$out .= $this->getTextCell(
+			txt: $text,
+			posx: 25.0,
+			posy: $y,
+			width: 165.0,
+			height: 20.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
+	}
+
+	/**
+	 * Render the PDF document.
+	 *
+	 * @return void
+	 */
+	protected function render(): void {
+		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
+
+		$this->addPage();
+		$this->add_adress_field();
+		$this->add_falzmarken();
+		$this->add_absender();
+		$this->add_rechnungsdaten();
+
+		$this->add_anschreiben_rechnung();
+
+		$this->add_rechnung_block2(170);
+
+		$name = $this->getForm('name', '');
+		$vorname = $this->getForm('vorname', '');
+		$von = $this->getForm('von', '');
+		$bis = $this->getForm('bis', '');
+		$bis = $this->getForm('tage', '');
+
+
+
+		$y = 138;
 		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
 		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
 		$y += self::ROW_HEIGHT;
-		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 245);
+		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 255);
 		$y += self::ROW_HEIGHT;
-		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 230);
+		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 255);
 		$y += self::ROW_HEIGHT;
 		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 245);
 		$y += self::ROW_HEIGHT;
