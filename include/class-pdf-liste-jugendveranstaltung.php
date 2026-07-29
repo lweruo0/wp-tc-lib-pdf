@@ -34,10 +34,10 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 	private const COL_WIDTHS = [
 		7.0,  // Nr.
 		10.0, // MNr.
-		35.0, // Name, Vorname
-		35.0, // Tel.
-		35.0, // Tel. Erz
-		65.0, // Anwesenheit/Fänge
+		34.0, // Name, Vorname
+		34.0, // Tel.
+		34.0, // Tel. Erz
+		60.0, // Anwesenheit/Fänge
 		0, // 
 		0, // 
 	];
