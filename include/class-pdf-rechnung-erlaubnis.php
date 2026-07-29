@@ -208,6 +208,10 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$text .= 'innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das ';
 		$text .= 'Rechnungsdatum dem Leistungsdatum.';
 
+		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
+		$out .= $font['out'];
+		$out .= $this->color->getPdfColor('#000000');
+
 		$out .= $this->getTextCell(
 			txt: $text,
 			posx: 25.0,
