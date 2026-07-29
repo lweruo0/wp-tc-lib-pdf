@@ -65,7 +65,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		}
 
 		$name = $this->getAddress ( 'name_verein',  '' );
-		$street = $this->getAddress ( 'street_verein',  '' );
+		$addr = $this->getAddress ( 'addr_verein',  '' );
 		$city = $this->getAddress ( 'ort_verein',  '' );
 
 		$formdata['documenttype'] = 'Rechnung Erlaubnisschein';
@@ -76,8 +76,9 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$formdata['city'] = $formdata['rechnung_ort'] ?? '';
 		$formdata['email'] = $formdata['rechnung_email'] ?? '';
 		$formdata['returnme'] = $formdata['returnme'] ?? 'falls unzustellbar, bitte zurück';
-		$formdata['sender'] = $this->getAddress('sender', "$name, $street, $city");
+		$formdata['sender'] = $this->getAddress('sender', "$name, $addr, $city");
 
+		 error_log(print_r($formdata, TRUE));
 		$this->setFormdata($formdata);
 	}
 
