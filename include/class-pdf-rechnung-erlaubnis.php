@@ -131,7 +131,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$y = 110;
 		$out .= $this->getTextCell(
 			txt: 'Ehingen, den ' . $this->getForm('date', ''),
-			posx: 130.0,
+			posx: 125.0,
 			posy: $y,
 			width: 165.0,
 			height: 5.0,
@@ -145,7 +145,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 
 
-		$y += 10;
+		$y += 16;
 		$greetingText = ($rechnung_anrede == 'Frau') 
 			? "Sehr geehrte Frau " . $rechnung_name . ','
 			: "Sehr geehrter Herr " . $rechnung_name . ',';
@@ -165,7 +165,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 
 		$text = 'für den von uns am ' . $this->getForm('date', '') . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
-		$y += 7;
+		$y += 5;
 		$out .= $this->getTextCell(
 			txt: $text,
 			posx: 25.0,
