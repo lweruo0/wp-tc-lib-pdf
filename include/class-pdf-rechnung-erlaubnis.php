@@ -131,7 +131,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$y = 110;
 		$out .= $this->getTextCell(
 			txt: 'Ehingen, den ' . $this->getForm('date', ''),
-			posx: 120.0,
+			posx: 130.0,
 			posy: $y,
 			width: 165.0,
 			height: 5.0,
@@ -165,7 +165,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 
 		$text = 'für den von uns am ' . $this->getForm('date', '') . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
-		$y += 10;
+		$y += 7;
 		$out .= $this->getTextCell(
 			txt: $text,
 			posx: 25.0,
