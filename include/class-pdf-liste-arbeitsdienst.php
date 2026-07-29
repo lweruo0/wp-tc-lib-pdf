@@ -39,7 +39,7 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 		15.0, // Beginn
 		15.0, // Ende
 		12.0, // Std.
-		30.0, // Unterschrift
+		35.0, // Unterschrift
 	];
 
 	/**
@@ -60,10 +60,7 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 	 * @return void
 	 */
 	protected function loadData(): void {
-		$this->setOptions([
-			'accent_color' => '#1a3a6b',
-			'text_color'   => '#555555',
-		]);
+		$this->setOptions([		]);
 	
 		if (function_exists('bfvarbeitsdienst')) {
 			$instance = bfvarbeitsdienst();

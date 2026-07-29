@@ -14,12 +14,33 @@ if (!defined('ABSPATH')) {
 
 require_once __DIR__ . '/class-pdf-template.php';
 require_once __DIR__ . '/trait-pdf-header.php';
+require_once __DIR__ . '/trait-pdf-teilnehmerliste.php';
 
 /**
  * Example PDF Template with header and footer.
  */
 class PdfListeJugendveranstaltung extends PdfTemplate {
 	use PdfHeaderTrait;
+	use PdfTeilnehmerlisteTrait;
+
+	/** Default X position for participant list area (mm). */
+	private const TABLE_POSITION_X = 20;
+	/** Height of each row (mm). */
+	private const ROW_HEIGHT = 8;
+	/** Maximum number of rows per page. */
+	private const ROWS_PER_PAGE = 25;
+
+	/* column widths for the table */
+	private const COL_WIDTHS = [
+		7.0,  // Nr.
+		40.0, // Name, Vorname
+		40.0, // Tel.
+		40.0, // Tel. Erz
+		53.0, // Anwesenheit/Fänge
+		0, // 
+		0, // 
+		0, // 
+	];
 
 	/**
 	 * Constructor.
@@ -39,30 +60,119 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 	 * @return void
 	 */
 	protected function loadData(): void {
-		$this->setOptions([
-			'accent_color' => '#1a3a6b',
-			'text_color'   => '#555555',
-		]);
+		$this->setOptions([		]);
+	
+		if (function_exists('pdfjugendteilnehmerliste')) {
+			$instance = pdfjugendteilnehmerliste();
+			$veranstaltung = $this->getUrl('veranstaltung', '');
+			$anmeldungen = $instance->get_Anmeldungen_Veranstaltung($veranstaltung, [
+				'limit' => 1000,
+			]);
+		} else {
+			$anmeldungen = [];
+		}
 
 		$this->setFormdata([
-			'documenttype' => 'Liste Jugendveranstaltung',
-			'brutto' => 25.00,
-			'zahlungsfrist' => '10.07.2026',
-			'rechnungsnummer' => '2026-P-0151',
-			'first_name' => 'Bruno',
-			'last_name'  => 'Kasssssler',
-			'street'     => 'Lindenstraße 94',
-			'zip'        => '89099',
-			'city'       => 'Ulm',
-			'email'      => 'kassler@example.com',
-			'sender'	 => 'Bezirksfischerei-Verein e.V. Ehingen/Donau, Postfach 1340, 89573 Ehingen',
-			'returnme'	 => 'falls unzustellbar, bitte zurück',
+			'documenttype' => 'Liste Arbeitsdienst',
+			'anmeldungen' => $anmeldungen,
 		]);
 
 		$adressData = get_option ( 'bfv_adressen' );
 		$this->setAddressdata($adressData);
-		$this->createStorageFolder('bfv_mitgliedsantrag');
+		//$this->createStorageFolder( 'bfv_arbeitsdienst' );
 	}
+
+
+
+   protected function add_text(): void {
+
+		$out = $this->graph->getStartTransform();
+		$lineH = 7.0;
+
+		// text lines
+		$fontN = $this->font->insert($this->pon, 'helvetica', '', 14);
+		$out .= $fontN['out'];
+		$safetyLines = [
+			'Jugendleiter: _____________________________________________________',
+			'________________________________________________________________',
+			'________________________________________________________________',
+			'________________________________________________________________',
+			'________________________________________________________________',
+		];
+		$y = 28.0 + $lineH + 1.0;
+		foreach ($safetyLines as $line) {
+			$out .= $this->getTextCell(
+				txt: $line,
+				posx: 20.0,
+				posy: $y,
+				width: 170.0,
+				height: $lineH,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			);
+			$y += $lineH;
+		}
+
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
+	}
+
+	/**
+	 * Add a header line for the table.
+	 *
+	 * @param float $y The Y position for the header line.
+	 * @return void
+	 */
+	protected function add_line_table_header(float $y): void {
+		$this->add_Zeile8(self::TABLE_POSITION_X, 
+						  $y, 
+						  self::ROW_HEIGHT, 
+						  self::COL_WIDTHS[0], 
+						  self::COL_WIDTHS[1],
+						  self::COL_WIDTHS[2],
+						  self::COL_WIDTHS[3],
+						  self::COL_WIDTHS[4],
+						  self::COL_WIDTHS[5],
+						  self::COL_WIDTHS[6],
+						  self::COL_WIDTHS[7], 
+						  "", 
+						  "Teilnehmer", 
+						  "Tel.", 
+						  "Tel. Erz.", 
+						  "Anwesenheit/Fänge", 
+						  "", 
+						  "", 
+						  "",
+						  230);
+	}
+
+	/**
+	 * Add a header line for the table.
+	 *
+	 * @param float $y The Y position for the header line.
+	 * @return void
+	 */
+	protected function add_line_table(float $y, int|string $nr, string $text2, string $text3, string $text4): void {
+		$this->add_Zeile8(self::TABLE_POSITION_X, 
+						  $y, 
+						  self::ROW_HEIGHT,
+						  self::COL_WIDTHS[0], 
+						  self::COL_WIDTHS[1],
+						  self::COL_WIDTHS[2],
+						  self::COL_WIDTHS[3],
+						  self::COL_WIDTHS[4],
+						  self::COL_WIDTHS[5],
+						  self::COL_WIDTHS[6],
+						  self::COL_WIDTHS[7],  
+						  (string) $nr,
+						  $text2, 
+						  $text3, 
+						  $text4, 
+						  " ", " ", " ", " ", 255);
+	}
+
 
 	/**
 	 * Render the PDF document.
@@ -70,6 +180,43 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 	 * @return void
 	 */
 	protected function render(): void {
-		$this->addPage();
+
+		$anmeldungen = $this->getForm('anmeldungen', []);
+
+		// Sort by 'mnr' key in ascending order
+		usort($anmeldungen, function ($a, $b) {
+			$mnrA = (int) ($a['mnr'] ?? 0);
+			$mnrB = (int) ($b['mnr'] ?? 0);
+			return $mnrA <=> $mnrB;
+		});
+
+		$this->AddPage();
+		//  Generate the header for the Jugendveranstaltung list
+		$this->add_text();
+
+		$y = 73.0; // Starting Y position for the table
+		$this->add_line_table_header($y);
+		$y += self::ROW_HEIGHT;
+		$nr = 0;
+        foreach ($anmeldungen as $anmeldung) {
+            if ($nr == self::ROWS_PER_PAGE) {
+                $this->AddPage();
+				//  Generate the header for the Jugendveranstaltung list
+				$this->add_text();
+				$y = 73.0; // Starting Y position for the table
+				$this->add_line_table_header($y);
+				$y += self::ROW_HEIGHT;
+				$nr = 0;
+			}
+			$nr++;
+			$this->add_line_table($y, $nr, $anmeldung['name'], $anmeldung['tel'], $anmeldung['tel_erz']);
+			$y += self::ROW_HEIGHT;
+		}
+        $Anzahl_leerzeilen = self::ROWS_PER_PAGE - $nr;
+        for ($i = 1; $i <= $Anzahl_leerzeilen; $i++) {
+			$this->add_line_table($y, $nr, " ", " ", " ");
+			$y += self::ROW_HEIGHT;
+			$nr++;
+		}					
 	}
 }
