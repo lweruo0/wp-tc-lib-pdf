@@ -71,6 +71,7 @@ trait PdfTeilnehmerlisteTrait {
 		$out .= $textFont['out'];
 		$cursorX = $x;
 
+		// Draw cell backgrounds and text
 		foreach ($cells as $cell) {
 			$cellW = (float) $cell['w'];
 			if ($cellW <= 0.0) {
@@ -84,26 +85,38 @@ trait PdfTeilnehmerlisteTrait {
 			$out .= $this->color->getPdfColor($greyHex);
 			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'F');
 
-			// Draw cell border
-			$out .= $this->color->getPdfColor('#000000');
-			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'S', ['line_width' => 0.3]);
+			// Draw cell text only if not empty
+			$cellText = (string) $cell['txt'];
+			$cellText = $cellText !== '' ? $cellText : ' ';
 
-			// Draw cell text
-			if ($innerW > 0.0) {
-				$out .= $this->getTextCell(
-					txt: (string) $cell['txt'],
-					posx: $innerX,
-					posy: $y,
-					width: $innerW,
-					height: $h,
-					offset: 0,
-					linespace: 0,
-					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
-					halign: $cell['halign'],
-					drawcell: false,
-				);
+			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->getTextCell(
+				txt: $cellText,
+				posx: $innerX,
+				posy: $y,
+				width: $innerW,
+				height: $h,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+				halign: $cell['halign'],
+				drawcell: false,
+			);
+	
+
+			$cursorX += $cellW;
+		}
+
+		// Draw cell borders (after text to preserve line width)
+		$out .= $this->color->getPdfColor('#000000');
+		$cursorX = $x;
+		foreach ($cells as $cell) {
+			$cellW = (float) $cell['w'];
+			if ($cellW <= 0.0) {
+				continue;
 			}
 
+			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'S', ['lineWidth' => 0.5]);
 			$cursorX += $cellW;
 		}
 
