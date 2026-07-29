@@ -47,29 +47,38 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 	 * @return void
 	 */
 	protected function loadData(): void {
-		$this->setOptions([
-			'accent_color' => '#1a3a6b',
-			'text_color'   => '#555555',
-		]);
 
-		$this->setFormdata([
-			'documenttype' => 'Rechnung Erlaubnisschein',
-			'brutto' => 25.00,
-			'zahlungsfrist' => '10.07.2026',
-			'rechnungsnummer' => '2026-P-0151',
-			'first_name' => 'Bruno',
-			'last_name'  => 'Kasssssler',
-			'street'     => 'Lindenstraße 94',
-			'zip'        => '89099',
-			'city'       => 'Ulm',
-			'email'      => 'kassler@example.com',
-			'sender'	 => 'Bezirksfischerei-Verein e.V. Ehingen/Donau, Postfach 1340, 89573 Ehingen',
-			'returnme'	 => 'falls unzustellbar, bitte zurück',
-		]);
+		$rechnungsnummer = $this->getUrl('nr', '');
+		$options = get_option('bfv_erlaubnisschein');
+		$this->setOptions($options);
 
 		$adressData = get_option ( 'bfv_adressen' );
 		$this->setAddressdata($adressData);
 		$this->createStorageFolder('bfv_erlaubnisschein');
+		$this->setFileName("rechnung_$rechnungsnummer.pdf");
+
+		if (function_exists('bfverlaubnisscheine')) {
+			$instance = bfverlaubnisscheine();
+			$formdata = $instance->get_formdata_by_rechnungsnummer($rechnungsnummer);
+		} else {
+			$formdata = [];
+		}
+
+		$name = $this->getAddress ( 'name_verein',  '' );
+		$street = $this->getAddress ( 'street_verein',  '' );
+		$city = $this->getAddress ( 'ort_verein',  '' );
+
+		$formdata['documenttype'] = 'Rechnung Erlaubnisschein';
+		$formdata['first_name'] = $formdata['rechnung_vorname'] ?? '';
+		$formdata['last_name'] = $formdata['rechnung_name'] ?? '';
+		$formdata['street'] = $formdata['rechnung_strasse'] ?? '';
+		$formdata['zip'] = $formdata['rechnung_plz'] ?? '';
+		$formdata['city'] = $formdata['rechnung_ort'] ?? '';
+		$formdata['email'] = $formdata['rechnung_email'] ?? '';
+		$formdata['returnme'] = $formdata['returnme'] ?? 'falls unzustellbar, bitte zurück';
+		$formdata['sender'] = $this->getAddress('sender', "$name, $street, $city");
+
+		$this->setFormdata($formdata);
 	}
 
 	/**
