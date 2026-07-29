@@ -37,10 +37,18 @@ class PdfErlaubnisschein extends PdfTemplate {
 	 * @return void
 	 */
 	protected function loadData(): void {
-		$this->setOptions([
-			'accent_color' => '#1a3a6b',
-			'text_color'   => '#555555',
-		]);
+
+		$options = get_option ( 'bfv_erlaubnisschein' );
+		$this->setOptions($options);
+
+
+		$instance = bfverlaubnisscheine ();
+
+		$rechnungsnummer = $this->getUrl('nr', ''); // Load $_GET parameters into $this->urldata
+		$formdata = $instance->get_formdata_by_rechnungsnummer ( $rechnungsnummer );
+
+		$formdata['documenttype'] = 'Erlaubnisschein';
+		$formdata['returnme'] = 'falls unzustellbar, bitte zurück';
 
 		$this->setFormdata([
 			'documenttype' => 'Erlaubnisschein',

@@ -94,7 +94,23 @@ class Pdf_Dispatcher {
 	 * @return bool
 	 */
 	private function should_render_pdf(): bool {
-		return isset($_GET['get_pdf']) && isset($_GET['nonce']);
+		if (!isset($_GET['get_pdf']) || !isset($_GET['nonce'])) {
+			return false;
+		}
+
+		$template_id = sanitize_text_field(wp_unslash($_GET['get_pdf']));
+
+		// Validate template exists
+		if (!PdfRegistry::exists($template_id)) {
+			return false;
+		}
+
+		// Verify nonce for security
+		if (!$this->verify_nonce()) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -106,19 +122,8 @@ class Pdf_Dispatcher {
 	 * @return void
 	 */
 	public function dispatch(): void {
-		// Verify nonce for security
-		if (!$this->verify_nonce()) {
-			$this->render_error('Invalid security token');
-			exit;
-		}
 
 		$template_id = sanitize_text_field(wp_unslash($_GET['get_pdf']));
-
-		// Validate template exists
-		if (!PdfRegistry::exists($template_id)) {
-			$this->render_error("Template not found: {$template_id}");
-			exit;
-		}
 
 		try {
 			// Create and render the template
@@ -129,15 +134,12 @@ class Pdf_Dispatcher {
 				exit;
 			}
 
-			// Generate PDF output
-			$filename = $this->get_filename($template_id);
-
             $download = $_GET['filedownload']??false;
 
             if ($download) {
-                $pdf->output($filename);
+                $pdf->output();
             } else {
-                $pdf->stream($filename);
+                $pdf->stream();
             }
             exit;
 
@@ -156,18 +158,6 @@ class Pdf_Dispatcher {
         return true;
 		// $nonce = sanitize_text_field(wp_unslash($_GET['nonce']));
 		// return wp_verify_nonce($nonce, 'get_pdf_render');
-	}
-
-	/**
-	 * Get the filename for the PDF export.
-	 *
-	 * @param string $template_id Template identifier.
-	 *
-	 * @return string
-	 */
-	private function get_filename(string $template_id): string {
-		$timestamp = gmdate('Y-m-d_His');
-		return "pdf-export-{$template_id}-{$timestamp}.pdf";
 	}
 
 	/**
