@@ -33,10 +33,10 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 	/* column widths for the table */
 	private const COL_WIDTHS = [
 		7.0,  // Nr.
-		40.0, // Name, Vorname
-		40.0, // Tel.
-		40.0, // Tel. Erz
-		53.0, // Anwesenheit/Fänge
+		36.0, // Name, Vorname
+		36.0, // Tel.
+		36.0, // Tel. Erz
+		65.0, // Anwesenheit/Fänge
 		0, // 
 		0, // 
 		0, // 
@@ -110,8 +110,8 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 		$fontN = $this->font->insert($this->pon, 'helvetica', '', 14);
 		$out .= $fontN['out'];
 		$safetyLines = [
-			'Jugendleiter: __________________________________________________',
-			'______________________________________________________________',
+			'Jugendleiter: ______________________________________________',
+			'_________________________________________________________',
 			'______________________________________________________________',
 			'______________________________________________________________',
 			'______________________________________________________________',
