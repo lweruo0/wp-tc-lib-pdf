@@ -78,6 +78,9 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$formdata['returnme'] = $formdata['returnme'] ?? 'falls unzustellbar, bitte zurück';
 		$formdata['sender'] = $this->getAddress('sender', "$name, $addr, $city");
 
+		$formdata['date'] = $formdata['date_original'] ?? date ( "d.m.Y" );
+		$formdata['zahlungsfrist'] = $formdata['zahlungsfrist_original'] ?? date ( "d.m.Y", strtotime('+7 days') );
+
 		 error_log(print_r($formdata, TRUE));
 		$this->setFormdata($formdata);
 	}
@@ -95,6 +98,65 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$this->add_falzmarken();
 		$this->add_absender();
 		$this->add_rechnungsdaten();
+
+		$rechnung_name = $this->getForm('rechnung_name', '');
+		$rechnung_vorname = $this->getForm('rechnung_vorname', '');
+		$rechnung_anrede = $this->getForm('rechnung_anrede', 'Herr');
+
+		$out = $this->graph->getStartTransform();
+		$font = $this->font->insert($this->pon, 'helvetica', '', 14);
+		$out .= $font['out'];
+		$out .= $this->color->getPdfColor('#000000');
+
+		$text = 'Ehingen, den ' . $this->getForm('date', '');
+
+		$out .= $this->getTextCell(
+			txt: $text,
+			posx: 120.0,
+			posy: 55.0,
+			width: 165.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
+
+		$greetingText = ($rechnung_anrede == 'Frau') 
+			? "Sehr geehrte Frau " . $rechnung_name . ','
+			: "Sehr geehrter Herr " . $rechnung_name . ',';
+
+		$out .= $this->getTextCell(
+			txt: $greetingText,
+			posx: 20.0,
+			posy: 65.0,
+			width: 165.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
+
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
+
+		$text = 'für den von uns am ' . $this->getForm('date', '') . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
+
+		$out .= $this->getTextCell(
+			txt: $text,
+			posx: 20.0,
+			posy: 75.0,
+			width: 165.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
 
 		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
 		$this->add_Zeile(25, 100, 6, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
