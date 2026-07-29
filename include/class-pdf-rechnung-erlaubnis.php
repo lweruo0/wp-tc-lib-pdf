@@ -134,7 +134,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$y = 110;
 		$out .= $this->getTextCell(
 			txt: $text,
-			posx: 250.0,
+			posx: 25.0,
 			posy: $y,
 			width: 165.0,
 			height: 5.0,
