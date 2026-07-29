@@ -171,7 +171,7 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 	 * @param float $y The Y position for the header line.
 	 * @return void
 	 */
-	protected function add_line_table(float $y, int|string $mnr, int|string $nr, string $text2, string $text3, string $text4): void {
+	protected function add_line_table(float $y, int|string $nr, int|string $mnr, string $text2, string $text3, string $text4): void {
 		$this->add_Zeile8(self::TABLE_POSITION_X, 
 						  $y, 
 						  self::ROW_HEIGHT,
