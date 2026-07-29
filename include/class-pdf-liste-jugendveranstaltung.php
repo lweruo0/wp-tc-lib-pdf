@@ -87,7 +87,7 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
    protected function add_text(): void {
 
 		$out = $this->graph->getStartTransform();
-		$lineH = 7.0;
+		$lineH = 10.0;
 
 		// "Jugendveranstaltung am: ..."
 		$font = $this->font->insert($this->pon, 'helvetica', '', 14);
@@ -116,7 +116,7 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 			'______________________________________________________________',
 			'______________________________________________________________',
 		];
-		$y = 20.0 + $lineH + 1.0;
+		$y = 20.0;
 		foreach ($safetyLines as $line) {
 			$out .= $this->getTextCell(
 				txt: $line,

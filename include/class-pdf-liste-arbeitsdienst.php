@@ -279,9 +279,10 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 		}
         $Anzahl_leerzeilen = self::ROWS_PER_PAGE - $nr;
         for ($i = 1; $i <= $Anzahl_leerzeilen; $i++) {
+			$nr++;
 			$this->add_line_table($y, $nr, " ", " ", " ");
 			$y += self::ROW_HEIGHT;
-			$nr++;
+
 		}					
 	}
 }
