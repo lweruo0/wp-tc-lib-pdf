@@ -73,7 +73,7 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 		}
 
 		$this->setFormdata([
-			'documenttype' => 'Liste Arbeitsdienst',
+			'documenttype' => 'Liste Jugendveranstaltung',
 			'anmeldungen' => $anmeldungen,
 		]);
 
