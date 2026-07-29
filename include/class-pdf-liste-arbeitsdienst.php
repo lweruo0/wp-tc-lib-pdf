@@ -23,6 +23,25 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 	use PdfHeaderTrait;
 	use PdfTeilnehmerlisteTrait;
 
+	/** Default X position for participant list area (mm). */
+	private const TABLE_POSITION_X = 20;
+	/** Height of each row (mm). */
+	private const ROW_HEIGHT = 8;
+	/** Maximum number of rows per page. */
+	private const ROWS_PER_PAGE = 25;
+
+	/* column widths for the table */
+	private const COL_WIDTHS = [
+		7.0,  // Nr.
+		42.0, // Name, Vorname
+		43.0, // Beruf
+		11.0, // MNr.
+		15.0, // Beginn
+		15.0, // Ende
+		12.0, // Std.
+		30.0, // Unterschrift
+	];
+
 	/**
 	 * Constructor.
 	 */
@@ -45,9 +64,7 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 			'accent_color' => '#1a3a6b',
 			'text_color'   => '#555555',
 		]);
-
-		$dienst = $this->getUrl('dienst', '');
-		
+	
 		if (function_exists('bfvarbeitsdienst')) {
 			$instance = bfvarbeitsdienst();
 			$dienst = $this->getUrl('dienst', '');
@@ -68,14 +85,13 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 		//$this->createStorageFolder( 'bfv_arbeitsdienst' );
 	}
 
-   public function generate_header(int $pid): string {
-		$page = $this->page->getPage($pid);
-		$ph = $page['height'];
+
+
+   protected function add_ad_text(): void {
 
 		$out = $this->graph->getStartTransform();
-
 		$lineH = 5.0;
-		$textSize = 10;
+		$textSize = 11;
 
 		// "Arbeitsdienst am: ..."
 		$font = $this->font->insert($this->pon, 'helvetica', '', 14);
@@ -168,7 +184,61 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 		}
 
 		$out .= $this->graph->getStopTransform();
-		return $out;
+		$this->page->addContent($out);
+	}
+
+	/**
+	 * Add a header line for the table.
+	 *
+	 * @param float $y The Y position for the header line.
+	 * @return void
+	 */
+	protected function add_line_table_header(float $y): void {
+		$this->add_Zeile8(self::TABLE_POSITION_X, 
+						  $y, 
+						  self::ROW_HEIGHT, 
+						  self::COL_WIDTHS[0], 
+						  self::COL_WIDTHS[1],
+						  self::COL_WIDTHS[2],
+						  self::COL_WIDTHS[3],
+						  self::COL_WIDTHS[4],
+						  self::COL_WIDTHS[5],
+						  self::COL_WIDTHS[6],
+						  self::COL_WIDTHS[7], 
+						  "", 
+						  "Name, Vorname", 
+						  "Beruf", 
+						  "MNr.", 
+						  "Beginn", 
+						  "Ende", 
+						  "Std.", 
+						  "Unterschrift", 
+						  230);
+	}
+
+	/**
+	 * Add a header line for the table.
+	 *
+	 * @param float $y The Y position for the header line.
+	 * @return void
+	 */
+	protected function add_line_table(float $y, int|string $nr, string $text2, string $text3, string $text4): void {
+		$this->add_Zeile8(self::TABLE_POSITION_X, 
+						  $y, 
+						  self::ROW_HEIGHT,
+						  self::COL_WIDTHS[0], 
+						  self::COL_WIDTHS[1],
+						  self::COL_WIDTHS[2],
+						  self::COL_WIDTHS[3],
+						  self::COL_WIDTHS[4],
+						  self::COL_WIDTHS[5],
+						  self::COL_WIDTHS[6],
+						  self::COL_WIDTHS[7],  
+						  (string) $nr,
+						  $text2, 
+						  $text3, 
+						  $text4, 
+						  " ", " ", " ", " ", 255);
 	}
 
 
@@ -178,7 +248,6 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 	 * @return void
 	 */
 	protected function render(): void {
-
 
 		$anmeldungen = $this->getForm('anmeldungen', []);
 
@@ -190,34 +259,32 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 		});
 
 		$this->AddPage();
-		$x = 20; // Starting X position for the table
-		$y = 73; // Starting Y position for the table
-		$h = 8; // Height of each row
-		$this->add_Zeile8($x, $y, $h, 7.0, 42.0, 43, 11.0, 15.0, 15.0, 12.0, 30.0, "", "Name, Vorname", "Beruf", "MNr.", "Beginn", "Ende", "Std.", "Unterschrift", 230);
-		$y+=$h;
-		$nr = 0;
+		//  Generate the header for the Arbeitsdienst list
+		$this->add_ad_text();
 
+		$y = 73.0; // Starting Y position for the table
+		$this->add_line_table_header($y);
+		$y += self::ROW_HEIGHT;
+		$nr = 0;
         foreach ($anmeldungen as $anmeldung) {
-            if ($nr == 25) {
+            if ($nr == self::ROWS_PER_PAGE) {
                 $this->AddPage();
-				$x = 20; // Starting X position for the table
-				$y = 73; // Starting Y position for the table
-				$h = 8; // Height of each row
-				$this->add_Zeile8($x, $y, $h, 7.0, 42.0, 43, 11.0, 15.0, 15.0, 12.0, 30.0, "", "Name, Vorname", "Beruf", "MNr.", "Beginn", "Ende", "Std.", "Unterschrift", 255);
-				$y+=$h;
+				//  Generate the header for the Arbeitsdienst list
+				$this->add_ad_text();
+				$y = 73.0; // Starting Y position for the table
+				$this->add_line_table_header($y);
+				$y += self::ROW_HEIGHT;
 				$nr = 0;
 			}
 			$nr++;
-			$this->add_Zeile8($x, $y, $h, 7.0, 42.0, 43, 11.0, 15.0, 15.0, 12.0, 30.0, $nr, $anmeldung['name'], $anmeldung['beruf'], $anmeldung['mnr'], " ", " ", " ", " ", 255);
-			$y += $h;
+			$this->add_line_table($y, $nr, $anmeldung['name'], $anmeldung['beruf'], $anmeldung['mnr']);
+			$y += self::ROW_HEIGHT;
 		}
-        $Anzahl_leerzeilen = 25 - $nr;
+        $Anzahl_leerzeilen = self::ROWS_PER_PAGE - $nr;
         for ($i = 1; $i <= $Anzahl_leerzeilen; $i++) {
+			$this->add_line_table($y, $nr, " ", " ", " ");
+			$y += self::ROW_HEIGHT;
 			$nr++;
-			$this->add_Zeile8($x, $y, $h, 7.0, 42.0, 43, 11.0, 15.0, 15.0, 12.0, 30.0, $nr, " ", " ", " ", " ", " ", " ", " ", 255);
-			$y += $h;
-        }					
-
-
+		}					
 	}
 }
