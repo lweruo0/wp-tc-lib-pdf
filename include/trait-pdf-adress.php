@@ -107,7 +107,7 @@ trait PdfAdressTrait {
 				'lineJoin' => 'miter',
 				'dashArray' => [],
 				'dashPhase' => 0,
-				'lineColor' => '#666666',
+				'lineColor' => '#aaaaaa',
 			]];
 			$out .= $this->graph->getRect($x, $y, $width, $height, 'D', $frameStyle);
 		}

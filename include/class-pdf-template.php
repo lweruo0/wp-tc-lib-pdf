@@ -125,6 +125,9 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	 */
 	public function stream(): void {
 		$filename = $this->getFileNameAbs();
+
+		error_log(print_r($filename, TRUE));
+
 		if ($filename !== '' && file_exists($filename)) {
 			header ( "Expires: 0" );
 			header ( "Cache-Control: must-revalidate" );
