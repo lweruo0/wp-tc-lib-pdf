@@ -94,6 +94,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	 * @return void
 	 */
 	public function output(): void {
+		$this->loadData();
 		$filename = $this->getFileNameAbs();
 		if ($filename !== '' && file_exists($filename)) {
 			header ( "Expires: 0" );
@@ -108,7 +109,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 			exit ();
 		}
 
-		$this->loadData();
+
 		$this->initialize();
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
@@ -124,6 +125,8 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	 * @return void
 	 */
 	public function stream(): void {
+		$this->loadData();
+
 		$filename = $this->getFileNameAbs();
 
 		error_log(print_r($filename, TRUE));
@@ -141,7 +144,6 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 			exit ();
 		}
 
-		$this->loadData();
 		$this->initialize();
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
@@ -157,6 +159,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	 * @return bool True on success, false on failure.
 	 */
 	public function save(): bool {
+		$this->loadData();
 		$filename = $this->getFileNameAbs();
 		if ($filename === '') {
 			return false;
@@ -171,7 +174,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		}
 
 		// Generate PDF
-		$this->loadData();
+
 		$this->initialize();
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
