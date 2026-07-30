@@ -88,17 +88,17 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$this->setFormdata($formdata);
 	}
 
-	protected function add_anschreiben_rechnung(): void {
+	protected function add_anschreiben_rechnung($y): void {
 
 		$rechnung_name = $this->getForm('rechnung_name', '');
 		$rechnung_vorname = $this->getForm('rechnung_vorname', '');
 		$rechnung_anrede = $this->getForm('rechnung_anrede', 'Herr');
 		$rechnungsnummer = $this->getForm('rechnungsnummer', '');
 
+		$y += self::ROW_HEIGHT;
 		$out = $this->graph->getStartTransform();
 		$fontb = $this->font->insert($this->pon, 'helvetica', 'B', 11);
 		$out .= $fontb['out'];
-		$y = 115;
 		$out .= $this->getTextCell(
 			txt: 'Rechnung Nr. ' . $rechnungsnummer,
 			posx: 25.0,
@@ -111,23 +111,24 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
+
 		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
 		$out .= $font['out'];
 		$out .= $this->color->getPdfColor('#000000');
-		$y = 110;
+		$y -= self::ROW_HEIGHT;
 		$out .= $this->getTextCell(
 			txt: 'Ehingen, den ' . $this->getForm('date', ''),
 			posx: 125.0,
 			posy: $y,
 			width: 165.0,
-			height: 5.0,
+			height: $font['size'],
 			offset: 0,
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
-		$y += 16;
+		$y += self::ROW_HEIGHT*3;
 		$greetingText = ($rechnung_anrede == 'Frau') 
 			? "Sehr geehrte Frau " . $rechnung_name . ','
 			: "Sehr geehrter Herr " . $rechnung_name . ',';
@@ -137,21 +138,79 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			posx: 25.0,
 			posy: $y,
 			width: 165.0,
-			height: 5.0,
+			height: $font['size'],
 			offset: 0,
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-
+		$y += $font['size'];
 		$text = 'für den von uns am ' . $this->getForm('date', '') . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
-		$y += 5;
 		$out .= $this->getTextCell(
 			txt: $text,
 			posx: 25.0,
 			posy: $y,
 			width: 165.0,
-			height: 5.0,
+			height: $font['size'],
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+		$y += $font['size'];
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);	
+	}
+
+	protected function add_rechnung_block($y): int {
+
+		$out = $this->graph->getStartTransform();
+		$y += self::ROW_HEIGHT * 2;
+		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
+
+		$y += self::ROW_HEIGHT * 0.5;
+		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Erlaubnisschein ' . $this->getForm('vorname', '') . ' ' . $this->getForm('name', ''), '', '', '', 255);
+
+		if ($this->getForm('tage', 0) > 1) {
+			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'vom ' . $this->getForm('von', '') . ' bis ' . $this->getForm('bis', ''), $this->getForm('tage', 0) . ' Tage', number_format($this->getForm('einzel_preis_netto', 0), 2, ',', '') . ' €', number_format($this->getForm('preis_netto', 0), 2, ',', '') . ' €', 255);
+		} else {
+			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'am ' . $this->getForm('von', ''), '1 Tag', number_format($this->getForm('einzel_preis_netto', 0), 2, ',', '') . ' €', number_format($this->getForm('preis_netto', 0), 2, ',', '') . ' €', 255);
+		}
+		if ($this->getForm('preis_versand_netto', 0) > 0) {
+			$y += self::ROW_HEIGHT * 0.2; // Add a small gap before the next line
+			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Druck-/Versandkostenpauschale', '', '', number_format($this->getForm('preis_versand_netto', 0), 2, ',', '') . ' €', 255);
+		}
+
+		if ($this->getForm('rabatt_netto', 0) > 0) {
+			$y += self::ROW_HEIGHT * 0.2; // Add a small gap before the next line
+			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 125, 5, 5, 30, 'Rabatt (' . $this->getForm('rabattcode', '') . ')', '', '', '-' . number_format($this->getForm('rabatt_netto', 0), 2, ',', '') . ' €', 255);
+		}
+
+		$y += self::ROW_HEIGHT;
+		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Nettobetrag', '', '', number_format($this->getForm('netto', 0), 2, ',', '') . ' €', 255);
+
+		if ($this->getForm('steuersatz', 0) > 0) {
+			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Umsatzsteuer ' . $this->getForm('steuersatz', 0) . '%', '', '', number_format($this->getForm('steuer', 0), 2, ',', '') . ' €', 255);
+		}
+
+		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 100, 5, 30, 30, 'Rechnungsbetrag', '', '', number_format($this->getForm('brutto', 0), 2, ',', '') . ' €', 230, 'BU');
+
+		$y += self::ROW_HEIGHT;
+		$text = 'Der Rechnungsbetrag von ' . number_format ( $this->getForm('brutto', 0), 2, ',', '' ) . ' € ist spätestens zum ' . $this->getForm('zahlungsfrist', '') . ' fällig.';
+		$text .= 'Nach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht ';
+		$text .= 'innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das ';
+		$text .= 'Rechnungsdatum dem Leistungsdatum.';
+
+		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
+		$out .= $font['out'];
+		$out .= $this->color->getPdfColor('#000000');
+
+		$out .= $this->getTextCell(
+			txt: $text,
+			posx: 25.0,
+			posy: $y,
+			width: 165.0,
+			height: self::ROW_HEIGHT * 3,
 			offset: 0,
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
@@ -159,46 +218,8 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		);
 
 		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);	
-	}
-
-	protected function add_rechnung_block() {
-
-		$out = $this->graph->getStartTransform();
-		$y += self::ROW_HEIGHT * 2;
-		$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230 );
-		$y += self::ROW_HEIGHT * 1.5;
-		$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Erlaubnisschein ' . $this->getForm('vorname', '') . ' ' . $this->getForm('name', ''), '', '', '', 255 );
-
-		$y += self::ROW_HEIGHT * 1;
-		if ($this->getForm('tage', 0) > 1) {
-			$this->gen_Zeile ( $y, 75, 30, 30, 30, 'vom ' . $this->getForm('von', '') . ' bis ' . $this->getForm('bis', ''), $this->getForm('tage', 0) . ' Tage', number_format ( $this->getForm('einzel_preis_netto', 0), 2, ',', '' ) . ' €', number_format ( $this->getForm('preis_netto', 0), 2, ',', '' ) . ' €', 255 );
-		} else {
-			$this->gen_Zeile ( $y, 75, 30, 30, 30, 'am ' . $this->getForm('von', ''), '1 Tag', number_format ( $this->getForm('einzel_preis_netto', 0), 2, ',', '' ) . ' €', number_format ( $this->getForm('preis_netto', 0), 2, ',', '' ) . ' €', 255 );
-		}
-		if ($this->getForm('preis_versand_netto', 0) > 0) {
-			$y += self::ROW_HEIGHT * 1.5;
-			$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Druck-/Versandkostenpauschale', '', '', number_format ( $this->getForm('preis_versand_netto', 0), 2, ',', '' ) . ' €', 255 );
-		}
-
-		if ($this->getForm('rabatt_netto', 0) > 0) {
-			$y += self::ROW_HEIGHT * 1.5;
-			$this->gen_Zeile ( $y, 125, 5, 5, 30, 'Rabatt (' . $this->getForm('rabattcode', '') . ')', '', '', '-' . number_format ( $this->getForm('rabatt_netto', 0), 2, ',', '' ) . ' €', 255 );
-		}
-
-		$y += self::ROW_HEIGHT * 3;
-		$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Nettobetrag', '', '', number_format ( $this->getForm('netto', 0), 2, ',', '' ) . ' €', 255 );
-
-		if ($this->getForm('steuersatz', 0) > 0) {
-			$y += self::ROW_HEIGHT;
-			$this->gen_Zeile ( $y, 75, 30, 30, 30, 'Umsatzsteuer ' . $this->getForm('steuersatz', 0) . '%', '', '', number_format ( $this->getForm('steuer', 0), 2, ',', '' ) . ' €', 255 );
-		}
-		$this->SetFont ( 'Helvetica', 'BU', $this->FontSize_TEXT_LETTER );
-		$y += self::ROW_HEIGHT;
-		$this->gen_Zeile ( $y, 100, 5, 30, 30, 'Rechnungsbetrag', '', '', number_format ( $this->getForm('brutto', 0), 2, ',', '' ) . ' €', 230 );
-		$this->SetFont ( 'Helvetica', '', $this->FontSize_TEXT_LETTER );
-		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
+		return $y + self::ROW_HEIGHT * 3;
 	}
 
 	protected function add_rechnung_block2($y) {
@@ -241,9 +262,10 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$this->add_absender();
 		$this->add_rechnungsdaten();
 
-		$this->add_anschreiben_rechnung();
+		$y = $this->add_anschreiben_rechnung(115);
 
-		$this->add_rechnung_block2(170);
+		$y += self::ROW_HEIGHT * 2;
+		$this->add_rechnung_block($y);
 
 		$name = $this->getForm('name', '');
 		$vorname = $this->getForm('vorname', '');

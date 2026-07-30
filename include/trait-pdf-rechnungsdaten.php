@@ -217,7 +217,7 @@ trait PdfRechnungsdatenTrait {
 	 * @param bool                                        $drawFrame Whether to draw a visible frame.
 	 * @param ?array<int, array{label: string, value: string}> $rows  Optional custom rows.
 	 *
-	 * @return void
+	 * @return int
 	 */
 	public function add_rechnungsdaten(
 		float $x = self::RECHNUNG_X,
@@ -226,8 +226,9 @@ trait PdfRechnungsdatenTrait {
 		float $height = self::RECHNUNG_H,
 		bool $drawFrame = false,
 		?array $rows = null,
-	): void {
+	): int {
 		$this->page->addContent($this->generate_rechnungsdaten($x, $y, $width, $height, $drawFrame, $rows));
+		return $y + $height;
 	}
 
 	public function generiere_Zeile(
@@ -310,8 +311,9 @@ trait PdfRechnungsdatenTrait {
 		string $t4,
 		int $grey,
 		string $fontstyle = '',
-	): void {
+	): int {
 		$this->page->addContent($this->generiere_Zeile($x, $y, $h, $w1, $w2, $w3, $w4, $t1, $t2, $t3, $t4, $grey, $fontstyle));
+		return $y + $h;
 	}
 
 
