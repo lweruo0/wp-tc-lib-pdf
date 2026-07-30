@@ -88,7 +88,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$this->setFormdata($formdata);
 	}
 
-	protected function add_anschreiben_rechnung($y): void {
+	protected function add_anschreiben_rechnung($y): float {
 
 		$rechnung_name = $this->getForm('rechnung_name', '');
 		$rechnung_vorname = $this->getForm('rechnung_vorname', '');
@@ -163,7 +163,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		return $y;
 	}
 
-	protected function add_rechnung_block($y): int {
+	protected function add_rechnung_block($y): float {
 
 		$out = $this->graph->getStartTransform();
 		$y += self::ROW_HEIGHT * 2;

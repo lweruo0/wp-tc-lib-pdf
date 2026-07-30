@@ -147,7 +147,7 @@ trait PdfTeilnehmerlisteTrait {
 		string $t8,
 		int $grey,
 		string $fontstyle = '',
-	): int {
+	): float {
 		$this->page->addContent($this->generiere_Zeile8($x, $y, $h, $w1, $w2, $w3, $w4, $w5, $w6, $w7, $w8, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $grey, $fontstyle));
 		return $y + $h;
 	}
