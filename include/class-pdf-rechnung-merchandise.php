@@ -29,6 +29,9 @@ class PdfRechnungMerchandise extends PdfTemplate {
 	use PdfAbsenderTrait;
 	use PdfRechnungsdatenTrait;
 
+	/** Height of each row (mm). */
+	private const ROW_HEIGHT = 6;
+
 	/**
 	 * Constructor.
 	 */
@@ -47,29 +50,17 @@ class PdfRechnungMerchandise extends PdfTemplate {
 	 * @return void
 	 */
 	protected function loadData(): void {
-		$this->setOptions([
-			'accent_color' => '#1a3a6b',
-			'text_color'   => '#555555',
-		]);
 
-		$this->setFormdata([
-			'documenttype' => 'Rechnung Merchandise',
-			'brutto' => 25.00,
-			'zahlungsfrist' => '10.07.2026',
-			'rechnungsnummer' => '2026-P-0151',
-			'first_name' => 'Bruno',
-			'last_name'  => 'Kasssssler',
-			'street'     => 'Lindenstraße 94',
-			'zip'        => '89099',
-			'city'       => 'Ulm',
-			'email'      => 'kassler@example.com',
-			'sender'	 => 'Bezirksfischerei-Verein e.V. Ehingen/Donau, Postfach 1340, 89573 Ehingen',
-			'returnme'	 => 'falls unzustellbar, bitte zurück',
-		]);
+		$rechnungsnummer = $this->getUrl('nr', '');
+		$options = get_option('bfv_jubilaeumsruten');
+		$this->setOptions($options);
 
 		$adressData = get_option ( 'bfv_adressen' );
 		$this->setAddressdata($adressData);
 		$this->createStorageFolder('bfv_merchandise');
+		$this->setFileName("rechnung_$rechnungsnummer.pdf");
+
+		
 	}
 
 	/**
