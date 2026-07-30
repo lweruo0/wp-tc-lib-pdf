@@ -159,7 +159,8 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		);
 		$y += $font['size'];
 		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);	
+		$this->page->addContent($out);
+		return $y;
 	}
 
 	protected function add_rechnung_block($y): int {
