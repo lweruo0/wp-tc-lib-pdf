@@ -96,7 +96,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	public function output(): void {
 		$this->loadData();
 		$filename = $this->getFileNameAbs();
-		if ($filename !== '' && file_exists($filename)) {
+		if ($filename !== '' && file_exists($filename) && is_file($filename)) {
 			header ( "Expires: 0" );
 			header ( "Cache-Control: must-revalidate" );
 			header ( 'Cache-Control: pre-check=0, post-check=0, max-age=0', false );
@@ -131,7 +131,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 
 		error_log(print_r($filename, TRUE));
 
-		if ($filename !== '' && file_exists($filename)) {
+		if ($filename !== '' && file_exists($filename) && is_file($filename)) {
 			header ( "Expires: 0" );
 			header ( "Cache-Control: must-revalidate" );
 			header ( 'Cache-Control: pre-check=0, post-check=0, max-age=0', false );
