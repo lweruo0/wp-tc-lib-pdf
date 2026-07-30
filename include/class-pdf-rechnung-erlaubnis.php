@@ -80,8 +80,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$formdata['email'] = $formdata['rechnung_email'] ?? '';
 		$formdata['returnme'] = $formdata['returnme'] ?? 'falls unzustellbar, bitte zurück';
 		$formdata['sender'] = $this->getAddress('sender', "$name, $addr, $city");
-
-		$formdata['date'] = $formdata['created_at'] ?? date ( "d.m.Y" );
+		$formdata['date'] = isset($formdata['created_at']) ? date("d.m.Y", strtotime($formdata['created_at'])) : date("d.m.Y");
 		$formdata['zahlungsfrist'] = $formdata['zahlungsfrist_original'] ?? date ( "d.m.Y", strtotime('+7 days') );
 
 		 error_log(print_r($formdata, TRUE));
