@@ -98,6 +98,8 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$y += self::ROW_HEIGHT;
 		$out = $this->graph->getStartTransform();
 		$fontb = $this->font->insert($this->pon, 'helvetica', 'B', 11);
+		$out .= $this->color->getPdfColor('#000000');
+
 		$out .= $fontb['out'];
 		$out .= $this->getTextCell(
 			txt: 'Rechnung Nr. ' . $rechnungsnummer,
@@ -114,7 +116,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
 		$out .= $font['out'];
-		$out .= $this->color->getPdfColor('#000000');
+
 		$y -= self::ROW_HEIGHT;
 		$out .= $this->getTextCell(
 			txt: 'Ehingen, den ' . $this->getForm('date', ''),
@@ -144,7 +146,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		$y += $font['size'];
+		$y += $font['size']*0.5;
 		$text = 'für den von uns am ' . $this->getForm('date', '') . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
 		$out .= $this->getTextCell(
 			txt: $text,
@@ -157,7 +159,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
-		$y += $font['size'];
+		$y += $font['size']*0.5;
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
 		return $y;
@@ -166,7 +168,6 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 	protected function add_rechnung_block($y): float {
 
 		$out = $this->graph->getStartTransform();
-		$y += self::ROW_HEIGHT * 2;
 		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
 
 		$y += self::ROW_HEIGHT * 0.5;
@@ -196,7 +197,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 100, 5, 30, 30, 'Rechnungsbetrag', '', '', number_format($this->getForm('brutto', 0), 2, ',', '') . ' €', 230, 'BU');
 
-		$y += self::ROW_HEIGHT;
+		$y += self::ROW_HEIGHT*0.5;
 		$text = 'Der Rechnungsbetrag von ' . number_format ( $this->getForm('brutto', 0), 2, ',', '' ) . ' € ist spätestens zum ' . $this->getForm('zahlungsfrist', '') . ' fällig.';
 		$text .= 'Nach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht ';
 		$text .= 'innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das ';
@@ -223,31 +224,6 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		return $y + self::ROW_HEIGHT * 3;
 	}
 
-	protected function add_rechnung_block2($y) {
-		$out = $this->graph->getStartTransform();
-		$text = 'Der Rechnungsbetrag von ' . number_format ( $this->getForm('brutto', 0), 2, ',', '' ) . ' € ist spätestens zum ' . $this->getForm('zahlungsfrist', '') . ' fällig.';
-		$text .= 'Nach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht ';
-		$text .= 'innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das ';
-		$text .= 'Rechnungsdatum dem Leistungsdatum.';
-
-		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
-		$out .= $font['out'];
-		$out .= $this->color->getPdfColor('#000000');
-
-		$out .= $this->getTextCell(
-			txt: $text,
-			posx: 25.0,
-			posy: $y,
-			width: 165.0,
-			height: 20.0,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
-		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
-	}
 
 	/**
 	 * Render the PDF document.
@@ -262,25 +238,8 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$this->add_falzmarken();
 		$this->add_absender();
 		$this->add_rechnungsdaten();
-
-		$y = $this->add_anschreiben_rechnung(100);
-
-		$y += self::ROW_HEIGHT * 2;
+		$y = $this->add_anschreiben_rechnung(105);
+		$y += self::ROW_HEIGHT*0.5;
 		$this->add_rechnung_block($y);
-
-
-
-
-		//$y = 190;
-		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
-		//$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
-		//$y += self::ROW_HEIGHT;
-		//$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Erlaubnisschein Bruno Karitzky', '1 Tag', '25,00 €', '25,00 €', 255);
-		//$y += self::ROW_HEIGHT;
-		//$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'am 04.07.2026', '', '', '', 255);
-		//$y += self::ROW_HEIGHT;
-		//$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Nettobetrag', '', '', '25,00 €', 245);
-		//$y += self::ROW_HEIGHT;
-		//$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Rechnungsbetrag', '', '', '25,00 €', 230, 'BU');
 	}
 }
