@@ -263,7 +263,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$this->add_absender();
 		$this->add_rechnungsdaten();
 
-		$y = $this->add_anschreiben_rechnung(115);
+		$y = $this->add_anschreiben_rechnung(100);
 
 		$y += self::ROW_HEIGHT * 2;
 		$this->add_rechnung_block($y);
