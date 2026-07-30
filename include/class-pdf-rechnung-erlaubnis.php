@@ -276,7 +276,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 
 
-		$y = 138;
+		$y = 190;
 		/* DIN 5008 Form B Textfeld: Rechnungszeilen */
 		$this->add_Zeile(25, $y, self::ROW_HEIGHT, 100.0, 20.0, 22.5, 22.5, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
 		$y += self::ROW_HEIGHT;
