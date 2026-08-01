@@ -17,7 +17,7 @@ require_once __DIR__ . '/class-pdf-template.php';
 /**
  * Example PDF Template with header and footer.
  */
-class PdfErlaubnisschein extends PdfTemplate {
+class PdfErlaubnisschein2 extends PdfTemplate {
 	private const PAGE_W = 297.0;
 	private const PAGE_H = 210.0;
 	private const MARGIN = 5.0;

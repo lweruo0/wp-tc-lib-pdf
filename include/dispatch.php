@@ -40,7 +40,7 @@ PdfRegistry::register('liste_arbeitsdienst', 'PdfListeArbeitsdienst', __DIR__ . 
 PdfRegistry::register('liste_jugendveranstaltung', 'PdfListeJugendveranstaltung', __DIR__ . '/class-pdf-liste-jugendveranstaltung.php');
 
 //https://bfv-ehingen.de/?erlaubnis=2026-P-0148&key=31e86617aad37a3a3902a560e69c7e79
-PdfRegistry::register('erlaubnisschein', 'PdfErlaubnisschein', __DIR__ . '/class-pdf-erlaubnisschein.php');
+PdfRegistry::register('erlaubnisschein', 'PdfErlaubnisschein2', __DIR__ . '/class-pdf-erlaubnisschein.php');
 
 //https://bfv-ehingen.de/?fpdf=1&yy=2025
 PdfRegistry::register('fangstatistik', 'PdfFangstatistik', __DIR__ . '/class-pdf-fangstatistik.php');
