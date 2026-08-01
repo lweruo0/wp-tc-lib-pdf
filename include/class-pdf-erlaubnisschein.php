@@ -51,7 +51,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$adressData = get_option('bfv_adressen');
 		$this->setAddressdata($adressData ?: []);
 		$this->createStorageFolder('bfv_erlaubnisschein');
-		$this->setFileName("rechnung_$rechnungsnummer.pdf");
+		$this->setFileName("erlaubnisschein_$rechnungsnummer.pdf");
 
 		if (function_exists('bfverlaubnisscheine')) {
 			$instance = bfverlaubnisscheine();
