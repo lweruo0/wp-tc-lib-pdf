@@ -94,9 +94,12 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			'orientation' => 'L',
 			'format' => 'A4',
 		]);
-		$this->gen_gewaesser_block();
-		$this->gen_adress_block(self::PAGE_W * 0.5, 0.0);
-		$this->gen_schonzeiten_block();
+		$out = $this->graph->getStartTransform();
+		$out .= $this->gen_gewaesser_block();
+		$out .= $this->gen_adress_block(self::PAGE_W * 0.5, 0.0);
+		$out .= $this->gen_schonzeiten_block();
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
 	}
 
 	public function gen_erlaubnis_block(): string {
@@ -303,7 +306,26 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
-		
+
+
+		// x=255.0, 64.0, 30.0, 0.0
+		$imageFile = __DIR__ . '/images/unterschrift.jpg';
+		if (is_file($imageFile)) {
+			if ($this->unterschriftImageId === null) {
+				$this->unterschriftImageId = $this->image->add($imageFile);
+			}
+			$logoKey = $this->image->getKey($imageFile);
+			$logoDim = $this->image->getImageDimensionsByKey($logoKey, 30, 0, true);
+			$out .= $this->image->getSetImage(
+				$this->unterschriftImageId,
+				255.0,
+				64.0,
+				$logoDim['width'],
+				$logoDim['height'],
+				self::PAGE_H,
+			);
+		}
+
 		$out .= $font_text['out'];
 		$out .= $this->color->getPdfColor('#000000');
 		$out .= $this->getTextCell(
@@ -342,7 +364,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			offset: 0,
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
 			drawcell: false,
 		);
 		$out .= $this->getTextCell(
@@ -376,23 +398,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			);
 		}
 
-		// x=255.0, 64.0, 30.0, 0.0
-		$imageFile = __DIR__ . '/images/unterschrift.jpg';
-		if (is_file($imageFile)) {
-			if ($this->unterschriftImageId === null) {
-				$this->unterschriftImageId = $this->image->add($imageFile);
-			}
-			$logoKey = $this->image->getKey($imageFile);
-			$logoDim = $this->image->getImageDimensionsByKey($logoKey, 30, 0, true);
-			$out .= $this->image->getSetImage(
-				$this->unterschriftImageId,
-				255.0,
-				64.0,
-				$logoDim['width'],
-				$logoDim['height'],
-				self::PAGE_H,
-			);
-		}
+
 
 		// x=259.0, y=23.0, w=20.0, h=0.0
 		$imageFile = __DIR__ . '/images/logo_bfv2.png';
