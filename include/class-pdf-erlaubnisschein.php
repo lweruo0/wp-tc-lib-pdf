@@ -101,7 +101,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 
 	public function gen_erlaubnis_block(): string {
 
-		$xpos = self::PAGE_W * 0.5;
+		$xpos = 0;
 		$ypos = self::PAGE_H * 0.5;
 
 
@@ -377,7 +377,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		}
 
 		// x=255.0, 64.0, 30.0, 0.0
-		$imageFile = __DIR__ . '/images/unterschrift.png';
+		$imageFile = __DIR__ . '/images/unterschrift.jpg';
 		if (is_file($imageFile)) {
 			if ($this->unterschriftImageId === null) {
 				$this->unterschriftImageId = $this->image->add($imageFile);
@@ -445,7 +445,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		);
 
 		// 5.0, 12.0, self::PAGE_W * 0.5 - 10.0,
-		$imageFile = __DIR__ . '/images/gewaesser.png';
+		$imageFile = __DIR__ . '/images/gewaesser.jpg';
 		if (is_file($imageFile)) {
 			if ($this->gewaesserImageId === null) {
 				$this->gewaesserImageId = $this->image->add($imageFile);
