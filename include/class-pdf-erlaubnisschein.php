@@ -371,7 +371,8 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				226.0,
 				58.0,
 				30.0,
-				30.0 // Höhe wird automatisch berechnet, um das Seitenverhältnis beizubehalten
+				0,        // Höhe (0 = auto)
+    			true      // Seitenverhältnis beibehalten
 			);
 		}
 
@@ -388,7 +389,8 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				255.0,
 				64.0,
 				30.0,
-				0.0 // Höhe wird automatisch berechnet, um das Seitenverhältnis beizubehalten
+				0,        // Höhe (0 = auto)
+    			true      // Seitenverhältnis beibehalten
 			);
 		}
 
@@ -405,7 +407,8 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				259.0,
 				23,
 				20,
-				null // Höhe wird automatisch berechnet, um das Seitenverhältnis beizubehalten
+				0,        // Höhe (0 = auto)
+    			true      // Seitenverhältnis beibehalten
 			);
 		}
 
@@ -454,7 +457,8 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				5.0,
 				12,
 				self::PAGE_W * 0.5 - 10.0,
-				null // Höhe wird automatisch berechnet, um das Seitenverhältnis beizubehalten
+				0,        // Höhe (0 = auto)
+    			true      // Seitenverhältnis beibehalten
 			);
 		}
 
