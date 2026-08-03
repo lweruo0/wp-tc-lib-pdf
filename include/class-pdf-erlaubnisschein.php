@@ -733,7 +733,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 	public function gen_adress_block(): string {
 		$xpos = self::PAGE_W * 0.5;
 		$ypos = 0;
-
+		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
 		$out = "";
 		$out .= $font_h1['out'];
 		$out .= $this->color->getPdfColor('#000000');
@@ -756,7 +756,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 	public function gen_fangstatistik_block(): string {
 		$xpos = 0;
 		$ypos = 0;
-
+		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
 		$out = "";
 		$out .= $font_h1['out'];
 		$out .= $this->color->getPdfColor('#000000');
