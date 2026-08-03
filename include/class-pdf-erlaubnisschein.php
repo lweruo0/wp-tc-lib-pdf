@@ -364,15 +364,15 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			if ($this->stempelImageId === null) {
 				$this->stempelImageId = $this->image->add($imageFile);
 			}
-			//$logoKey = $this->image->getKey($imageFile);
-			//$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
+			$logoKey = $this->image->getKey($imageFile);
+			$logoDim = $this->image->getImageDimensionsByKey($logoKey, 30, 0, true);
 			$out .= $this->image->getSetImage(
 				$this->stempelImageId,
 				226.0,
 				58.0,
-				30.0,
-				0,        // Höhe (0 = auto)
-    			true      // Seitenverhältnis beibehalten
+				$logoDim['width'],
+				$logoDim['height'],
+				self::PAGE_H,
 			);
 		}
 
@@ -382,15 +382,15 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			if ($this->unterschriftImageId === null) {
 				$this->unterschriftImageId = $this->image->add($imageFile);
 			}
-			//$logoKey = $this->image->getKey($imageFile);
-			//$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
+			$logoKey = $this->image->getKey($imageFile);
+			$logoDim = $this->image->getImageDimensionsByKey($logoKey, 30, 0, true);
 			$out .= $this->image->getSetImage(
 				$this->unterschriftImageId,
 				255.0,
 				64.0,
-				30.0,
-				0,        // Höhe (0 = auto)
-    			true      // Seitenverhältnis beibehalten
+				$logoDim['width'],
+				$logoDim['height'],
+				self::PAGE_H,
 			);
 		}
 
@@ -400,15 +400,15 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			if ($this->headerLogoImageId === null) {
 				$this->headerLogoImageId = $this->image->add($imageFile);
 			}
-			//$logoKey = $this->image->getKey($imageFile);
-			//$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
+			$logoKey = $this->image->getKey($imageFile);
+			$logoDim = $this->image->getImageDimensionsByKey($logoKey, 20, 0, true);
 			$out .= $this->image->getSetImage(
 				$this->headerLogoImageId,
 				259.0,
-				23,
-				20,
-				0,        // Höhe (0 = auto)
-    			true      // Seitenverhältnis beibehalten
+				23.0,
+				$logoDim['width'],
+				$logoDim['height'],
+				self::PAGE_H,
 			);
 		}
 
@@ -450,15 +450,15 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			if ($this->gewaesserImageId === null) {
 				$this->gewaesserImageId = $this->image->add($imageFile);
 			}
-			//$logoKey = $this->image->getKey($imageFile);
-			//$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
+			$logoKey = $this->image->getKey($imageFile);
+			$logoDim = $this->image->getImageDimensionsByKey($logoKey, (int) (self::PAGE_W * 0.5 - 10.0), 0, true);
 			$out .= $this->image->getSetImage(
 				$this->gewaesserImageId,
 				5.0,
-				12,
-				self::PAGE_W * 0.5 - 10.0,
-				0,        // Höhe (0 = auto)
-    			true      // Seitenverhältnis beibehalten
+				12.0,
+				$logoDim['width'],
+				$logoDim['height'],
+				self::PAGE_H,
 			);
 		}
 
