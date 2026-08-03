@@ -26,6 +26,13 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 	private const TEXT = 9;
 	private const TEXT_TINY = 7;
 
+
+	/** Cached image instance ID for the images */
+	private ?int $headerLogoImageId = null;
+	private ?int $stempelImageId = null;
+	private ?int $gewaesserImageId = null;
+	private ?int $unterschriftImageId = null;
+
 	/**
 	 * Constructor.
 	 */
@@ -65,45 +72,8 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$this->setFormdata($formdata);
 	}
 
-	private function drawText(float $x, float $y, string $text, int $fontSize = self::TEXT, string $fontStyle = '', string $halign = 'L', float $width = 0.0, float $height = 4.0, string $color = '#000000'): void {
-		$font = $this->font->insert($this->pon, 'helvetica', $fontStyle, $fontSize);
-		$out = $this->graph->getStartTransform();
-		$out .= $font['out'];
-		$out .= $this->color->getPdfColor($color);
-		$w = $width > 0.0 ? $width : 150.0;
-		$out .= $this->getTextCell(
-			txt: $text,
-			posx: $x,
-			posy: $y,
-			width: $w,
-			height: $height,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: $halign === 'L' ? \Com\Tecnick\Pdf\TextHAlign::Left : ( $halign === 'C' ? \Com\Tecnick\Pdf\TextHAlign::Center : \Com\Tecnick\Pdf\TextHAlign::Right ),
-			drawcell: false,
-		);
-		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
-	}
 
-	private function drawImage(string $file, float $x, float $y, float $w, float $h): void {
-		if (!is_file($file)) {
-			return;
-		}
-		$imageId = $this->image->add($file);
-		$out = $this->graph->getStartTransform();
-		$out .= $this->image->getSetImage($imageId, $x, $y, $w, $h, self::PAGE_H);
-		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
-	}
 
-	private function drawRoundedRect(float $x, float $y, float $w, float $h, float $rx, float $ry, string $corners = '1111', string $style = 'D', array $styles = []): void {
-		$out = $this->graph->getStartTransform();
-		$out .= $this->graph->getRoundedRect($x, $y, $w, $h, $rx, $ry, $corners, $style, $styles);
-		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
-	}
 
 	public function erste_Seite(): void {
 		$this->addPage([
@@ -111,9 +81,12 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			'format' => 'A4',
 		]);
 
-		$this->gen_fangstatistik_block(0.0);
-		$this->gen_erlaubnis_block(self::PAGE_W * 0.5, 0.0);
-		$this->gen_hinweis_block(self::PAGE_W * 0.5, self::PAGE_H * 0.5);
+		$out = $this->graph->getStartTransform();
+		$out .= $this->gen_fangstatistik_block();
+		$out .= $this->gen_erlaubnis_block();
+		$out .= $this->gen_hinweis_block();
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
 	}
 
 	public function zweite_Seite(): void {
@@ -121,66 +94,323 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			'orientation' => 'L',
 			'format' => 'A4',
 		]);
-
-		$this->gen_gewaesser_block(0.0);
+		$this->gen_gewaesser_block();
 		$this->gen_adress_block(self::PAGE_W * 0.5, 0.0);
-		$this->gen_schonzeiten_block(self::PAGE_W * 0.5, self::PAGE_H * 0.5);
+		$this->gen_schonzeiten_block();
 	}
 
-	public function gen_erlaubnis_block(float $xpos, float $ypos): void {
+	public function gen_erlaubnis_block(): string {
+
+		$xpos = self::PAGE_W * 0.5;
+		$ypos = self::PAGE_H * 0.5;
+
+
 		$rand = self::MARGIN;
 		$x = $xpos + $rand;
 		$y = $ypos + $rand + 1.0;
 
-		$this->drawText($x, $y, 'Bezirksfischerei-Verein e.V. Ehingen/Donau', self::H1, 'B', 'L', 150.0, 5.0);
+		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
+		$font_letter = $this->font->insert($this->pon, 'helvetica', '', self::TEXT_LETTER);
+		$font_text = $this->font->insert($this->pon, 'helvetica', '', self::TEXT);
+		$font_tiny = $this->font->insert($this->pon, 'helvetica', '', self::TEXT_TINY);
+
+		$out = "";
+		$out .= $font_h1['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Bezirksfischerei-Verein e.V. Ehingen/Donau',
+			posx: $x,
+			posy: $y,
+			width: 150.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+
 		$y += 9.0;
 
-		$this->drawText($x + 2.0, $y, 'Erlaubnisschein', self::TEXT_LETTER, '', 'L', 50.0, 5.0);
+		$out .= $font_letter['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Erlaubnisschein',
+			posx: $x + 2.0,
+			posy: $y,
+			width: 50.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 		$y += 5.0;
-		$this->drawText($x + 2.0, $y, 'zum Fischfang in unseren Vereinsgewässern', self::TEXT_LETTER, '', 'L', 90.0, 5.0);
+		$out .= $this->getTextCell(
+			txt: 'zum Fischfang in unseren Vereinsgewässern',
+			posx: $x + 2.0,
+			posy: $y,
+			width: 90.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 		$y += 5.0;
+
+		$out .= $font_text['out'];
+		$out .= $this->color->getPdfColor('#000000');
 
 		$tage = (int) $this->getForm('tage', 0);
 		if ($tage > 1) {
-			$this->drawText($x + 2.0, $y, 'vom ' . $this->getForm('von', '') . ' bis ' . $this->getForm('bis', '') . ' (' . $tage . ' Tage).', self::TEXT, '', 'L', 110.0, 5.0);
+			$out .= $this->getTextCell(
+				txt: 'vom ' . $this->getForm('von', '') . ' bis ' . $this->getForm('bis', '') . ' (' . $tage . ' Tage).',
+				posx: $x + 2.0,
+				posy: $y,
+				width: 110.0,
+				height: 5.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
 		} else {
-			$this->drawText($x + 2.0, $y, 'am ' . $this->getForm('von', '') . ' (1 Tag).', self::TEXT, '', 'L', 110.0, 5.0);
+			$out .= $this->getTextCell(
+				txt: 'am ' . $this->getForm('von', '') . ' (1 Tag).',
+				posx: $x + 2.0,
+				posy: $y,
+				width: 110.0,
+				height: 5.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
 		}
 		$y += 5.0;
 
 		if ((int) $this->getForm('no_hinweis_begleitet', 0) !== 1) {
-			$this->drawText($x + 2.0, $y, 'Nur in Begleitung eines aktiven Vereinsmitglieds gültig.', self::TEXT, '', 'L', 110.0, 5.0);
+			$out .= $this->getTextCell(
+				txt: 'Nur in Begleitung eines aktiven Vereinsmitglieds gültig.',
+				posx: $x + 2.0,
+				posy: $y,
+				width: 110.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
 			$y += 4.0;
-			$this->drawText($x + 2.0, $y, 'Verfügt das begleitende Vereinsmitglied über Bootsstempel,', self::TEXT, '', 'L', 110.0, 5.0);
+			$out .= $this->getTextCell(
+				txt: 'Verfügt das begleitende Vereinsmitglied über Bootsstempel,',
+				posx: $x + 2.0,
+				posy: $y,
+				width: 110.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
 			$y += 4.0;
-			$this->drawText($x + 2.0, $y, 'dann ist das Probemitlied zur Mitnutzung des Boots berechtigt.', self::TEXT, '', 'L', 110.0, 5.0);
+			$out .= $this->getTextCell(
+				txt: 'dann ist das Probemitlied zur Mitnutzung des Boots berechtigt.',
+				posx: $x + 2.0,
+				posy: $y,
+				width: 110.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
 			$y += 4.0;
-			$this->drawText($x + 2.0, $y, 'Verantwortliches Vereinsmitglied: ' . $this->getForm('mitgliedsname', ''), self::TEXT, '', 'L', 110.0, 5.0);
+			$out .= $this->getTextCell(
+				txt: 'Verantwortliches Vereinsmitglied: ' . $this->getForm('mitgliedsname', ''),
+				posx: $x + 2.0,
+				posy: $y,
+				width: 110.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
 		} else {
 			$y += 8.0;
 		}
-
+		$out .= $font_letter['out'];
+		$out .= $this->color->getPdfColor('#000000');
 		$y += 5.0;
-		$this->drawText($x + 2.0, $y, (string) $this->getForm('anrede', ''), self::TEXT_LETTER, '', 'L', 110.0, 5.0);
+		$out .= $this->getTextCell(
+			txt: (string) $this->getForm('anrede', ''),
+			posx: $x + 2.0,
+			posy: $y,
+			width: 110.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 		$y += 5.0;
-		$this->drawText($x + 2.0, $y, trim((string) $this->getForm('vorname', '') . ' ' . $this->getForm('name', '')), self::TEXT_LETTER, '', 'L', 110.0, 5.0);
+		$out .= $this->getTextCell(
+			txt: trim((string) $this->getForm('vorname', '') . ' ' . $this->getForm('name', '')),
+			posx: $x + 2.0,
+			posy: $y,
+			width: 110.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 		$y += 5.0;
-		$this->drawText($x + 2.0, $y, (string) $this->getForm('strasse', ''), self::TEXT_LETTER, '', 'L', 110.0, 5.0);
+		$out .= $this->getTextCell(
+			txt: (string) $this->getForm('strasse', ''),
+			posx: $x + 2.0,
+			posy: $y,
+			width: 110.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 		$y += 5.0;
-		$this->drawText($x + 2.0, $y, trim((string) $this->getForm('plz', '') . ' ' . $this->getForm('ort', '')), self::TEXT_LETTER, '', 'L', 110.0, 5.0);
+		$out .= $this->getTextCell(
+			txt: trim((string) $this->getForm('plz', '') . ' ' . $this->getForm('ort', '')),
+			posx: $x + 2.0,
+			posy: $y,
+			width: 110.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		
+		$out .= $font_text['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: (string) $this->getAddress('name_1v', ''),
+			posx: 255.0,
+			posy: 77.0,
+			width: 35.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: '1. Vorsitzender',
+			posx: 255.0,
+			posy: 81.0,
+			width: 35.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 
-		$this->drawText(255.0, 77.0, (string) $this->getAddress('name_1v', ''), self::TEXT, '', 'L', 35.0, 4.0);
-		$this->drawText(255.0, 81.0, '1. Vorsitzender', self::TEXT, '', 'L', 35.0, 4.0);
+		$out .= $font_tiny['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Der Erlaubnisschein ist nur gültig in Verbindung mit dem amtlichen Fischereischein und der Ordnung zur Hege',
+			posx: self::PAGE_W * 0.5 + 5.0,
+			posy: 93.0,
+			width: 130.0,
+			height: 3.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: 'und Pflege der Vereinsgewässer (Gewässerordnung). Für Jugendliche gilt zusätzlich die Jugendordnung.',
+			posx: self::PAGE_W * 0.5 + 8.0,
+			posy: 96.0,
+			width: 130.0,
+			height: 3.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 
-		$this->drawText(self::PAGE_W * 0.5 + 5.0, 93.0, 'Der Erlaubnisschein ist nur gültig in Verbindung mit dem amtlichen Fischereischein und der Ordnung zur Hege', self::TEXT_TINY, '', 'L', 130.0, 3.0);
-		$this->drawText(self::PAGE_W * 0.5 + 8.0, 96.0, 'und Pflege der Vereinsgewässer (Gewässerordnung). Für Jugendliche gilt zusätzlich die Jugendordnung.', self::TEXT_TINY, '', 'L', 130.0, 3.0);
+		// x= 226.0, 58.0, 30.0, 30.0
+		$imageFile = __DIR__ . '/images/st_rund_blau300px.png';
+		if (is_file($imageFile)) {
+			if ($this->stempelImageId === null) {
+				$this->stempelImageId = $this->image->add($imageFile);
+			}
+			//$logoKey = $this->image->getKey($imageFile);
+			//$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
+			$out .= $this->image->getSetImage(
+				$this->stempelImageId,
+				226.0,
+				58.0,
+				30.0,
+				30.0 // Höhe wird automatisch berechnet, um das Seitenverhältnis beizubehalten
+			);
+		}
 
-		$logoFile = __DIR__ . '/images/logo_fischereiverein300x370.png';
-		$this->drawImage($logoFile, 259.0, 23.0, 20.0, 0.0);
-		$this->drawImage(__DIR__ . '/images/st_rund_blau300px.png', 226.0, 58.0, 30.0, 30.0);
-		$this->drawImage(__DIR__ . '/images/unterschrift.jpg', 255.0, 64.0, 30.0, 0.0);
+		// x=255.0, 64.0, 30.0, 0.0
+		$imageFile = __DIR__ . '/images/unterschrift.png';
+		if (is_file($imageFile)) {
+			if ($this->unterschriftImageId === null) {
+				$this->unterschriftImageId = $this->image->add($imageFile);
+			}
+			//$logoKey = $this->image->getKey($imageFile);
+			//$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
+			$out .= $this->image->getSetImage(
+				$this->unterschriftImageId,
+				255.0,
+				64.0,
+				30.0,
+				0.0 // Höhe wird automatisch berechnet, um das Seitenverhältnis beizubehalten
+			);
+		}
 
-		$this->drawRoundedRect(153.0, 18.0, 138.0, 82.0, 12.5, 12.5, '1111', 'D', [[
+		// x=259.0, y=23.0, w=20.0, h=0.0
+		$imageFile = __DIR__ . '/images/logo_bfv2.png';
+		if (is_file($imageFile)) {
+			if ($this->headerLogoImageId === null) {
+				$this->headerLogoImageId = $this->image->add($imageFile);
+			}
+			//$logoKey = $this->image->getKey($imageFile);
+			//$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
+			$out .= $this->image->getSetImage(
+				$this->headerLogoImageId,
+				259.0,
+				23,
+				20,
+				null // Höhe wird automatisch berechnet, um das Seitenverhältnis beizubehalten
+			);
+		}
+
+
+		$out .= $this->graph->getRoundedRect(153.0, 18.0, 138.0, 82.0, 12.5, 12.5, '1111', 'D', [[
 			'lineWidth' => 0.5,
 			'lineCap' => 'butt',
 			'lineJoin' => 'miter',
@@ -188,61 +418,362 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			'dashPhase' => 0,
 			'lineColor' => '#000000',
 		]]);
+		return $out;
 	}
 
-	public function gen_gewaesser_block(float $xpos): void {
-		$this->drawText($xpos + 5.0, 6.0, 'Vereinsgewässer', self::H1, 'B', 'L', 40.0, 5.0);
-		$this->drawImage(__DIR__ . '/images/gewaesser.jpg', $xpos + 5.0, 12.0, self::PAGE_W * 0.5 - 10.0, 0.0);
+	public function gen_gewaesser_block(): string {
+
+
+		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
+		$out = "";
+		$out .= $font_h1['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Vereinsgewässer',
+			posx: 5.0,
+			posy: 6.0,
+			width: 40.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+
+		// 5.0, 12.0, self::PAGE_W * 0.5 - 10.0,
+		$imageFile = __DIR__ . '/images/gewaesser.png';
+		if (is_file($imageFile)) {
+			if ($this->gewaesserImageId === null) {
+				$this->gewaesserImageId = $this->image->add($imageFile);
+			}
+			//$logoKey = $this->image->getKey($imageFile);
+			//$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
+			$out .= $this->image->getSetImage(
+				$this->gewaesserImageId,
+				5.0,
+				12,
+				self::PAGE_W * 0.5 - 10.0,
+				null // Höhe wird automatisch berechnet, um das Seitenverhältnis beizubehalten
+			);
+		}
+
+		return $out;
 	}
 
-	public function gen_hinweis_block(float $xpos, float $ypos): void {
+	public function gen_hinweis_block(): string {
+
+		$xpos = self::PAGE_W * 0.5;
+		$ypos = self::PAGE_H * 0.5;
+
+		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
+		$font_text = $this->font->insert($this->pon, 'helvetica', '', self::TEXT);
+		$font_tiny = $this->font->insert($this->pon, 'helvetica', '', self::TEXT_TINY);
+
+		$out = '';
+
 		$qrsize = 45.0;
 		$x = $xpos + self::PAGE_W * 0.5 - self::MARGIN - $qrsize - 1.0;
 		$y = $ypos + self::PAGE_H * 0.5 - self::MARGIN - $qrsize - 9.0;
 
 		$url = (string) $this->getForm('url_erlaubnisschein', '');
 		if ($url !== '') {
-			$out = $this->graph->getStartTransform();
+			$out .= $this->graph->getStartTransform();
 			$out .= $this->getBarcode(type: 'QRCODE,M', code: $url, posx: $xpos + self::PAGE_W * 0.5 - self::MARGIN - $qrsize - 3.0, posy: $y, width: (int) $qrsize, height: (int) $qrsize, padding: [0, 0, 0, 0], style: []);
 			$out .= $this->graph->getStopTransform();
-			$this->page->addContent($out);
+			$out .= $font_tiny['out'];
+			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->getTextCell(
+				txt: $url,
+				posx: $x - 2.0,
+				posy: $y + $qrsize + 3.0,
+				width: 40.0,
+				height: 3.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
 		}
 
-		$this->drawText($x - 2.0, $y + $qrsize + 3.0, $url, 3, '', 'L', 40.0, 3.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 1.0, 'Lieber Angler!', self::H1, 'B', 'L', 35.0, 5.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 8.0, 'Gefangene Fische müssen nach dem waidgerechten Töten sofort in die Fangstatistik', self::TEXT, '', 'L', 130.0, 4.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 12.0, 'eingetragen werden. Dies wird zur Fangmengenkontrolle gegebenenfalls von unseren', self::TEXT, '', 'L', 130.0, 4.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 16.0, 'Gewässerkontrolleuren überprüft.', self::TEXT, '', 'L', 130.0, 4.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 22.0, 'Nach Ablauf der Gültigkeit des Erlaubnisscheins muss die Fangstatistik innerhalb von', self::TEXT, '', 'L', 130.0, 4.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 26.0, '2 Wochen an den ' . $this->getAddress('name_verein', '') . ' zurückgesendet werden.', self::TEXT, '', 'L', 130.0, 4.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 30.0, '(' . $this->getAddress('addr_verein', '') . ', ' . $this->getAddress('ort_verein', '') . ')', self::TEXT, '', 'L', 130.0, 4.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 38.0, 'Alternativ hierzu können die gefangenen Fische online', self::TEXT, '', 'L', 130.0, 4.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 42.0, 'gemeldet werden:', self::TEXT, '', 'L', 130.0, 4.0);
-		$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 46.0, 'Meldeformular:', self::TEXT, '', 'L', 130.0, 4.0);
-		$this->drawText($xpos + self::MARGIN + 32.0, $ypos + self::MARGIN + 46.0, 'www.bfv-ehingen.de/fangbuch', self::TEXT, '', 'L', 130.0, 4.0, '#0000AA');
+		$out .= $font_h1['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Lieber Angler!',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 1.0,
+			width: 35.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+
+		$out .= $font_text['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Gefangene Fische müssen nach dem waidgerechten Töten sofort in die Fangstatistik',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 8.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: 'eingetragen werden. Dies wird zur Fangmengenkontrolle gegebenenfalls von unseren',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 12.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: 'Gewässerkontrolleuren überprüft.',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 16.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: 'Nach Ablauf der Gültigkeit des Erlaubnisscheins muss die Fangstatistik innerhalb von',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 22.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: '2 Wochen an den ' . $this->getAddress('name_verein', '') . ' zurückgesendet werden.',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 26.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: '(' . $this->getAddress('addr_verein', '') . ', ' . $this->getAddress('ort_verein', '') . ')',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 30.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: 'Alternativ hierzu können die gefangenen Fische online',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 38.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: 'gemeldet werden:',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 42.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: 'Meldeformular:',
+			posx: $xpos + self::MARGIN + 2.0,
+			posy: $ypos + self::MARGIN + 46.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->getTextCell(
+			txt: 'www.bfv-ehingen.de/fangbuch',
+			posx: $xpos + self::MARGIN + 32.0,
+			posy: $ypos + self::MARGIN + 46.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		$out .= $this->color->getPdfColor('#0000AA');
+		$out .= $this->getTextCell(
+			txt: 'www.bfv-ehingen.de/fangbuch',
+			posx: $xpos + self::MARGIN + 32.0,
+			posy: $ypos + self::MARGIN + 46.0,
+			width: 130.0,
+			height: 4.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 
 		if (!empty($this->getForm('username', ''))) {
-			$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 50.0, 'Benutzername:', self::TEXT, '', 'L', 130.0, 4.0);
-			$this->drawText($xpos + self::MARGIN + 32.0, $ypos + self::MARGIN + 50.0, (string) $this->getForm('username', ''), self::TEXT, '', 'L', 130.0, 4.0);
-			$this->drawText($xpos + self::MARGIN + 2.0, $ypos + self::MARGIN + 54.0, 'Passwort:', self::TEXT, '', 'L', 130.0, 4.0);
-			$this->drawText($xpos + self::MARGIN + 32.0, $ypos + self::MARGIN + 54.0, (string) $this->getForm('password', ''), self::TEXT, '', 'L', 130.0, 4.0);
+			$out .= $this->getTextCell(
+				txt: 'Benutzername:',
+				posx: $xpos + self::MARGIN + 2.0,
+				posy: $ypos + self::MARGIN + 50.0,
+				width: 130.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$out .= $this->getTextCell(
+				txt: (string) $this->getForm('username', ''),
+				posx: $xpos + self::MARGIN + 32.0,
+				posy: $ypos + self::MARGIN + 50.0,
+				width: 130.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$out .= $this->getTextCell(
+				txt: 'Passwort:',
+				posx: $xpos + self::MARGIN + 2.0,
+				posy: $ypos + self::MARGIN + 54.0,
+				width: 130.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$out .= $this->getTextCell(
+				txt: (string) $this->getForm('password', ''),
+				posx: $xpos + self::MARGIN + 32.0,
+				posy: $ypos + self::MARGIN + 54.0,
+				width: 130.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
 		}
+
+		return $out;
 	}
 
-	public function gen_schonzeiten_block(float $xpos, float $ypos): void {
+	public function gen_schonzeiten_block(): void {
+		$xpos = self::PAGE_W * 0.5;
+		$ypos = self::PAGE_H * 0.5;
+
 		$rand = self::MARGIN;
 		$x = $xpos + $rand;
 		$y = $ypos + $rand + 1.0;
-		$this->drawText($x, $y, 'Mindestmaße und Schonzeiten der Fische', self::H1, 'B', 'L', 80.0, 5.0);
+
+		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
+		$out = "";
+		$out .= $font_h1['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Mindestmaße und Schonzeiten der Fische',
+			posx: 5.0,
+			posy: 6.0,
+			width: 40.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+
+
 	}
 
-	public function gen_adress_block(float $xpos, float $ypos): void {
-		$rand = self::MARGIN;
-		$this->drawText($xpos + $rand, $ypos + $rand + 1.0, 'Adressen', self::H1, 'B', 'L', 20.0, 5.0);
+	public function gen_adress_block(): string {
+		$xpos = self::PAGE_W * 0.5;
+		$ypos = 0;
+
+		$out = "";
+		$out .= $font_h1['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Adressen',
+			posx: $xpos + self::MARGIN,
+			posy: $ypos + self::MARGIN + 1,
+			width: 20.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+
+		return $out;
 	}
 
-	public function gen_fangstatistik_block(float $xpos): void {
-		$this->drawText($xpos + 5.0, 6.0, 'Fangstatistik', self::H1, 'B', 'L', 30.0, 5.0);
+	public function gen_fangstatistik_block(): string {
+		$xpos = 0;
+		$ypos = 0;
+
+		$out = "";
+		$out .= $font_h1['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Fangstatistik',
+			posx: $xpos + self::MARGIN,
+			posy: $ypos + self::MARGIN + 1,
+			width: 20.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+
+		return $out;
 	}
 
 	/**
