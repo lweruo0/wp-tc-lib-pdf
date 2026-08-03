@@ -883,7 +883,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				height: max(1.0, $zeile1hoehe - 1.5),
 				offset: 0,
 				linespace: 0,
-				valign: \Com\Tecnick\Pdf\TextVAlign::Middle,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 				drawcell: false,
 			);
