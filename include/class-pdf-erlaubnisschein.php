@@ -479,6 +479,9 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		return $out;
 	}
 
+
+
+
 	public function gen_hinweis_block(): string {
 
 		$xpos = self::PAGE_W * 0.5;
@@ -829,6 +832,62 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			'fill'  => [255, 255, 255],
 		];
 
+
+
+$style4 = [
+    'all' => [
+        'lineWidth' => 0.5,
+        'lineCap' => 'butt',
+        'lineJoin' => 'miter',
+        'miterLimit' => 0.5,
+        'dashArray' => [],
+        'dashPhase' => 0,
+        'lineColor' => 'black',
+        'fillColor' => 'aliceblue',
+    ],
+    // TOP
+    0 => [
+        'lineWidth' => 0.25,
+        'lineCap' => 'butt',
+        'lineJoin' => 'miter',
+        'dashArray' => [],
+        'dashPhase' => 0,
+        'lineColor' => 'red',
+        'fillColor' => 'powderblue',
+    ],
+    // RIGHT
+    1 => [
+        'lineWidth' => 0.25,
+        'lineCap' => 'butt',
+        'lineJoin' => 'miter',
+        'dashArray' => [],
+        'dashPhase' => 0,
+        'lineColor' => 'green',
+        'fillColor' => 'powderblue',
+    ],
+    // BOTTOM
+    2 => [
+        'lineWidth' => 0.50,
+        'lineCap' => 'round',
+        'lineJoin' => 'miter',
+        'dashArray' => [],
+        'dashPhase' => 0,
+        'lineColor' => 'blue',
+        'fillColor' => 'powderblue',
+    ],
+    // LEFT
+    3 => [
+        'lineWidth' => 0.75,
+        'lineCap' => 'square',
+        'lineJoin' => 'miter',
+        'dashArray' => [6, 3, 2, 3],
+        'dashPhase' => 0,
+        'lineColor' => 'yellow',
+        'fillColor' => 'powderblue',
+    ],
+];
+
+
 		$tableX = 5.0;
 		$tableY = 14.0;
 		$tableW = $breite1 + $breite2 + $breite3 + $breite4 + $breite5 + ($breite_fisch * 16.0);
@@ -867,7 +926,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$cursorX = $tableX;
 		foreach ($columnWidths as $index => $columnW) {
 			$style = $index === 0 ? $fillStyle : $fillStyle;
-			$out .= $this->graph->getRect($cursorX, $headerRowY, $columnW, $zeile1hoehe, 'DF', $style);
+			$out .= $this->graph->getRect($cursorX, $headerRowY, $columnW, $zeile1hoehe, 'DF', $style4);
 			$out .= $this->graph->getStartTransform();
 			$centerX = $cursorX + ($columnW * 0.5);
 			$centerY = $headerRowY + ($zeile1hoehe * 0.5);
