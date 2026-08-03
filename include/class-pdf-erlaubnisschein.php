@@ -107,6 +107,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$xpos = self::PAGE_W * 0.5;
 		$ypos = 0;
 
+		
 		$rand = self::MARGIN;
 		$x = $xpos + $rand;
 		$y = $ypos + $rand + 1.0;
