@@ -909,17 +909,17 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		for ($row = 1; $row <= 27; $row++) {
 			$fillStyleRow = ($row % 2 === 0) ? $fillStyle : $whiteFillStyle;
 			$cursorX = $tableX;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite1, $zeilenhoehe, 'DF', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite1, $zeilenhoehe, 'D', $fillStyleRow);
 			$cursorX += $breite1;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite2, $zeilenhoehe, 'DF', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite2, $zeilenhoehe, 'D', $fillStyleRow);
 			$cursorX += $breite2;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite3, $zeilenhoehe, 'DF', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite3, $zeilenhoehe, 'D', $fillStyleRow);
 			$cursorX += $breite3;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite4, $zeilenhoehe, 'DF', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite4, $zeilenhoehe, 'D', $fillStyleRow);
 			$cursorX += $breite4;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite5, $zeilenhoehe, 'DF', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite5, $zeilenhoehe, 'D', $fillStyleRow);
 			$cursorX += $breite5;
-			$out .= $this->graph->getRect($cursorX, $rowY, ($breite_fisch * 16.0), $zeilenhoehe, 'DF', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, ($breite_fisch * 16.0), $zeilenhoehe, 'D', $fillStyleRow);
 			$rowY += $zeilenhoehe;
 		}
 
