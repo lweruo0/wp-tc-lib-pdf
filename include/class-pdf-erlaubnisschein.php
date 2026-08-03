@@ -806,30 +806,27 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		);
 
 		$lineStyle = [
-			'lineWidth' => 0.2,
-			'lineCap' => 'butt',
-			'lineJoin' => 'miter',
-			'dashArray' => [],
-			'dashPhase' => 0,
-			'lineColor' => '#000000',
+			'width' => 0.2,
+			'cap'   => 'butt',
+			'join'  => 'miter',
+			'dash'  => 0,
+			'color' => [0, 0, 0],   // Schwarz als RGB
 		];
 		$fillStyle = [
-			'lineWidth' => 0.2,
-			'lineCap' => 'butt',
-			'lineJoin' => 'miter',
-			'dashArray' => [],
-			'dashPhase' => 0,
-			'lineColor' => '#000000',
-			'fillColor' => '#F0F0F0',
+			'width' => 0.2,
+			'cap'   => 'butt',
+			'join'  => 'miter',
+			'dash'  => 0,
+			'color' => [0, 0, 0],          // Schwarz
+			'fill'  => [240, 240, 240],    // #F0F0F0 als RGB
 		];
 		$whiteFillStyle = [
-			'lineWidth' => 0.2,
-			'lineCap' => 'butt',
-			'lineJoin' => 'miter',
-			'dashArray' => [],
-			'dashPhase' => 0,
-			'lineColor' => '#000000',
-			'fillColor' => '#FFFFFF',
+			'width' => 0.2,
+			'cap'   => 'butt',
+			'join'  => 'miter',
+			'dash'  => 0,
+			'color' => [0, 0, 0],
+			'fill'  => [255, 255, 255],
 		];
 
 		$tableX = 5.0;
@@ -909,17 +906,17 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		for ($row = 1; $row <= 27; $row++) {
 			$fillStyleRow = ($row % 2 === 0) ? $fillStyle : $whiteFillStyle;
 			$cursorX = $tableX;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite1, $zeilenhoehe, 'D', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite1, $zeilenhoehe, 'DF', $fillStyleRow);
 			$cursorX += $breite1;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite2, $zeilenhoehe, 'D', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite2, $zeilenhoehe, 'DF', $fillStyleRow);
 			$cursorX += $breite2;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite3, $zeilenhoehe, 'D', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite3, $zeilenhoehe, 'DF', $fillStyleRow);
 			$cursorX += $breite3;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite4, $zeilenhoehe, 'D', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite4, $zeilenhoehe, 'DF', $fillStyleRow);
 			$cursorX += $breite4;
-			$out .= $this->graph->getRect($cursorX, $rowY, $breite5, $zeilenhoehe, 'D', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, $breite5, $zeilenhoehe, 'DF', $fillStyleRow);
 			$cursorX += $breite5;
-			$out .= $this->graph->getRect($cursorX, $rowY, ($breite_fisch * 16.0), $zeilenhoehe, 'D', $fillStyleRow);
+			$out .= $this->graph->getRect($cursorX, $rowY, ($breite_fisch * 16.0), $zeilenhoehe, 'DF', $fillStyleRow);
 			$rowY += $zeilenhoehe;
 		}
 
