@@ -104,9 +104,8 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 
 	public function gen_erlaubnis_block(): string {
 
-		$xpos = 0;
-		$ypos = self::PAGE_H * 0.5;
-
+		$xpos = self::PAGE_W * 0.5;
+		$ypos = 0;
 
 		$rand = self::MARGIN;
 		$x = $xpos + $rand;
@@ -431,24 +430,8 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 	}
 
 	public function gen_gewaesser_block(): string {
-
-
 		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
 		$out = "";
-		$out .= $font_h1['out'];
-		$out .= $this->color->getPdfColor('#000000');
-		$out .= $this->getTextCell(
-			txt: 'Vereinsgewässer',
-			posx: 5.0,
-			posy: 6.0,
-			width: 40.0,
-			height: 5.0,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			drawcell: false,
-		);
 
 		// 5.0, 12.0, self::PAGE_W * 0.5 - 10.0,
 		$imageFile = __DIR__ . '/images/gewaesser.jpg';
@@ -467,6 +450,24 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				self::PAGE_H,
 			);
 		}
+
+
+		$out .= $font_h1['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(
+			txt: 'Vereinsgewässer',
+			posx: 5.0,
+			posy: 6.0,
+			width: 40.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+
+
 
 		return $out;
 	}
