@@ -926,7 +926,7 @@ $style4 = [
 		$cursorX = $tableX;
 		foreach ($columnWidths as $index => $columnW) {
 			$style = $index === 0 ? $fillStyle : $fillStyle;
-			$out .= $this->graph->getRect($cursorX, $headerRowY, $columnW, $zeile1hoehe, 'DF', $style4);
+			$out .= $this->graph->getRect($cursorX, $headerRowY, $columnW, $zeile1hoehe, 'D', $style4);
 			$out .= $this->graph->getStartTransform();
 			$centerX = $cursorX + ($columnW * 0.5);
 			$centerY = $headerRowY + ($zeile1hoehe * 0.5);
