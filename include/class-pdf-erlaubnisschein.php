@@ -774,6 +774,168 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		return $out;
 	}
 
+	public function gen_adress_block_old() {
+		$xpos = self::PAGE_W * 0.5;
+		$ypos = 0;
+
+		$this->SetFontSize ( $this->FontSize_H1 );
+		$rand = 5;
+
+		$this->SetXY ( $xpos + $rand, $ypos + $rand + 1 );
+		$this->Cell ( 1, 0, "Adressen", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+		$this->SetFontSize ( $this->FontSize_TEXT );
+
+		$y_addr = $ypos + $rand + 9;
+		$x_addr = $xpos + $rand + 32;
+
+		if (! empty ( $this->adressen ['name_1v'] )) {
+			$text = $this->adressen ['name_1v'];
+			if (! empty ( $this->adressen ['strasse_1v'] )) {
+				$text .= ', ' . $this->adressen ['strasse_1v'];
+			}
+			if (! empty ( $this->adressen ['ort_1v'] )) {
+				$text .= ', ' . $this->adressen ['ort_1v'];
+			}
+			if (! empty ( $this->adressen ['tel_1v'] )) {
+				$text .= ', ' . $this->adressen ['tel_1v'];
+			}
+			$this->SetXY ( $xpos + $rand, $y_addr );
+			$this->Cell ( 1, 0, "1. Vorsitzender", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$this->SetXY ( $x_addr, $y_addr );
+			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$y_addr += 5;
+		}
+
+		if (! empty ( $this->adressen ['name_2v'] )) {
+
+			$text = $this->adressen ['name_2v'];
+			if (! empty ( $this->adressen ['strasse_2v'] )) {
+				$text .= ', ' . $this->adressen ['strasse_2v'];
+			}
+			if (! empty ( $this->adressen ['ort_2v'] )) {
+				$text .= ', ' . $this->adressen ['ort_2v'];
+			}
+			if (! empty ( $this->adressen ['tel_2v'] )) {
+				$text .= ', ' . $this->adressen ['tel_2v'];
+			}
+
+			$this->SetXY ( $xpos + $rand, $y_addr );
+			$this->Cell ( 1, 0, "2. Vorsitzender", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$this->SetXY ( $x_addr, $y_addr );
+			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$y_addr += 5;
+		}
+
+		if (! empty ( $this->adressen ['name_ev'] )) {
+			$text = $this->adressen ['name_ev'];
+			if (! empty ( $this->adressen ['strasse_ev'] )) {
+				$text .= ', ' . $this->adressen ['strasse_ev'];
+			}
+			if (! empty ( $this->adressen ['ort_ev'] )) {
+				$text .= ', ' . $this->adressen ['ort_ev'];
+			}
+			if (! empty ( $this->adressen ['tel_ev'] )) {
+				$text .= ', ' . $this->adressen ['tel_ev'];
+			}
+
+			$this->SetXY ( $xpos + $rand, $y_addr );
+			$this->Cell ( 1, 0, "Ehrenvorsitzender", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$this->SetXY ( $x_addr, $y_addr );
+			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$y_addr += 5;
+		}
+
+		if (! empty ( $this->adressen ['name_kassier'] )) {
+			$text = $this->adressen ['name_kassier'];
+			if (! empty ( $this->adressen ['strasse_kassier'] )) {
+				$text .= ', ' . $this->adressen ['strasse_kassier'];
+			}
+			if (! empty ( $this->adressen ['ort_kassier'] )) {
+				$text .= ', ' . $this->adressen ['ort_kassier'];
+			}
+			if (! empty ( $this->adressen ['tel_kassier'] )) {
+				$text .= ', ' . $this->adressen ['tel_kassier'];
+			}
+
+			$this->SetXY ( $xpos + $rand, $y_addr );
+			$this->Cell ( 1, 0, "Kassier", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$this->SetXY ( $x_addr, $y_addr );
+			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$y_addr += 5;
+		}
+
+		if (! empty ( $this->adressen ['name_schriftfuehrer'] )) {
+			$text = $this->adressen ['name_schriftfuehrer'];
+			if (! empty ( $this->adressen ['strasse_schriftfuehrer'] )) {
+				$text .= ', ' . $this->adressen ['strasse_schriftfuehrer'];
+			}
+			if (! empty ( $this->adressen ['ort_schriftfuehrer'] )) {
+				$text .= ', ' . $this->adressen ['ort_schriftfuehrer'];
+			}
+			if (! empty ( $this->adressen ['tel_schriftfuehrer'] )) {
+				$text .= ', ' . $this->adressen ['tel_schriftfuehrer'];
+			}
+
+			$this->SetXY ( $xpos + $rand, $y_addr );
+			$this->Cell ( 1, 0, "Schriftführer", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$this->SetXY ( $x_addr, $y_addr );
+			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$y_addr += 5;
+		}
+
+		for($i = 1; $i <= 10; $i ++) {
+			$k_name = 'name_b' . $i;
+			$k_funk = 'funktion_b' . $i;
+			$k_str = 'strasse_b' . $i;
+			$k_ort = 'ort_b' . $i;
+			$k_tel = 'tel_b' . $i;
+
+			if (! empty ( $this->adressen [$k_name] )) {
+
+				$text = $this->adressen [$k_name];
+				if (! empty ( $this->adressen [$k_str] )) {
+					$text .= ', ' . $this->adressen [$k_str];
+				}
+				if (! empty ( $this->adressen [$k_ort] )) {
+					$text .= ', ' . $this->adressen [$k_ort];
+				}
+				if (! empty ( $this->adressen [$k_tel] )) {
+					$text .= ', ' . $this->adressen [$k_tel];
+				}
+
+				$this->SetXY ( $xpos + $rand, $y_addr );
+				$this->Cell ( 1, 0, $this->adressen [$k_funk], $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+				$this->SetXY ( $x_addr, $y_addr );
+				$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+				$y_addr += 5;
+			}
+		}
+
+		if (! empty ( $this->adressen ['name_verein'] )) {
+
+			$this->SetXY ( $xpos + $rand, $y_addr );
+			$this->Cell ( 1, 0, "Vereinsanschrift", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$this->SetXY ( $x_addr, $y_addr );
+
+			$this->Cell ( 1, 0, $this->adressen ['name_verein'], $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$y_addr += 5;
+
+			if (! empty ( $this->adressen ['addr_verein'] )) {
+				$addr = $this->adressen ['addr_verein'];
+				if (! empty ( $this->adressen ['ort_verein'] )) {
+					$addr .= ', ' . $this->adressen ['ort_verein'];
+				}
+
+				$this->SetXY ( $x_addr, $y_addr );
+				$this->Cell ( 1, 0, $addr, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+				$y_addr += 5;
+			}
+		}
+
+		$this->SetFontSize ( $this->FontSize_TEXT );
+	}
+
+
 	public function gen_fangstatistik_block(): string {
 		$xpos = 0;
 		$ypos = 0;
@@ -808,84 +970,53 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			drawcell: false,
 		);
 
+
+
 		$lineStyle = [
-			'width' => 0.2,
-			'cap'   => 'butt',
-			'join'  => 'miter',
-			'dash'  => 0,
-			'color' => [0, 0, 0],   // Schwarz als RGB
+			'lineWidth' => 0.1,
+			'lineCap' => 'butt',
+			'lineJoin' => 'miter',
+			'dashArray' => [],
+			'dashPhase' => 0,
+			'lineColor' => 'black',
 		];
 		$fillStyle = [
-			'width' => 0.2,
-			'cap'   => 'butt',
-			'join'  => 'miter',
-			'dash'  => 0,
-			'color' => [0, 0, 0],          // Schwarz
-			'fill'  => [240, 240, 240],    // #F0F0F0 als RGB
+			'all' => [
+				'lineWidth' => 0.1,
+				'lineCap' => 'butt',
+				'lineJoin' => 'miter',
+				'miterLimit' => 0.5,
+				'dashArray' => [],
+				'dashPhase' => 0,
+				'lineColor' => 'black',
+				'fillColor' => '#efefef',
+			],
 		];
 		$whiteFillStyle = [
-			'width' => 0.2,
-			'cap'   => 'butt',
-			'join'  => 'miter',
-			'dash'  => 0,
-			'color' => [0, 0, 0],
-			'fill'  => [255, 255, 255],
+			'all' => [
+				'lineWidth' => 0.1,
+				'lineCap' => 'butt',
+				'lineJoin' => 'miter',
+				'miterLimit' => 0.5,
+				'dashArray' => [],
+				'dashPhase' => 0,
+				'lineColor' => 'black',
+				'fillColor' => 'white',
+			],
 		];
 
-
-
-$style4 = [
-    'all' => [
-        'lineWidth' => 0.5,
-        'lineCap' => 'butt',
-        'lineJoin' => 'miter',
-        'miterLimit' => 0.5,
-        'dashArray' => [],
-        'dashPhase' => 0,
-        'lineColor' => 'black',
-        'fillColor' => 'aliceblue',
-    ],
-    // TOP
-    0 => [
-        'lineWidth' => 0.25,
-        'lineCap' => 'butt',
-        'lineJoin' => 'miter',
-        'dashArray' => [],
-        'dashPhase' => 0,
-        'lineColor' => 'red',
-        'fillColor' => 'powderblue',
-    ],
-    // RIGHT
-    1 => [
-        'lineWidth' => 0.25,
-        'lineCap' => 'butt',
-        'lineJoin' => 'miter',
-        'dashArray' => [],
-        'dashPhase' => 0,
-        'lineColor' => 'green',
-        'fillColor' => 'powderblue',
-    ],
-    // BOTTOM
-    2 => [
-        'lineWidth' => 0.50,
-        'lineCap' => 'round',
-        'lineJoin' => 'miter',
-        'dashArray' => [],
-        'dashPhase' => 0,
-        'lineColor' => 'blue',
-        'fillColor' => 'powderblue',
-    ],
-    // LEFT
-    3 => [
-        'lineWidth' => 0.75,
-        'lineCap' => 'square',
-        'lineJoin' => 'miter',
-        'dashArray' => [6, 3, 2, 3],
-        'dashPhase' => 0,
-        'lineColor' => 'yellow',
-        'fillColor' => 'powderblue',
-    ],
-];
+		$testFillStyle = [
+			'all' => [
+				'lineWidth' => 0.1,
+				'lineCap' => 'butt',
+				'lineJoin' => 'miter',
+				'miterLimit' => 0.5,
+				'dashArray' => [],
+				'dashPhase' => 0,
+				'lineColor' => 'black',
+				'fillColor' => 'orange',
+			],
+		];
 
 
 		$tableX = 5.0;
@@ -923,20 +1054,20 @@ $style4 = [
 		}
 		$headerText[] = (string) ($data['zurueck'] ?? 'zurückgesetzt');
 
+
 		$cursorX = $tableX;
 		foreach ($columnWidths as $index => $columnW) {
-			$style = $index === 0 ? $fillStyle : $fillStyle;
-			$out .= $this->graph->getRect($cursorX, $headerRowY, $columnW, $zeile1hoehe, 'D', $style4);
+			$out .= $this->graph->getRect($cursorX, $headerRowY, $columnW, $zeile1hoehe, 'DF', $fillStyle);
 			$out .= $this->graph->getStartTransform();
-			$centerX = $cursorX + ($columnW * 0.5);
-			$centerY = $headerRowY + ($zeile1hoehe * 0.5);
-			$out .= $this->graph->getRotation(90.0, $centerX, $centerY);
+			$out .= $this->graph->getTranslation($cursorX, $headerRowY + $zeile1hoehe - 1.0);
+			$out .= $this->graph->getRotation(90.0, 0.0, 0.0);
+			$out .= $this->color->getPdfColor('#000000');
 			$out .= $this->getTextCell(
 				txt: $headerText[$index] ?? '',
-				posx: $cursorX + 1.0,
-				posy: $headerRowY + 1.0,
-				width: max(1.0, $columnW - 1.5),
-				height: max(1.0, $zeile1hoehe - 1.5),
+				posx: 0.0,
+				posy: 0.0,
+				width: $zeile1hoehe,
+				height: $columnW,
 				offset: 0,
 				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
@@ -947,19 +1078,9 @@ $style4 = [
 			$cursorX += $columnW;
 		}
 
-		$verticalSeparatorX = $tableX;
-		for ($i = 0; $i < count($columnWidths); $i++) {
-			$verticalSeparatorX += $columnWidths[$i];
-			$out .= $this->graph->getLine($verticalSeparatorX, $tableY, $verticalSeparatorX, $rowY + (27 * $zeilenhoehe), $lineStyle);
-		}
 
-		$horizontalY = $rowY;
-		for ($row = 0; $row <= 27; $row++) {
-			$drawStyle = ($row % 2 === 0) ? $whiteFillStyle : $fillStyle;
-			$out .= $this->graph->getLine($tableX, $horizontalY, $tableX + $tableW, $horizontalY, $lineStyle);
-			$out .= $this->graph->getRect($tableX, $horizontalY, $tableW, $zeilenhoehe, 'D', $drawStyle);
-			$horizontalY += $zeilenhoehe;
-		}
+
+		
 
 		$rowY = $tableY + $zeile1hoehe;
 		for ($row = 1; $row <= 27; $row++) {
@@ -979,184 +1100,22 @@ $style4 = [
 			$rowY += $zeilenhoehe;
 		}
 
+		$verticalSeparatorX = $tableX;
+		for ($i = 0; $i < count($columnWidths); $i++) {
+			$horizontalY = $tableY + $zeile1hoehe;
+			$verticalSeparatorX += $columnWidths[$i];
+			if ($i < 5) {
+				continue; // Skip the first 6 columns for vertical separators
+			}
+
+			$out .= $this->graph->getLine($verticalSeparatorX-$columnWidths[$i]*0.5, $horizontalY, $verticalSeparatorX-$columnWidths[$i]*0.5, $horizontalY + (27 * $zeilenhoehe), $lineStyle);
+			for ($row = 0; $row <= 26; $row++) {
+				$out .= $this->graph->getRect($verticalSeparatorX-$columnWidths[$i]*0.5-1.5, $horizontalY+$zeilenhoehe*0.5-1.5, 3, 3, 'DF', $whiteFillStyle);
+				$horizontalY += $zeilenhoehe;
+			}
+		}
 		return $out;
 	}
-
-
-	public function gen_fangstatistik_block_old($xpos) {
-		$this->SetFontSize ( $this->FontSize_H1 );
-		$this->SetXY ( $xpos + 5, 6 );
-		$this->Cell ( 1, 0, "Fangstatistik", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-		$this->SetFontSize ( $this->FontSize_TEXT );
-
-		$data = $this->getForm('statistik_options', array());
-
-		$breite1 = empty ( $data ['breite1'] ) ? 15 : $data ['breite1'];
-		$breite2 = empty ( $data ['breite2'] ) ? 10 : $data ['breite2'];
-		$breite3 = empty ( $data ['breite3'] ) ? 15 : $data ['breite3'];
-		$breite4 = empty ( $data ['breite4'] ) ? 15 : $data ['breite4'];
-		$breite5 = empty ( $data ['breite5'] ) ? 10 : $data ['breite5'];
-		$breite_fisch = empty ( $data ['breite_fisch'] ) ? 4.5 : $data ['breite_fisch'];
-		$zeilenhoehe = empty ( $data ['zeilenhoehe'] ) ? 6 : $data ['zeilenhoehe'];
-		$zeile1hoehe = empty ( $data ['zeile1hoehe'] ) ? 25 : $data ['zeile1hoehe'];
-		$data ['zurueck'] = 'zurückgesetzt';
-
-		$this->SetFillColor ( 240, 240, 240 );
-
-		$rand_x = 5;
-		$rand_y = 14;
-
-		$style = array (
-				'width' => 0.05,
-				'dash' => 0,
-				'color' => array (
-						0,
-						0,
-						0
-				)
-		);
-		$this->SetLineStyle ( $style );
-
-		$x = $xpos + $rand_x;
-		$y = $rand_y;
-
-		$this->SetXY ( $x, $y + $zeile1hoehe );
-		$this->StartTransform ();
-		$this->Rotate ( 90 );
-		$this->Cell ( $zeile1hoehe, $breite1, ' ' . $data ['text_1'], $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'C' );
-		$this->StopTransform ();
-		$this->SetXY ( $x, $y - $zeile1hoehe );
-		$x += $breite1;
-
-		$this->SetXY ( $x, $y + $zeile1hoehe );
-		$this->StartTransform ();
-		$this->Rotate ( 90 );
-		$this->Cell ( $zeile1hoehe, $breite2, ' ' . $data ['text_2'], $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'C' );
-		$this->StopTransform ();
-		$this->SetXY ( $x, $y - $zeile1hoehe );
-		$x += $breite2;
-
-		$this->SetXY ( $x, $y + $zeile1hoehe );
-		$this->StartTransform ();
-		$this->Rotate ( 90 );
-		$this->Cell ( $zeile1hoehe, $breite3, ' ' . $data ['text_3'], $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'C' );
-		$this->StopTransform ();
-		$this->SetXY ( $x, $y - $zeile1hoehe );
-		$x += $breite3;
-
-		$this->SetXY ( $x, $y + $zeile1hoehe );
-		$this->StartTransform ();
-		$this->Rotate ( 90 );
-		$this->Cell ( $zeile1hoehe, $breite4, ' ' . $data ['text_4'], $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'C' );
-		$this->StopTransform ();
-		$this->SetXY ( $x, $y - $zeile1hoehe );
-		$x += $breite4;
-
-		$this->SetXY ( $x, $y + $zeile1hoehe );
-		$this->StartTransform ();
-		$this->Rotate ( 90 );
-		$this->Cell ( $zeile1hoehe, $breite5, ' ' . $data ['text_5'], $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'C' );
-		$this->StopTransform ();
-		$this->SetXY ( $x, $y - $zeile1hoehe );
-		$x += $breite5;
-
-		for($i = 1; $i <= 15; $i ++) {
-			$key = 'fisch_' . $i;
-
-			$this->SetXY ( $x, $y + $zeile1hoehe );
-			$this->StartTransform ();
-			$this->Rotate ( 90 );
-			$this->Cell ( $zeile1hoehe, $breite_fisch, ' ' . $data [$key], $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'C' );
-			$this->StopTransform ();
-			$this->SetXY ( $x, $y - $zeile1hoehe );
-			$x += $breite_fisch;
-		}
-
-		$this->SetXY ( $x, $y + $zeile1hoehe );
-		$this->StartTransform ();
-		$this->Rotate ( 90 );
-		$this->Cell ( $zeile1hoehe, $breite_fisch, ' ' . $data ['zurueck'], $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'C' );
-		$this->StopTransform ();
-		$this->SetXY ( $x, $y - $zeile1hoehe );
-		$x += $breite_fisch;
-
-		$this->SetFontSize ( 1 );
-		$y += $zeile1hoehe;
-
-		$yy = $y;
-		for($zn = 1; $zn <= 27; $zn ++) {
-
-			if (($zn % 2) == 0) {
-				$this->SetFillColor ( 240, 240, 240 );
-			} else {
-				$this->SetFillColor ( 255, 255, 255 );
-			}
-			$x = $xpos + $rand_x;
-			$x += $breite1;
-			$x += $breite2;
-			$x += $breite3;
-			$x += $breite4;
-			$x += $breite5;
-
-			$this->SetXY ( $x, $yy );
-
-			$this->Cell ( $breite_fisch * 16, $zeilenhoehe, '', $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$yy += $zeilenhoehe;
-		}
-
-		for($f = 1; $f <= 16; $f ++) {
-			$xx = $xpos + $rand_x + $breite1 + $breite2 + $breite3 + $breite4 + $breite5 + $breite_fisch * $f - $breite_fisch * 0.5;
-			$this->Line ( $xx, $y, $xx, $y + 27 * $zeilenhoehe, $style );
-		}
-
-		for($zn = 1; $zn <= 27; $zn ++) {
-
-			if (($zn % 2) == 0) {
-				$this->SetFillColor ( 240, 240, 240 );
-			} else {
-				$this->SetFillColor ( 255, 255, 255 );
-			}
-
-			$x = $xpos + $rand_x;
-			$this->SetXY ( $x, $y );
-			$this->Cell ( $breite1, $zeilenhoehe, '', $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$x += $breite1;
-
-			$this->SetXY ( $x, $y );
-			$this->Cell ( $breite2, $zeilenhoehe, '', $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$x += $breite2;
-
-			$this->SetXY ( $x, $y );
-			$this->Cell ( $breite3, $zeilenhoehe, '', $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$x += $breite3;
-
-			$this->SetXY ( $x, $y );
-			$this->Cell ( $breite4, $zeilenhoehe, '', $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$x += $breite4;
-
-			$this->SetXY ( $x, $y );
-			$this->Cell ( $breite5, $zeilenhoehe, '', $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$x += $breite5;
-
-			$breite = $breite_fisch - 2.2;
-
-			$y += ($zeilenhoehe - $breite) * 0.5;
-			for($i = 1; $i <= 15; $i ++) {
-				$key = 'fisch_' . $i;
-				$x += ($breite_fisch - $breite) * 0.5;
-				$this->SetXY ( $x, $y );
-				$this->Cell ( $breite, $breite, '', $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-				$x += $breite_fisch - ($breite_fisch - $breite) * 0.5;
-			}
-			$x += ($breite_fisch - $breite) * 0.5;
-			$this->SetXY ( $x, $y );
-			$this->Cell ( $breite, $breite, '', $border = 1, $ln = 0, $align = '', $fill = 1, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$x += $breite_fisch - ($breite_fisch - $breite) * 0.5;
-			$y += $zeilenhoehe - ($zeilenhoehe - $breite) * 0.5;
-		}
-		$this->SetFontSize ( $this->FontSize_TEXT );
-	}
-
 
 
 
