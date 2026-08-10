@@ -21,9 +21,10 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 	private const PAGE_W = 297.0;
 	private const PAGE_H = 210.0;
 	private const MARGIN = 5.0;
+	private const MARGIN_TOP = 6.0;
 	private const H1 = 17;
 	private const TEXT_LETTER = 12;
-	private const TEXT = 9;
+	private const TEXT = 8;
 	private const TEXT_TINY = 7;
 
 
@@ -69,6 +70,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 
 		$formdata['statistik_options'] = get_option ( 'bfv_erlaubnisschein_statistik' );
 		$formdata['schonzeiten'] = get_option ( 'bfv_erlaubnisschein_schonzeit' );
+		$formdata['gewaesser'] = get_option ( 'bfv_gewaesser' );
 
 
 
@@ -91,6 +93,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$out .= $this->gen_fangstatistik_block();
 		$out .= $this->gen_erlaubnis_block();
 		$out .= $this->gen_hinweis_block();
+		$out .= $this->gen_ueberschriften1();
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
 	}
@@ -102,63 +105,31 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		]);
 		$out = $this->graph->getStartTransform();
 		$out .= $this->gen_gewaesser_block();
-		$out .= $this->gen_adress_block(self::PAGE_W * 0.5, 0.0);
+		$out .= $this->gen_adress_block();
 		$out .= $this->gen_schonzeiten_block();
+		$out .= $this->gen_ueberschriften2();
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
 	}
 
+
 	public function gen_erlaubnis_block(): string {
 
-		$xpos = self::PAGE_W * 0.5;
-		$ypos = 0;
 
-
-		$rand = self::MARGIN;
-		$x = $xpos + $rand;
-		$y = $ypos + $rand + 1.0;
-
-		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
 		$font_letter = $this->font->insert($this->pon, 'helvetica', '', self::TEXT_LETTER);
 		$font_text = $this->font->insert($this->pon, 'helvetica', '', self::TEXT);
 		$font_tiny = $this->font->insert($this->pon, 'helvetica', '', self::TEXT_TINY);
 
+
+		$x = self::PAGE_W * 0.5 + self::MARGIN + 6.0;
+		$y = self::MARGIN + 29.0;
 		$out = "";
-		$out .= $font_h1['out'];
-		$out .= $this->color->getPdfColor('#000000');
-		$out .= $this->getTextCell(
-			txt: 'Bezirksfischerei-Verein e.V. Ehingen/Donau',
-			posx: $x,
-			posy: $y,
-			width: 150.0,
-			height: 5.0,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			drawcell: false,
-		);
-
-		$y += 9.0;
-
 		$out .= $font_letter['out'];
 		$out .= $this->color->getPdfColor('#000000');
-		$out .= $this->getTextCell(
-			txt: 'Erlaubnisschein',
-			posx: $x + 2.0,
-			posy: $y,
-			width: 50.0,
-			height: 5.0,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			drawcell: false,
-		);
-		$y += 5.0;
+
 		$out .= $this->getTextCell(
 			txt: 'zum Fischfang in unseren Vereinsgewässern',
-			posx: $x + 2.0,
+			posx: $x,
 			posy: $y,
 			width: 90.0,
 			height: 5.0,
@@ -170,14 +141,13 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		);
 		$y += 5.0;
 
-		$out .= $font_text['out'];
-		$out .= $this->color->getPdfColor('#000000');
+
 
 		$tage = (int) $this->getForm('tage', 0);
 		if ($tage > 1) {
 			$out .= $this->getTextCell(
 				txt: 'vom ' . $this->getForm('von', '') . ' bis ' . $this->getForm('bis', '') . ' (' . $tage . ' Tage).',
-				posx: $x + 2.0,
+				posx: $x,
 				posy: $y,
 				width: 110.0,
 				height: 5.0,
@@ -190,7 +160,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		} else {
 			$out .= $this->getTextCell(
 				txt: 'am ' . $this->getForm('von', '') . ' (1 Tag).',
-				posx: $x + 2.0,
+				posx: $x,
 				posy: $y,
 				width: 110.0,
 				height: 5.0,
@@ -202,11 +172,13 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			);
 		}
 		$y += 5.0;
+		$out .= $font_text['out'];
+		$out .= $this->color->getPdfColor('#000000');
 
 		if ((int) $this->getForm('no_hinweis_begleitet', 0) !== 1) {
 			$out .= $this->getTextCell(
 				txt: 'Nur in Begleitung eines aktiven Vereinsmitglieds gültig.',
-				posx: $x + 2.0,
+				posx: $x,
 				posy: $y,
 				width: 110.0,
 				height: 4.0,
@@ -219,7 +191,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			$y += 4.0;
 			$out .= $this->getTextCell(
 				txt: 'Verfügt das begleitende Vereinsmitglied über Bootsstempel,',
-				posx: $x + 2.0,
+				posx: $x,
 				posy: $y,
 				width: 110.0,
 				height: 4.0,
@@ -232,7 +204,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			$y += 4.0;
 			$out .= $this->getTextCell(
 				txt: 'dann ist das Probemitlied zur Mitnutzung des Boots berechtigt.',
-				posx: $x + 2.0,
+				posx: $x,
 				posy: $y,
 				width: 110.0,
 				height: 4.0,
@@ -245,7 +217,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			$y += 4.0;
 			$out .= $this->getTextCell(
 				txt: 'Verantwortliches Vereinsmitglied: ' . $this->getForm('mitgliedsname', ''),
-				posx: $x + 2.0,
+				posx: $x,
 				posy: $y,
 				width: 110.0,
 				height: 4.0,
@@ -263,7 +235,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$y += 5.0;
 		$out .= $this->getTextCell(
 			txt: (string) $this->getForm('anrede', ''),
-			posx: $x + 2.0,
+			posx: $x,
 			posy: $y,
 			width: 110.0,
 			height: 5.0,
@@ -276,7 +248,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$y += 5.0;
 		$out .= $this->getTextCell(
 			txt: trim((string) $this->getForm('vorname', '') . ' ' . $this->getForm('name', '')),
-			posx: $x + 2.0,
+			posx: $x,
 			posy: $y,
 			width: 110.0,
 			height: 5.0,
@@ -289,7 +261,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$y += 5.0;
 		$out .= $this->getTextCell(
 			txt: (string) $this->getForm('strasse', ''),
-			posx: $x + 2.0,
+			posx: $x,
 			posy: $y,
 			width: 110.0,
 			height: 5.0,
@@ -302,7 +274,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$y += 5.0;
 		$out .= $this->getTextCell(
 			txt: trim((string) $this->getForm('plz', '') . ' ' . $this->getForm('ort', '')),
-			posx: $x + 2.0,
+			posx: $x,
 			posy: $y,
 			width: 110.0,
 			height: 5.0,
@@ -363,7 +335,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$out .= $this->color->getPdfColor('#000000');
 		$out .= $this->getTextCell(
 			txt: 'Der Erlaubnisschein ist nur gültig in Verbindung mit dem amtlichen Fischereischein und der Ordnung zur Hege',
-			posx: self::PAGE_W * 0.5 + 5.0,
+			posx: self::PAGE_W * 0.5 + 6.0,
 			posy: 93.0,
 			width: 130.0,
 			height: 3.0,
@@ -371,18 +343,18 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-			drawcell: false,
+			drawcell: true,
 		);
 		$out .= $this->getTextCell(
 			txt: 'und Pflege der Vereinsgewässer (Gewässerordnung). Für Jugendliche gilt zusätzlich die Jugendordnung.',
-			posx: self::PAGE_W * 0.5 + 8.0,
+			posx: self::PAGE_W * 0.5 + 6.0,
 			posy: 96.0,
 			width: 130.0,
 			height: 3.0,
 			offset: 0,
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
 			drawcell: false,
 		);
 
@@ -396,7 +368,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			$logoDim = $this->image->getImageDimensionsByKey($logoKey, 30, 0, true);
 			$out .= $this->image->getSetImage(
 				$this->stempelImageId,
-				226.0,
+				225.0,
 				58.0,
 				$logoDim['width'],
 				$logoDim['height'],
@@ -424,20 +396,30 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			);
 		}
 
+			$fillStyle = [
+				'lineWidth' => 0.5,
+				'lineCap' => 'butt',
+				'lineJoin' => 'miter',
+				'dashArray' => [],
+				'dashPhase' => 0,
+				'lineColor' => '#000000',
+				'fillColor' => '#ffffff',
+			];
 
-		$out .= $this->graph->getRoundedRect(153.0, 18.0, 138.0, 82.0, 12.5, 12.5, '1111', 'D', [[
-			'lineWidth' => 0.5,
-			'lineCap' => 'butt',
-			'lineJoin' => 'miter',
-			'dashArray' => [],
-			'dashPhase' => 0,
-			'lineColor' => '#000000',
-		]]);
+			$styles = [
+				'all' => $fillStyle,
+				0 => $fillStyle,
+				1 => $fillStyle,
+				2 => $fillStyle,
+				3 => $fillStyle,
+			];
+
+
+		$out .= $this->graph->getRoundedRect(153.0, 18.0, 138.0, 82.0, 12.5, 12.5, '1111', 'D', $fillStyle);
 		return $out;
 	}
 
 	public function gen_gewaesser_block(): string {
-		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
 		$out = "";
 
 		// 5.0, 12.0, self::PAGE_W * 0.5 - 10.0,
@@ -450,8 +432,8 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			$logoDim = $this->image->getImageDimensionsByKey($logoKey, (int) (self::PAGE_W * 0.5 - 10.0), 0, true);
 			$out .= $this->image->getSetImage(
 				$this->gewaesserImageId,
-				5.0,
-				12.0,
+				self::MARGIN,
+				self::MARGIN+8,
 				$logoDim['width'],
 				$logoDim['height'],
 				self::PAGE_H,
@@ -459,13 +441,128 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		}
 
 
+
+		$font = $this->font->insert($this->pon, 'helvetica', '', 8);
+		$out .= $font['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		
+
+		//
+		//
+		// Gewässerbeschreibungen
+		//
+		//
+		$x = self::MARGIN;
+		$y_addr = self::PAGE_H * 0.5 + self::MARGIN + 6.0;
+
+		$x_spalte2 = $x + 6;
+		$x_spalte3 = $x_spalte2 + 31;
+
+		$gewaesser  = $this->getForm('gewaesser', []);
+
+		for($i = 1; $i <= 20; $i ++) {
+			$k_name = 'name_g' . $i;
+			$k_num = 'nummer_g' . $i;
+			$k_besch1 = 'beschr1_g' . $i;
+			$k_besch2 = 'beschr2_g' . $i;
+			$k_besch3 = 'beschr3_g' . $i;
+
+			if (! empty ( $gewaesser [$k_name] ) || ! empty ( $gewaesser [$k_num] )) {
+
+				$out .= $this->getTextCell(
+					txt: $gewaesser [$k_num],
+					posx: $x,
+					posy: $y_addr,
+					width: 6.0,
+					height: 6.0,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+					drawcell: false,
+				);
+
+				$out .= $this->getTextCell(
+					txt: $gewaesser [$k_name],
+					posx: $x_spalte2,
+					posy: $y_addr,
+					width: 120.0,
+					height: 6.0,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+					drawcell: false,
+				);
+
+				$out .= $this->getTextCell(
+					txt: $gewaesser [$k_besch1],
+					posx: $x_spalte3,
+					posy: $y_addr,
+					width: 120.0,
+					height: 6.0,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+					drawcell: false,
+				);
+
+
+				if (! empty ( $gewaesser [$k_besch2] )) {
+					$y_addr += 3.5;
+					$out .= $this->getTextCell(
+						txt: $gewaesser [$k_besch2],
+						posx: $x_spalte3,
+						posy: $y_addr,
+						width: 120.0,
+						height: 6.0,
+						offset: 0,
+						linespace: 0,
+						valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+						halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+						drawcell: false,
+					);				
+				}
+
+				if (! empty ( $gewaesser [$k_besch3] )) {
+					$y_addr += 3.5;
+					$out .= $this->getTextCell(
+						txt: $gewaesser [$k_besch3],
+						posx: $x_spalte3,
+						posy: $y_addr,
+						width: 120.0,
+						height: 6.0,
+						offset: 0,
+						linespace: 0,
+						valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+						halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+						drawcell: false,
+					);
+				}
+				$y_addr += 4;
+			}
+		}
+
+
+
+
+
+
+		return $out;
+	}
+
+	public function gen_ueberschriften1(): string {
+		$out = '';
+		$font_h1 = $this->font->insert($this->pon, 'helvetica', '', self::H1);
 		$out .= $font_h1['out'];
 		$out .= $this->color->getPdfColor('#000000');
+
 		$out .= $this->getTextCell(
-			txt: 'Vereinsgewässer',
-			posx: 5.0,
-			posy: 6.0,
-			width: 40.0,
+			txt: 'Fangstatistik',
+			posx: self::MARGIN,
+			posy: self::MARGIN_TOP,
+			width: 140.0,
 			height: 5.0,
 			offset: 0,
 			linespace: 0,
@@ -474,10 +571,94 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			drawcell: false,
 		);
 
+		$out .= $this->getTextCell(
+			txt: 'Bezirksfischerei-Verein e.V. Ehingen/Donau',
+			posx: self::PAGE_W * 0.5 + self::MARGIN,
+			posy: self::MARGIN_TOP,
+			width: 140.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 
+		$out .= $this->getTextCell(
+			txt: 'Erlaubnisschein',
+			posx: self::PAGE_W * 0.5 + self::MARGIN + 6.0,
+			posy: self::MARGIN_TOP + 18.0,
+			width: 140.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 
+		$out .= $this->getTextCell(
+			txt: 'Lieber Angler!',
+			posx: self::PAGE_W * 0.5 + self::MARGIN,
+			posy: self::PAGE_H * 0.5 + self::MARGIN_TOP,
+			width: 140.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
 		return $out;
 	}
+
+	public function gen_ueberschriften2(): string {
+		$out = '';
+		$font_h1 = $this->font->insert($this->pon, 'helvetica', '', self::H1);
+		$out .= $font_h1['out'];
+		$out .= $this->color->getPdfColor('#000000');
+
+		$out .= $this->getTextCell(
+			txt: 'Vereinsgewässer',
+			posx: self::MARGIN,
+			posy: self::MARGIN_TOP,
+			width: 140.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+
+		$out .= $this->getTextCell(
+			txt: 'Adressen',
+			posx: self::PAGE_W * 0.5 + self::MARGIN,
+			posy: self::MARGIN_TOP,
+			width: 140.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+
+		$out .= $this->getTextCell(
+			txt: 'Mindestmaße und Schonzeiten der Fische',
+			posx: self::PAGE_W * 0.5 + self::MARGIN,
+			posy: self::PAGE_H * 0.5 + self::MARGIN_TOP,
+			width: 140.0,
+			height: 5.0,
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			drawcell: false,
+		);
+		return $out;
+	}
+
 
 
 
@@ -487,27 +668,42 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$xpos = self::PAGE_W * 0.5;
 		$ypos = self::PAGE_H * 0.5;
 
-		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
 		$font_text = $this->font->insert($this->pon, 'helvetica', '', self::TEXT);
-		$font_tiny = $this->font->insert($this->pon, 'helvetica', '', self::TEXT_TINY);
+		$font_tiny = $this->font->insert($this->pon, 'helvetica', '', 2);
 
 		$out = '';
 
-		$qrsize = 45.0;
-		$x = $xpos + self::PAGE_W * 0.5 - self::MARGIN - $qrsize - 1.0;
-		$y = $ypos + self::PAGE_H * 0.5 - self::MARGIN - $qrsize - 9.0;
+			//$out .= $this->graph->getStopTransform();
+			$out .= $font_tiny['out'];
+			$out .= $this->color->getPdfColor('#000000');
 
 		$url = (string) $this->getForm('url_erlaubnisschein', '');
 		if ($url !== '') {
-			$out .= $this->graph->getStartTransform();
-			$out .= $this->getBarcode(type: 'QRCODE,M', code: $url, posx: $xpos + self::PAGE_W * 0.5 - self::MARGIN - $qrsize - 3.0, posy: $y, width: (int) $qrsize, height: (int) $qrsize, padding: [0, 0, 0, 0], style: []);
-			$out .= $this->graph->getStopTransform();
+			//$out .= $this->graph->getStartTransform();
+
+			$qrsize = 40.0;
+			$qrX = $xpos + self::PAGE_W * 0.5 - self::MARGIN - $qrsize - 1.0;
+			$qrY = $ypos + self::PAGE_H * 0.5 - self::MARGIN - $qrsize - 9.0;
+			$qrContent = $url;
+
+			$out .= $this->getBarcode(
+				type: 'QRCODE,M',
+				code: $qrContent,
+				posx: $qrX,
+				posy: $qrY,
+				width: (int) $qrsize,
+				height: (int) $qrsize,
+				padding: [0, 0, 0, 0],
+				style: [],
+			);
+
+			//$out .= $this->graph->getStopTransform();
 			$out .= $font_tiny['out'];
 			$out .= $this->color->getPdfColor('#000000');
 			$out .= $this->getTextCell(
 				txt: $url,
-				posx: $x - 2.0,
-				posy: $y + $qrsize + 3.0,
+				posx: $qrX,
+				posy: $qrY + $qrsize + 1.0,
 				width: 40.0,
 				height: 3.0,
 				offset: 0,
@@ -518,27 +714,14 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			);
 		}
 
-		$out .= $font_h1['out'];
-		$out .= $this->color->getPdfColor('#000000');
-		$out .= $this->getTextCell(
-			txt: 'Lieber Angler!',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 1.0,
-			width: 35.0,
-			height: 5.0,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			drawcell: false,
-		);
 
 		$out .= $font_text['out'];
 		$out .= $this->color->getPdfColor('#000000');
+		$y = $ypos + self::MARGIN + 12.0;
 		$out .= $this->getTextCell(
 			txt: 'Gefangene Fische müssen nach dem waidgerechten Töten sofort in die Fangstatistik',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 8.0,
+			posx: $xpos + self::MARGIN,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -547,10 +730,11 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
+		$y += 4.0;
 		$out .= $this->getTextCell(
 			txt: 'eingetragen werden. Dies wird zur Fangmengenkontrolle gegebenenfalls von unseren',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 12.0,
+			posx: $xpos + self::MARGIN,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -559,10 +743,11 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
+		$y += 4.0;
 		$out .= $this->getTextCell(
 			txt: 'Gewässerkontrolleuren überprüft.',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 16.0,
+			posx: $xpos + self::MARGIN,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -571,10 +756,11 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
+		$y += 5.0;
 		$out .= $this->getTextCell(
 			txt: 'Nach Ablauf der Gültigkeit des Erlaubnisscheins muss die Fangstatistik innerhalb von',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 22.0,
+			posx: $xpos + self::MARGIN,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -583,10 +769,11 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
+		$y += 4.0;
 		$out .= $this->getTextCell(
 			txt: '2 Wochen an den ' . $this->getAddress('name_verein', '') . ' zurückgesendet werden.',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 26.0,
+			posx: $xpos + self::MARGIN,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -595,10 +782,11 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
+		$y += 4.0;
 		$out .= $this->getTextCell(
 			txt: '(' . $this->getAddress('addr_verein', '') . ', ' . $this->getAddress('ort_verein', '') . ')',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 30.0,
+			posx: $xpos + self::MARGIN,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -607,10 +795,11 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
+		$y += 7.0;
 		$out .= $this->getTextCell(
 			txt: 'Alternativ hierzu können die gefangenen Fische online',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 38.0,
+			posx: $xpos + self::MARGIN,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -619,10 +808,11 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
+		$y += 4.0;
 		$out .= $this->getTextCell(
 			txt: 'gemeldet werden:',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 42.0,
+			posx: $xpos + self::MARGIN,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -631,10 +821,11 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
+		$y += 5.0;
 		$out .= $this->getTextCell(
 			txt: 'Meldeformular:',
-			posx: $xpos + self::MARGIN + 2.0,
-			posy: $ypos + self::MARGIN + 46.0,
+			posx: $xpos + self::MARGIN,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -646,7 +837,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$out .= $this->getTextCell(
 			txt: 'www.bfv-ehingen.de/fangbuch',
 			posx: $xpos + self::MARGIN + 32.0,
-			posy: $ypos + self::MARGIN + 46.0,
+			posy: $y,
 			width: 130.0,
 			height: 4.0,
 			offset: 0,
@@ -655,25 +846,13 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			drawcell: false,
 		);
-		$out .= $this->color->getPdfColor('#0000AA');
-		$out .= $this->getTextCell(
-			txt: 'www.bfv-ehingen.de/fangbuch',
-			posx: $xpos + self::MARGIN + 32.0,
-			posy: $ypos + self::MARGIN + 46.0,
-			width: 130.0,
-			height: 4.0,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			drawcell: false,
-		);
+		$y += 4.0;
 
 		if (!empty($this->getForm('username', ''))) {
 			$out .= $this->getTextCell(
 				txt: 'Benutzername:',
-				posx: $xpos + self::MARGIN + 2.0,
-				posy: $ypos + self::MARGIN + 50.0,
+				posx: $xpos + self::MARGIN,
+				posy: $y,
 				width: 130.0,
 				height: 4.0,
 				offset: 0,
@@ -685,7 +864,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			$out .= $this->getTextCell(
 				txt: (string) $this->getForm('username', ''),
 				posx: $xpos + self::MARGIN + 32.0,
-				posy: $ypos + self::MARGIN + 50.0,
+				posy: $y,
 				width: 130.0,
 				height: 4.0,
 				offset: 0,
@@ -694,10 +873,14 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 				drawcell: false,
 			);
+			$y += 4.0;
+		}
+
+		if (!empty($this->getForm('password', ''))) {
 			$out .= $this->getTextCell(
 				txt: 'Passwort:',
-				posx: $xpos + self::MARGIN + 2.0,
-				posy: $ypos + self::MARGIN + 54.0,
+				posx: $xpos + self::MARGIN,
+				posy: $y,
 				width: 130.0,
 				height: 4.0,
 				offset: 0,
@@ -709,7 +892,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			$out .= $this->getTextCell(
 				txt: (string) $this->getForm('password', ''),
 				posx: $xpos + self::MARGIN + 32.0,
-				posy: $ypos + self::MARGIN + 54.0,
+				posy: $y,
 				width: 130.0,
 				height: 4.0,
 				offset: 0,
@@ -718,222 +901,581 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 				drawcell: false,
 			);
+			$y += 4.0;
+		} else {
+			if (!empty($this->getForm('otp_password1', ''))) {
+				$out .= $this->getTextCell(
+					txt: 'Einmaliges Passwort:',
+					posx: $xpos + self::MARGIN,
+					posy: $y,
+					width: 130.0,
+					height: 4.0,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+					drawcell: false,
+				);
+				$out .= $this->getTextCell(
+					txt: (string) $this->getForm('otp_password1', ''),
+					posx: $xpos + self::MARGIN + 32.0,
+					posy: $y,
+					width: 130.0,
+					height: 4.0,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+					drawcell: false,
+				);
+				$y += 4.0;
+			} 			
+			if (!empty($this->getForm('otp_password2', ''))) {
+				$out .= $this->getTextCell(
+					txt: 'Einmaliges Passwort:',
+					posx: $xpos + self::MARGIN,
+					posy: $y,
+					width: 130.0,
+					height: 4.0,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+					drawcell: false,
+				);
+				$out .= $this->getTextCell(
+					txt: (string) $this->getForm('otp_password2', ''),
+					posx: $xpos + self::MARGIN + 32.0,
+					posy: $y,
+					width: 130.0,
+					height: 4.0,
+					offset: 0,
+					linespace: 0,
+					valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+					halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+					drawcell: false,
+				);
+				$y += 4.0;
+			}
 		}
 
 		return $out;
 	}
 
-	public function gen_schonzeiten_block(): void {
+
+
+
+	public function gen_schonzeiten_block(): string {
 		$xpos = self::PAGE_W * 0.5;
 		$ypos = self::PAGE_H * 0.5;
 
-		$rand = self::MARGIN;
-		$x = $xpos + $rand;
-		$y = $ypos + $rand + 1.0;
+		$x = $xpos + self::MARGIN;
+		$y = $ypos + self::MARGIN + 3.0;
 
-		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
-		$out = "";
-		$out .= $font_h1['out'];
-		$out .= $this->color->getPdfColor('#000000');
+		$schonzeiten = $this->getForm('schonzeiten', []);
+
+		$font_text = $this->font->insert($this->pon, 'helvetica', '', 8);
+		$font_tiny = $this->font->insert($this->pon, 'helvetica', '', self::TEXT_TINY);
+		$out = '';
+
+		$y += 5.0;
+
+		$out .= $font_text['out'];
+		$rowHeight = 3.5;
+
+		$buildCellStyles = static function (string $stylestring, string $fillColor): array {
+			$fillStyle = [
+				'lineWidth' => 0,
+				'lineCap' => 'butt',
+				'lineJoin' => 'miter',
+				'dashArray' => [],
+				'dashPhase' => 0,
+				'lineColor' => '#000000',
+				'fillColor' => $fillColor,
+			];
+
+			$styles = [
+				'all' => $fillStyle,
+				0 => $fillStyle,
+				1 => $fillStyle,
+				2 => $fillStyle,
+				3 => $fillStyle,
+			];
+
+			if (\strpos($stylestring, 'T') !== false) {
+				$styles[0] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
+			}
+			if (\strpos($stylestring, 'R') !== false) {
+				$styles[1] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
+			}
+			if (\strpos($stylestring, 'B') !== false) {
+				$styles[2] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
+			}
+			if (\strpos($stylestring, 'L') !== false) {
+				$styles[3] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
+			}
+
+			return $styles;
+		};
+
 		$out .= $this->getTextCell(
-			txt: 'Mindestmaße und Schonzeiten der Fische',
-			posx: 5.0,
-			posy: 6.0,
-			width: 40.0,
-			height: 5.0,
-			offset: 0,
+			txt: 'Fischart',
+			posx: $x,
+			posy: $y,
+			width: 34.0,
+			height: $rowHeight,
+			offset: 0.5,
 			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			drawcell: false,
+			styles: $buildCellStyles('LTRB', '#f0f0f0'),
+			drawcell: true,
 		);
-
-
-	}
-
-	public function gen_adress_block(): string {
-		$xpos = self::PAGE_W * 0.5;
-		$ypos = 0;
-		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
-		$out = "";
-		$out .= $font_h1['out'];
-		$out .= $this->color->getPdfColor('#000000');
+		$x += 34.0;
 		$out .= $this->getTextCell(
-			txt: 'Adressen',
-			posx: $xpos + self::MARGIN,
-			posy: $ypos + self::MARGIN + 1,
-			width: 20.0,
-			height: 5.0,
-			offset: 0,
+			txt: 'Schonzeit',
+			posx: $x,
+			posy: $y,
+			width: 34.0,
+			height: $rowHeight,
+			offset: -4,
 			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			drawcell: false,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+			styles: $buildCellStyles('LTRB', '#f0f0f0'),
+			drawcell: true,
 		);
+		$x += 34.0;
+		$out .= $this->getTextCell(
+			txt: 'Mindestmaß',
+			posx: $x,
+			posy: $y,
+			width: 34.0,
+			height: $rowHeight,
+			offset: -4,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+			styles: $buildCellStyles('LTRB', '#f0f0f0'),
+			drawcell: true,
+		);
+		$x += 34.0;
+		$out .= $this->getTextCell(
+			txt: 'tägliche Fangmenge',
+			posx: $x,
+			posy: $y,
+			width: 34.0,
+			height: $rowHeight,
+			offset: -5,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+			styles: $buildCellStyles('LTRB', '#f0f0f0'),
+			drawcell: true,
+		);
+		$y += $rowHeight;
+
+		$fischnummer = [
+			'0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29',
+		];
+
+		foreach ($fischnummer as $nr) {
+			$t1 = $schonzeiten['fisch_' . $nr] ?? '';
+			$t2 = $schonzeiten['schonzeit_' . $nr] ?? '';
+			$t3 = $schonzeiten['schonmass_' . $nr] ?? '';
+			$t4 = $schonzeiten['fangmenge_' . $nr] ?? '';
+
+			if ($t1 === '' && $t2 === '' && $t3 === '' && $t4 === '') {
+				continue;
+			} 
+			$t1 = $t1 ==='' ? ' ' : $t1;
+			$t2 = $t2 ==='' ? ' ' : $t2;
+			$t3 = $t3 ==='' ? ' ' : $t3;
+			$t4 = $t4 ==='' ? ' ' : $t4;
+
+			$borderString = $schonzeiten['border_' . $nr] ?? 'LTRB';
+			$borderParts = preg_split('/\s+/', $borderString, -1, PREG_SPLIT_NO_EMPTY);
+			$borderParts = array_pad($borderParts, 4, 'LTRB');
+
+			$xRow = $xpos + self::MARGIN;
+			$out .= $this->getTextCell(
+				txt: $t1,
+				posx: $xRow,
+				posy: $y,
+				width: 34.0,
+				height: $rowHeight,
+				offset: 0.5,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				styles: $buildCellStyles($borderParts[0], '#ffffff'),
+				drawcell: true,
+			);
+			$xRow += 34.0;
+			$out .= $this->getTextCell(
+				txt: $t2,
+				posx: $xRow,
+				posy: $y,
+				width: 34.0,
+				height: $rowHeight,
+				offset: -4,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+				styles: $buildCellStyles($borderParts[1], '#ffffff'),
+				drawcell: true,
+			);
+			$xRow += 34.0;
+			$out .= $this->getTextCell(
+				txt: $t3,
+				posx: $xRow,
+				posy: $y,
+				width: 34.0,
+				height: $rowHeight,
+				offset: -4,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+				styles: $buildCellStyles($borderParts[2], '#ffffff'),
+				drawcell: true,
+			);
+			$xRow += 34.0;
+			$out .= $this->getTextCell(
+				txt: $t4,
+				posx: $xRow,
+				posy: $y,
+				width: 34.0,
+				height: $rowHeight,
+				offset: -5,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+				styles: $buildCellStyles($borderParts[3], '#ffffff'),
+				drawcell: true,
+			);
+			$y += $rowHeight;
+		}
+
+		$out .= $font_tiny['out'];
+		$noteHeight = 3.0;
+		$y += 1.0;
+		$zeilennummer = ['1', '2', '3', '4'];
+		foreach ($zeilennummer as $nr) {
+			$txt = $schonzeiten['zeile_' . $nr] ?? '';
+			$out .= $this->getTextCell(
+				txt: $txt,
+				posx: $xpos + self::MARGIN,
+				posy: $y,
+				width: 140.0,
+				height: $noteHeight,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$y += $noteHeight;
+		}
 
 		return $out;
 	}
 
-	public function gen_adress_block_old() {
-		$xpos = self::PAGE_W * 0.5;
-		$ypos = 0;
 
-		$this->SetFontSize ( $this->FontSize_H1 );
+
+
+
+
+
+	public function gen_schonzeiten_block_old($xpos, $ypos) {
 		$rand = 5;
 
-		$this->SetXY ( $xpos + $rand, $ypos + $rand + 1 );
-		$this->Cell ( 1, 0, "Adressen", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+		$x = $xpos + $rand;
+		$y = $ypos + $rand + 1;
+
+		$this->SetFontSize ( $this->FontSize_H1 );
+		$row_height = $this->getCellHeight ( $this->FontSize );
+		$this->SetXY ( $x, $y );
+		$this->Cell ( 1, 0, "Mindestmaße und Schonzeiten der Fische", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+		$y += $row_height;
+
 		$this->SetFontSize ( $this->FontSize_TEXT );
+		$row_height = $this->getCellHeight ( $this->FontSize );
 
-		$y_addr = $ypos + $rand + 9;
-		$x_addr = $xpos + $rand + 32;
+		$this->gen_Zeile_Schonmass ( $x, $y, 34, 34, 34, 34, 'Fischart', 'Schonzeit', 'Mindestmaß', 'tägliche Fangmenge', 'LTRB', 'LTRB', 'LTRB', 'LTRB', 230 );
+		$y += $row_height;
 
-		if (! empty ( $this->adressen ['name_1v'] )) {
-			$text = $this->adressen ['name_1v'];
-			if (! empty ( $this->adressen ['strasse_1v'] )) {
-				$text .= ', ' . $this->adressen ['strasse_1v'];
+		$fischnummer = array (
+				'0',
+				'1',
+				'2',
+				'3',
+				'4',
+				'5',
+				'6',
+				'7',
+				'8',
+				'9',
+				'10',
+				'11',
+				'12',
+				'13',
+				'14',
+				'15',
+				'16',
+				'17',
+				'18',
+				'19',
+				'20',
+				'21',
+				'22',
+				'23',
+				'24',
+				'25',
+				'26',
+				'27',
+				'28',
+				'29'
+		);
+		foreach ( $fischnummer as $nr ) {
+			$varname = 'fisch_' . $nr;
+			if (isset ( $this->schonzeiten [$varname] )) {
+				$t1 = $this->schonzeiten [$varname];
+			} else {
+				$t1 = "";
 			}
-			if (! empty ( $this->adressen ['ort_1v'] )) {
-				$text .= ', ' . $this->adressen ['ort_1v'];
+			$varname = 'border_' . $nr;
+			if (isset ( $this->schonzeiten [$varname] )) {
+				$border = preg_split ( '/\s+/', $this->schonzeiten [$varname], - 1, PREG_SPLIT_NO_EMPTY );
+			} else {
+				$border = Array (
+						'LTRB',
+						'LTRB',
+						'LTRB',
+						'LTRB'
+				);
 			}
-			if (! empty ( $this->adressen ['tel_1v'] )) {
-				$text .= ', ' . $this->adressen ['tel_1v'];
+			$varname = 'schonmass_' . $nr;
+			if (isset ( $this->schonzeiten [$varname] )) {
+				$t3 = $this->schonzeiten [$varname];
+			} else {
+				$t3 = "";
 			}
-			$this->SetXY ( $xpos + $rand, $y_addr );
-			$this->Cell ( 1, 0, "1. Vorsitzender", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$this->SetXY ( $x_addr, $y_addr );
-			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$y_addr += 5;
+			$varname = 'schonzeit_' . $nr;
+			if (isset ( $this->schonzeiten [$varname] )) {
+				$t2 = $this->schonzeiten [$varname];
+			} else {
+				$t2 = "";
+			}
+			$varname = 'fangmenge_' . $nr;
+			if (isset ( $this->schonzeiten [$varname] )) {
+				$t4 = $this->schonzeiten [$varname];
+			} else {
+				$t4 = "";
+			}
+			if (! empty ( $t1 ) || ! empty ( $t2 ) || ! empty ( $t2 ) || ! empty ( $t2 )) {
+				$this->gen_Zeile_Schonmass ( $x, $y, 34, 34, 34, 34, $t1, $t2, $t3, $t4, $border [0], $border [1], $border [2], $border [3], 255 );
+				$y += $row_height;
+			}
 		}
 
-		if (! empty ( $this->adressen ['name_2v'] )) {
-
-			$text = $this->adressen ['name_2v'];
-			if (! empty ( $this->adressen ['strasse_2v'] )) {
-				$text .= ', ' . $this->adressen ['strasse_2v'];
-			}
-			if (! empty ( $this->adressen ['ort_2v'] )) {
-				$text .= ', ' . $this->adressen ['ort_2v'];
-			}
-			if (! empty ( $this->adressen ['tel_2v'] )) {
-				$text .= ', ' . $this->adressen ['tel_2v'];
-			}
-
-			$this->SetXY ( $xpos + $rand, $y_addr );
-			$this->Cell ( 1, 0, "2. Vorsitzender", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$this->SetXY ( $x_addr, $y_addr );
-			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$y_addr += 5;
+		if (isset ( $this->schonzeiten [$varname] )) {
+			$t2 = $this->schonzeiten [$varname];
+		} else {
+			$t2 = "";
 		}
 
-		if (! empty ( $this->adressen ['name_ev'] )) {
-			$text = $this->adressen ['name_ev'];
-			if (! empty ( $this->adressen ['strasse_ev'] )) {
-				$text .= ', ' . $this->adressen ['strasse_ev'];
-			}
-			if (! empty ( $this->adressen ['ort_ev'] )) {
-				$text .= ', ' . $this->adressen ['ort_ev'];
-			}
-			if (! empty ( $this->adressen ['tel_ev'] )) {
-				$text .= ', ' . $this->adressen ['tel_ev'];
-			}
+		$this->SetFontSize ( $this->FontSize_TEXT_TINY );
+		$row_height = $this->getCellHeight ( $this->FontSize );
 
-			$this->SetXY ( $xpos + $rand, $y_addr );
-			$this->Cell ( 1, 0, "Ehrenvorsitzender", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$this->SetXY ( $x_addr, $y_addr );
-			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$y_addr += 5;
+		$zeilennummer = array (
+				'1',
+				'2',
+				'3',
+				'4'
+		);
+		foreach ( $zeilennummer as $nr ) {
+
+			$varname = 'zeile_' . $nr;
+			if (isset ( $this->schonzeiten [$varname] )) {
+				$txt = $this->schonzeiten [$varname];
+			} else {
+				$txt = "";
+			}
+			$this->SetXY ( $x, $y );
+			$this->Cell ( 1, 0, $txt, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
+			$y += $row_height;
 		}
 
-		if (! empty ( $this->adressen ['name_kassier'] )) {
-			$text = $this->adressen ['name_kassier'];
-			if (! empty ( $this->adressen ['strasse_kassier'] )) {
-				$text .= ', ' . $this->adressen ['strasse_kassier'];
-			}
-			if (! empty ( $this->adressen ['ort_kassier'] )) {
-				$text .= ', ' . $this->adressen ['ort_kassier'];
-			}
-			if (! empty ( $this->adressen ['tel_kassier'] )) {
-				$text .= ', ' . $this->adressen ['tel_kassier'];
+		$this->SetFontSize ( $this->FontSize_TEXT );
+	}
+
+
+	public function gen_adress_block(): string {
+		$xpos = self::PAGE_W * 0.5;
+		$ypos = 0.0;
+
+		$font_text = $this->font->insert($this->pon, 'helvetica', '', self::TEXT);
+		$out = '';
+
+
+		$out .= $font_text['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$x_label = $xpos + self::MARGIN;
+		$x_value = $xpos + self::MARGIN + 32.0;
+		$y = $ypos + self::MARGIN + 9.0;
+
+		$rows = [
+			[
+				'label' => '1. Vorsitzender',
+				'name' => 'name_1v',
+				'strasse' => 'strasse_1v',
+				'ort' => 'ort_1v',
+				'tel' => 'tel_1v',
+			],
+			[
+				'label' => '2. Vorsitzender',
+				'name' => 'name_2v',
+				'strasse' => 'strasse_2v',
+				'ort' => 'ort_2v',
+				'tel' => 'tel_2v',
+			],
+			[
+				'label' => 'Ehrenvorsitzender',
+				'name' => 'name_ev',
+				'strasse' => 'strasse_ev',
+				'ort' => 'ort_ev',
+				'tel' => 'tel_ev',
+			],
+			[
+				'label' => 'Kassier',
+				'name' => 'name_kassier',
+				'strasse' => 'strasse_kassier',
+				'ort' => 'ort_kassier',
+				'tel' => 'tel_kassier',
+			],
+			[
+				'label' => 'Schriftführer',
+				'name' => 'name_schriftfuehrer',
+				'strasse' => 'strasse_schriftfuehrer',
+				'ort' => 'ort_schriftfuehrer',
+				'tel' => 'tel_schriftfuehrer',
+			],
+		];
+
+		foreach ($rows as $row) {
+			$name = trim((string) $this->getAddress($row['name'], ''));
+			$strasse = trim((string) $this->getAddress($row['strasse'], ''));
+			$ort = trim((string) $this->getAddress($row['ort'], ''));
+			$tel = trim((string) $this->getAddress($row['tel'], ''));
+			$text = implode(', ', array_filter([$name, $strasse, $ort, $tel], static fn(string $value): bool => $value !== ''));
+			if ($text === '') {
+				continue;
 			}
 
-			$this->SetXY ( $xpos + $rand, $y_addr );
-			$this->Cell ( 1, 0, "Kassier", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$this->SetXY ( $x_addr, $y_addr );
-			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$y_addr += 5;
+			$out .= $this->getTextCell(
+				txt: $row['label'],
+				posx: $x_label,
+				posy: $y,
+				width: 30.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$out .= $this->getTextCell(
+				txt: $text,
+				posx: $x_value,
+				posy: $y,
+				width: 90.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$y += 5.0;
 		}
 
-		if (! empty ( $this->adressen ['name_schriftfuehrer'] )) {
-			$text = $this->adressen ['name_schriftfuehrer'];
-			if (! empty ( $this->adressen ['strasse_schriftfuehrer'] )) {
-				$text .= ', ' . $this->adressen ['strasse_schriftfuehrer'];
-			}
-			if (! empty ( $this->adressen ['ort_schriftfuehrer'] )) {
-				$text .= ', ' . $this->adressen ['ort_schriftfuehrer'];
-			}
-			if (! empty ( $this->adressen ['tel_schriftfuehrer'] )) {
-				$text .= ', ' . $this->adressen ['tel_schriftfuehrer'];
-			}
-
-			$this->SetXY ( $xpos + $rand, $y_addr );
-			$this->Cell ( 1, 0, "Schriftführer", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$this->SetXY ( $x_addr, $y_addr );
-			$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$y_addr += 5;
-		}
-
-		for($i = 1; $i <= 10; $i ++) {
+		for ($i = 1; $i <= 10; $i++) {
 			$k_name = 'name_b' . $i;
 			$k_funk = 'funktion_b' . $i;
 			$k_str = 'strasse_b' . $i;
 			$k_ort = 'ort_b' . $i;
 			$k_tel = 'tel_b' . $i;
-
-			if (! empty ( $this->adressen [$k_name] )) {
-
-				$text = $this->adressen [$k_name];
-				if (! empty ( $this->adressen [$k_str] )) {
-					$text .= ', ' . $this->adressen [$k_str];
-				}
-				if (! empty ( $this->adressen [$k_ort] )) {
-					$text .= ', ' . $this->adressen [$k_ort];
-				}
-				if (! empty ( $this->adressen [$k_tel] )) {
-					$text .= ', ' . $this->adressen [$k_tel];
-				}
-
-				$this->SetXY ( $xpos + $rand, $y_addr );
-				$this->Cell ( 1, 0, $this->adressen [$k_funk], $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-				$this->SetXY ( $x_addr, $y_addr );
-				$this->Cell ( 1, 0, $text, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-				$y_addr += 5;
+			$name = trim((string) $this->getAddress($k_name, ''));
+			$funktion = trim((string) $this->getAddress($k_funk, ''));
+			$strasse = trim((string) $this->getAddress($k_str, ''));
+			$ort = trim((string) $this->getAddress($k_ort, ''));
+			$tel = trim((string) $this->getAddress($k_tel, ''));
+			$text = implode(', ', array_filter([$name, $strasse, $ort, $tel], static fn(string $value): bool => $value !== ''));
+			if ($name === '' || $funktion === '') {
+				continue;
 			}
+
+			$out .= $this->getTextCell(
+				txt: $funktion,
+				posx: $x_label,
+				posy: $y,
+				width: 30.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$out .= $this->getTextCell(
+				txt: $text,
+				posx: $x_value,
+				posy: $y,
+				width: 90.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$y += 5.0;
 		}
 
-		if (! empty ( $this->adressen ['name_verein'] )) {
-
-			$this->SetXY ( $xpos + $rand, $y_addr );
-			$this->Cell ( 1, 0, "Vereinsanschrift", $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$this->SetXY ( $x_addr, $y_addr );
-
-			$this->Cell ( 1, 0, $this->adressen ['name_verein'], $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-			$y_addr += 5;
-
-			if (! empty ( $this->adressen ['addr_verein'] )) {
-				$addr = $this->adressen ['addr_verein'];
-				if (! empty ( $this->adressen ['ort_verein'] )) {
-					$addr .= ', ' . $this->adressen ['ort_verein'];
-				}
-
-				$this->SetXY ( $x_addr, $y_addr );
-				$this->Cell ( 1, 0, $addr, $border = 0, $ln = 0, $align = '', $fill = 0, $link = '', $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'T' );
-				$y_addr += 5;
-			}
+		$nameVerein = trim((string) $this->getAddress('name_verein', ''));
+		$addrVerein = trim((string) $this->getAddress('addr_verein', ''));
+		$ortVerein = trim((string) $this->getAddress('ort_verein', ''));
+		if ($nameVerein !== '' || $addrVerein !== '' || $ortVerein !== '') {
+			$out .= $this->getTextCell(
+				txt: 'Vereinsanschrift',
+				posx: $x_label,
+				posy: $y,
+				width: 30.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$out .= $this->getTextCell(
+				txt: implode(', ', array_filter([$nameVerein, $addrVerein, $ortVerein], static fn(string $value): bool => $value !== '')),
+				posx: $x_value,
+				posy: $y,
+				width: 90.0,
+				height: 4.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+				drawcell: false,
+			);
+			$y += 5.0;
 		}
 
-		$this->SetFontSize ( $this->FontSize_TEXT );
+		return $out;
 	}
+
 
 
 	public function gen_fangstatistik_block(): string {
@@ -950,25 +1492,11 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$breite5 = empty($data['breite5']) ? 10 : (float) $data['breite5'];
 		$breite_fisch = empty($data['breite_fisch']) ? 4.5 : (float) $data['breite_fisch'];
 		$zeilenhoehe = empty($data['zeilenhoehe']) ? 6 : (float) $data['zeilenhoehe'];
-		$zeile1hoehe = empty($data['zeile1hoehe']) ? 25 : (float) $data['zeile1hoehe'];
+		$zeile1hoehe = empty($data['zeile1hoehe']) ? 27 : (float) $data['zeile1hoehe'];
 
-		$font_h1 = $this->font->insert($this->pon, 'helvetica', 'B', self::H1);
 		$font_text = $this->font->insert($this->pon, 'helvetica', '', self::TEXT);
 		$out = '';
-		$out .= $font_h1['out'];
-		$out .= $this->color->getPdfColor('#000000');
-		$out .= $this->getTextCell(
-			txt: 'Fangstatistik',
-			posx: $xpos + self::MARGIN,
-			posy: $ypos + self::MARGIN + 1,
-			width: 20.0,
-			height: 5.0,
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			drawcell: false,
-		);
+
 
 
 

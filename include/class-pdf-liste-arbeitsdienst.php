@@ -48,6 +48,7 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 	public function __construct() {
 		parent::__construct();
 		$this->enableDefaultPageContent(true); // Enable default header/footer and page content
+		$this->enableFooter(false); // Disable footer for this template
 		$this->initializeUrlData(); // Load $_GET parameters into $this->urldata
 	}
 
