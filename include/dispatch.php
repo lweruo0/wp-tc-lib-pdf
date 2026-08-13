@@ -43,7 +43,17 @@ PdfRegistry::register('liste_jugendveranstaltung', 'PdfListeJugendveranstaltung'
 PdfRegistry::register('erlaubnisschein', 'PdfErlaubnisschein2', __DIR__ . '/class-pdf-erlaubnisschein.php');
 
 //https://bfv-ehingen.de/?fpdf=1&yy=2025
-PdfRegistry::register('fangstatistik', 'PdfFangstatistik', __DIR__ . '/class-pdf-fangstatistik.php');
+PdfRegistry::register('fangstatistik', 'PdfFangstatistikJahr', __DIR__ . '/class-pdf-fangstatistik.php');
+//https://bfv-ehingen.de/?fpdfDiagramm=1&yy=2024
+PdfRegistry::register('vorjahresvergleich', 'PdfFangstatistikVorJahresvergleich', __DIR__ . '/class-pdf-fangstatistik.php');
+//https://bfv-ehingen.de/?JahresDiagramm=1&yy=2024
+PdfRegistry::register('mehrjahresvergleich', 'PdfFangstatistikMehrjahresvergleich', __DIR__ . '/class-pdf-fangstatistik.php');
+//https://bfv-ehingen.de/?fpdfUser=1&yy=2024
+PdfRegistry::register('fangstatistikuservergleich', 'PdfFangstatistikUser', __DIR__ . '/class-pdf-fangstatistik.php');
+//https://bfv-ehingen.de/?fpdfUser=1&yy=2024
+PdfRegistry::register('fangstatistik_demo', 'PdfFangstatistik', __DIR__ . '/class-pdf-fangstatistik.php');
+
+
 
 // https://bfv-ehingen.de/?mitgliedsantrag=1&mn=244&vn=Alexander&n=Lammert&y=2026&key=cc11bdd3e4e5c1263e0a76c5745d23d2
 PdfRegistry::register('mitgliedsantrag', 'PdfMitgliedsantrag', __DIR__ . '/class-pdf-mitgliedsantrag.php');

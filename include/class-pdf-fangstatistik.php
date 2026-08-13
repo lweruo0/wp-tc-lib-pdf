@@ -26,6 +26,10 @@ class PdfFangstatistik extends PdfTemplate {
 
 	private const PAGE_W = 297.0;
 	private const PAGE_H = 210.0;
+
+	private const FONT_SIZE_TITLE = 18;
+	private const FONT_SIZE_TABLE = 10;
+
 	/** print layout */
 	private bool $print_layout = false;
 	private const TEXT_H1 = 17;
@@ -34,8 +38,6 @@ class PdfFangstatistik extends PdfTemplate {
 	public $layout = '';
     public $modifiedTime = '';
     public $headertext = '';
-    public $TitleFontSizePt = 18;
-    public $TabelleFontSizePt = 10;
     public string $textcolorheader = '#fff6ab';
     public string $fillcolorheader = '#444444';
     public string $fillcolorstripe = '#eeeeee';
@@ -47,10 +49,10 @@ class PdfFangstatistik extends PdfTemplate {
 		parent::__construct();
 		$this->enableDefaultPageContent(true); // Enable default header/footer and page content
 		$this->initializeUrlData(); // Load $_GET parameters into $this->urldata
-		//$this->setHeaderTitlePosition(20.0, 10.0);
-		//$this->setHeaderSubtitlePosition(20.0, 22.0);
-		//$this->setHeaderLogoPosition(0.0, 10.0);
-		//$this->setHeaderLogoWidth(50.0);
+		$this->setHeaderTitlePosition(120.0, 5.0);
+		$this->setHeaderSubtitlePosition(20.0, 22.0);
+		$this->setHeaderLogoPosition(266.0, 6.0);
+		$this->setHeaderLogoWidth(50.0);
 		//$this->enableFooter(false); // Disable footer for this template
 	}
 
@@ -65,33 +67,44 @@ class PdfFangstatistik extends PdfTemplate {
 	 */
 	protected function loadData(): void {
 		$verein = $this->getUrl('verein', '');
-        $year = (int) $this->getUrl('year', date('Y') - 1);
-		$year = 2024;
+        $year = (int) $this->getUrl('jahr', date('Y') - 1);
+		$mnr = $this->getUrl('Mitgliedsnummer', null);
+		$SortByGew = $this->getUrl('SortByGew', null);
+
         $this->print_layout = $this->getUrl('layout', '') === 'print';
 
 		if (function_exists('bfvfangbuch')) {
 			$instance = bfvfangbuch();
+			$gewaesserStatistikYears = $instance->get_gewaesser_statistik_years_v2($verein);
 			$gewaesserDetail = $instance->get_gewaesser_details();
-		    $gewaesserStatistik = $instance->get_gewaesser_statistik($year, $verein);
-			$jahresStatistik = $instance->get_jahres_statistik();
+		    $gewaesserStatistik = $instance->get_gewaesser_statistik_v2($year, $verein);
+			$jahresStatistik = $instance->get_jahres_statistik_v2($year, $verein);
+			$jahresStatistikOld = $instance->get_jahres_statistik_v2($year-1, $verein);
 			$this->setFooterModifiedTime((string) $instance->get_modifiedTime($year));
+			$user_statistik = $instance->get_user_statistik_v2($year, $mnr, $SortByGew);
 		} else {
 			$gewaesserDetail = [];
 			$gewaesserStatistik = [];
 			$jahresStatistik = [];
+			$jahresStatistikOld = [];
+			$user_statistik = [];
+			$gewaesserStatistikYears = [];
 		}
-error_log(print_r($gewaesserDetail, TRUE));
-		$this->setOptions($gewaesserDetail);
-		$this->setOption('gewaesser_detail', $gewaesserDetail);
-		$this->setFormdata($gewaesserStatistik);
+
+		$this->setForm('gewaesser_detail', $gewaesserDetail);
 		$this->setForm('jahres_statistik', $jahresStatistik);
+		$this->setForm('jahres_statistik_old', $jahresStatistikOld);
+		$this->setForm('user_statistik', $user_statistik);
 		$this->setForm('gewaesser_statistik', $gewaesserStatistik);
+		$this->setForm('gewaesser_statistik_years', $gewaesserStatistikYears);
 		$this->setForm('year', $year);
 		$this->setForm('verein', $verein);
+
+
 		$this->setHeaderText('Fangstatistik', $year > 0 ? (string) $year : '');
 		$this->setHeaderLogoImage($this->print_layout ? __DIR__ . '/images/logo_bfv2_print.png' : __DIR__ . '/images/logo_bfv2.png');
-		$adressData = get_option ( 'bfv_adressen' );
-		$this->setAddressdata($adressData);
+		//$adressData = get_option ( 'bfv_adressen' );
+		//$this->setAddressdata($adressData);
 		$this->createStorageFolder('statistik');
 	}
 
@@ -131,15 +144,755 @@ error_log(print_r($gewaesserDetail, TRUE));
 		return ($myZero == $mySTR) ? '' : $mySTR;
 	}
 
-	public function SetFontSize_Title($x) {
-		$this->TitleFontSizePt = $x;
+	private function buildFillStyle(string $stylestring, string $fillColor): array {
+		$fillStyle = [
+			'lineWidth' => 0.0,
+			'lineCap' => 'butt',
+			'lineJoin' => 'miter',
+			'dashArray' => [],
+			'dashPhase' => 0,
+			'lineColor' => '#000000',
+			'fillColor' => $fillColor,
+		];
+
+		$styles = [
+			'all' => $fillStyle,
+			0 => $fillStyle,
+			1 => $fillStyle,
+			2 => $fillStyle,
+			3 => $fillStyle,
+		];
+
+		if (\strpos($stylestring, 'T') !== false) {
+			$styles[0] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
+		}
+		if (\strpos($stylestring, 'R') !== false) {
+			$styles[1] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
+		}
+		if (\strpos($stylestring, 'B') !== false) {
+			$styles[2] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
+		}
+		if (\strpos($stylestring, 'L') !== false) {
+			$styles[3] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
+		}
+
+		return $styles;
 	}
 
-	public function SetFontSize_Tabelle($x) {
-		$this->TabelleFontSizePt = $x;
+	/**
+	 * generates one A4 page with the Gesamtstatistik table, either by Anzahl or by Gewicht
+	 *
+	 *
+	 * @return void
+	 */
+	public function Statistik_gesamt(array $data, array $gewaesserDetail, string $typ = 'Anzahl'): void {
+		$typidx = ($typ === 'Anzahl') ? 5 : 4;
+		$w0     = 32.0; // Fischart column
+		$w      = 14.0; // per-Gewässer column
+		$hh     = 42.0; // rotated header height
+		$zh     =  6.0; // data row height
+		$ml     = 10.0; // left margin
+		$mt     = 10.0; // top margin
+
+		$this->addPage(['orientation' => 'L', 'format' => 'A4']);
+
+		// reorder '20s' between 20 and 21
+		if (array_key_exists('20s', $data)) {
+			$data['20.5'] = $data['20s'];
+			unset($data['20s']);
+			ksort($data);
+			$b = [];
+			foreach ($data as $gnr => $gd) {
+				$b[$gnr === '20.5' ? '20s' : $gnr] = $gd;
+			}
+			$data = $b;
+		}
+
+		// collect all fish species and resolve Gewässer names
+		$allefische = [];
+		foreach ($data as $gewaessernr => $gew_data) {
+			ksort($gew_data);
+			foreach ($gew_data as $art => $zeile) {
+				$allefische[$art] = 0;
+			}
+		}
+		ksort($allefische);
+
+		$nbGew  = count($data);
+		$tableW = $w0 + ($nbGew + 1) * $w; // +1 for Summe column
+
+		$out = $this->graph->getStartTransform();
+		$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TITLE);
+		$out .= $font['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(	txt: 'Gesamtstatistik', 
+									posx: $ml, 
+									posy: $mt, 
+									width: $tableW, 
+									height: 8.0, 
+									offset: 0, 
+									linespace: 0, 
+									valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+									halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+		$width = $this->font->getOrdArrWidth(
+			$this->uniconv->strToOrdArr('Gesamtstatistik')
+		) * 25.4 / 72;
+
+		$title = $typ === 'Anzahl' ? '(nach Anzahl)' : '(nach Gewicht in kg)';
+		$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+		$out .= $font['out'];
+		$out .= $this->getTextCell(	txt: $title, 
+									posx: $ml +$width +2, 
+									posy: $mt+0.5, 
+									width: $tableW, 
+									height: 8.0, 
+									offset: 0, 
+									linespace: 0, 
+									valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+									halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+
+		$y = $mt + 9.0;
+
+		// --- rotated column headers ---
+		// "Fischart" label cell (full header height)
+		$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+		$out .= $font['out'];
+
+		$cx = $ml + $w0;
+		foreach ($data as $gewaessernr => $gew_data) {
+			$gewaessername = $gewaesserDetail[$gewaessernr]['Name'] ?? ('Nr. ' . $gewaessernr);
+			// header cell background
+			//$out .= $this->graph->getRect($cx, $y, $w, $hh, 'DF', $headerfillStyle);
+			$out .= $this->graph->getStartTransform();
+			$textposX = $cx;        // visual left edge of this column
+			$textposY = $y + $hh;   // visual bottom edge of the rotated header band
+			$out .= $this->graph->getTranslation($textposX, $textposY);
+			$out .= $this->graph->getRotation(90.0, 0.0, 0.0);
+			$out .= $this->color->getPdfColor($this->textcolorheader);
+			$out .= $this->getTextCell(	txt: $gewaessername, 
+										posx: -1.0,
+										posy: 0.0, 
+										width: $hh+1.0,
+										height: $w, 
+										offset: 2, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+										styles: $this->buildFillStyle('TRB', $this->fillcolorheader),
+										drawcell: true,
+										);
+			$out .= $this->graph->getStopTransform();
+			$cx += $w;
+		}
+
+		// second header row (Nr. xx below rotated names)
+		$y += $hh;
+		$cx = $ml + $w0;
+
+		// "Fischart" header cell (not rotated)
+		$out .= $this->color->getPdfColor($this->textcolorheader);
+		$out .= $this->getTextCell(	txt: 'Fischart', 
+									posx: $ml, 
+									posy: $y, 
+									width: $w0, 
+									height: $zh, 
+									offset: 1, 
+									linespace: 0, 
+									valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+									halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+									styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+									drawcell: true,
+									);
+
+		foreach ($data as $gewaessernr => $gew_data) {
+			//$out .= $this->color->getPdfColor($this->textcolorheader);
+			$out .= $this->getTextCell(	txt: 'Nr. ' . $gewaessernr, 
+										posx: $cx, 
+										posy: $y, 
+										width: $w, 
+										height: $zh, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+										styles: $this->buildFillStyle('LRB', $this->fillcolorheader),
+										drawcell: true,
+										);
+			$cx += $w;
+		}
+		// "Summe" header cell (not rotated)
+		//$out .= $this->color->getPdfColor($this->textcolorheader);
+		$out .= $this->getTextCell(	txt: 'Summe', 
+									posx: $cx, 
+									posy: $y, 
+									width: $w, 
+									height: $zh, 
+									offset: 0, 
+									linespace: 0, 
+									valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+									halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+									styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+									drawcell: true,
+									);
+
+		$y += $zh;
+
+		// --- data rows ---
+		$fill    = false;
+		$sum_gew = [];
+		$out .= $this->color->getPdfColor('#000000');
+		foreach ($allefische as $art => $muell) {
+			$fillstyle = $this->buildFillStyle('LR', $fill ? $this->fillcolorstripe : '#ffffff');
+			$out .= $this->getTextCell(	txt: $art, 
+										posx: $ml, 
+										posy: $y, 
+										width: $w0, 
+										height: $zh, 
+										offset: 1, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+										styles: $fillstyle,
+										drawcell: true,
+			);
+			$sum_art = 0;
+			$cx      = $ml + $w0;
+			foreach ($data as $gewaessernr => $gew_data) {
+				$anz = isset($gew_data[$art]) ? $gew_data[$art][$typidx] : 0;
+				$sum_art += $anz;
+				$sum_gew[$gewaessernr] = ($sum_gew[$gewaessernr] ?? 0) + $anz;
+				$cell = $typ === 'Anzahl'
+					? $this->No__ZERO('0', number_format($anz, 0, ',', ''))
+					: $this->No__ZERO('0,00', number_format($anz * 0.001, 2, ',', ''));
+				$out .= $this->getTextCell(	txt: $cell==''?' ':$cell, 
+											posx: $cx, 
+											posy: $y, 
+											width: $w, 
+											height: $zh, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+											styles: $fillstyle,
+											drawcell: true);
+				$cx += $w;
+			}
+			$sumCell = $typ === 'Anzahl' ? strval($sum_art) : number_format($sum_art * 0.001, 2, ',', '');
+			$out .= $this->getTextCell(	txt: $sumCell, 
+										posx: $cx, 
+										posy: $y, 
+										width: $w, 
+										height: $zh, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+										styles: $fillstyle,
+										drawcell: true);
+			$y   += $zh;
+			$fill = !$fill;
+		}
+
+		// --- summary row ---
+		$out .= $this->color->getPdfColor($this->textcolorheader);
+		$out .= $this->getTextCell(	txt: 'Summe', 
+									posx: $ml, 
+									posy: $y, 
+									width: $w0, 
+									height: $zh, 
+									offset: 1, 
+									linespace: 0, 
+									valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+									halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+									styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+									drawcell: true,
+									);
+		$gesamtSumme = 0;
+		$cx = $ml + $w0;
+		foreach ($data as $gewaessernr => $gew_data) {
+			$s = $sum_gew[$gewaessernr] ?? 0;
+			$cell = $typ === 'Anzahl' ? strval($s) : number_format($s * 0.001, 2, ',', '');
+			$out .= $this->getTextCell(	txt: $cell, 
+										posx: $cx, 
+										posy: $y, 
+										width: $w, 
+										height: $zh, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+										styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+										drawcell: true,
+									);
+			$gesamtSumme += $s;
+			$cx += $w;
+		}
+		$gesCell = $typ === 'Anzahl' ? strval($gesamtSumme) : number_format($gesamtSumme * 0.001, 2, ',', '');
+		$out .= $this->getTextCell(	txt: $gesCell, 
+									posx: $cx, 
+									posy: $y, 
+									width: $w, 
+									height: $zh, 
+									offset: 0, 
+									linespace: 0, 
+									valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+									halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+									styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+									drawcell: true,
+									);
+
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
 	}
 
-    public function Statistik_Jahresvergleiche(array $data, string $typ = 'Anzahl'): void {
+	/**
+	 * generates multiple A4 pages with the Statistics for each Gewässer
+	 *
+	 *
+	 * @return void
+	 */
+	public function Statistik_Gewaesser(array $data, array $gewaesserDetail): void {
+
+		$ml = 10.0; // left margin
+		$mt = 15.0; // top margin
+		$mb	= 15.0; // bottom margin
+
+		$w0 = 42.0; // width of first column (Fischart)
+		$w  = 35.0; // width of other columns (measurements and Anzahl)
+		$hh = 6.0;  // height of header rows
+		$zh = 6.0;  // height of data rows
+
+
+		$this->addPage([
+			'orientation' => 'L', 
+			'format' => 'A4'
+		]);
+
+		$header1   = ['Minimale', 'Maximale', 'Minimales', 'Maximales', 'Gesamt-'];
+		$header2   = ['Länge',    'Länge',    'Gewicht',   'Gewicht',   'Gewicht'];
+
+		$out = $this->graph->getStartTransform();
+		$y   = $mt;
+
+		foreach ($data as $gewaessernr => $gew_data) {
+			ksort($gew_data);
+			$name  = $gewaesserDetail[$gewaessernr]['Name'] ?? ('Gewässer ' . $gewaessernr);
+			$block = $hh + 2.0 + 2 * $hh + count($gew_data) * $zh + $zh;
+
+			if ($y + $block > (self::PAGE_H - $mb) && $y > $mt) {
+				$out .= $this->graph->getStopTransform();
+				$this->page->addContent($out);
+				$this->addPage(['orientation' => 'L', 'format' => 'A4']);
+				$out = $this->graph->getStartTransform();
+				$y   = $mt;
+			}
+
+			// title
+			$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TITLE);
+			$out .= $font['out'];
+			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->getTextCell(	txt: $name, 
+										posx: $ml, 
+										posy: $y, 
+										width: self::PAGE_W - 2 * $ml, 
+										height: $hh, offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+
+			$width = $this->font->getOrdArrWidth(
+				$this->uniconv->strToOrdArr(strval($name)	)
+			) * 25.4 / 72;
+
+			$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+			$out .= $font['out'];
+			$subtitle = '(Gewässer Nr. ' . $gewaessernr . ')';
+			$out .= $this->getTextCell(	txt: $subtitle, 
+										posx: $ml + $width + 4, 
+										posy: $y+1.0, 
+										width: self::PAGE_W - 2 * $ml, 
+										height: $hh, offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+
+
+			$y += $hh + 2.0;
+
+			// header: Fischart (2 rows tall)
+			$out .= $this->color->getPdfColor($this->textcolorheader);
+			$out .= $this->getTextCell(	txt: 'Fischart', 
+										posx: $ml, 
+										posy: $y, 
+										width: $w0, 
+										height: 2 * $hh, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+										styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+										drawcell: true,
+									);
+
+			// header: measurement columns (2 × hh each)
+			$cx = $ml + $w0;
+			foreach ($header1 as $idx => $h1) {
+				//$out .= $this->color->getPdfColor($this->textcolorheader);
+				$out .= $this->getTextCell(	txt: $h1,            
+											posx: $cx, 
+											posy: $y,       
+											width: $w, 
+											height: $hh+0.2, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+											styles: $this->buildFillStyle('LTR', $this->fillcolorheader),
+											drawcell: true,
+										);
+				$out .= $this->getTextCell(	txt: $header2[$idx], 
+											posx: $cx, 
+											posy: $y + $hh, 
+											width: $w, 
+											height: $hh, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+											styles: $this->buildFillStyle('LRB', $this->fillcolorheader),
+											drawcell: true,
+										);
+				$cx += $w;
+			}
+
+			// header: Anzahl (2 rows tall)
+			// $out .= $this->color->getPdfColor($this->textcolorheader);
+			$out .= $this->getTextCell(	txt: 'Anzahl', 
+										posx: $cx, 
+										posy: $y, 
+										width: $w, 
+										height: 2 * $hh, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+										styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+										drawcell: true,
+										);
+
+			$y += 2 * $hh;
+			$rowW = $w0 + 6 * $w;
+
+			// data rows
+			$fill    = false;
+			$gew_sum = 0;
+			$anz_sum = 0;
+			$out .= $this->color->getPdfColor('#000000');
+
+			foreach ($gew_data as $art => $row) {
+				$fillstyle = $this->buildFillStyle('LR', $fill ? $this->fillcolorstripe : '#ffffff');
+				$cx = $ml;
+				foreach ([
+					[1, $w0, $art,                                                                                                         \Com\Tecnick\Pdf\TextHAlign::Left],
+					[0, $w,  $this->No__ZERO('0 cm',    number_format((int) $this->No__null($row[0]), 0, '', '') . ' cm'),                 \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  $this->No__ZERO('0 cm',    number_format((int) $this->No__null($row[1]), 0, '', '') . ' cm'),                 \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  $this->No__ZERO('0,00 kg', number_format($this->No__null($row[2]) * 0.001, 2, ',', '') . ' kg'),              \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  $this->No__ZERO('0,00 kg', number_format($this->No__null($row[3]) * 0.001, 2, ',', '') . ' kg'),              \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  $this->No__ZERO('0,00 kg', number_format($this->No__null($row[4]) * 0.001, 2, ',', '') . ' kg'),              \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  number_format((int) $this->No__null($row[5]), 0, ',', ''),                                                    \Com\Tecnick\Pdf\TextHAlign::Center],
+				] as [$offset, $cw, $ctxt, $chalign]) {
+					$out .= $this->color->getPdfColor('#000000');
+					$out .= $this->getTextCell(	txt: $ctxt == '' ? ' ' : $ctxt, 
+												posx: $cx, 
+												posy: $y, 
+												width: $cw, 
+												height: $zh, 
+												offset: $offset, 
+												linespace: 0, 
+												valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+												halign: $chalign,
+												styles: $fillstyle,
+												drawcell: true,
+												);
+					$cx += $cw;
+				}
+				$anz_sum += $row[5];
+				$gew_sum += $row[4];
+				$y += $zh;
+				$fill = !$fill;
+			}
+
+			// summary row
+			$out .= $this->color->getPdfColor('#000000');
+			$cx = $ml;
+			foreach ([$w0, $w, $w, $w] as $cw) {
+				$out .= $this->getTextCell(	txt: ' ', 
+											posx: $cx, 
+											posy: $y, 
+											width: $cw, 
+											height: $zh, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center, 
+											styles: $this->buildFillStyle('T', '#ffffff'),
+											drawcell: true,
+											);
+				$cx += $cw;
+			}
+			foreach ([
+				[$w, 'Summe'],
+				[$w, number_format($gew_sum * 0.001, 2, ',', '') . ' kg'],
+				[$w, strval($anz_sum)],
+			] as [$sw, $stxt]) {
+				$out .= $this->color->getPdfColor($this->textcolorheader);
+				$out .= $this->getTextCell(	txt: $stxt, 
+											posx: $cx, 
+											posy: $y, 
+											width: $sw, 
+											height: $zh, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+											styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+											drawcell: true,
+											);
+				$cx += $sw;
+			}
+
+			$y += $zh + 5.0;
+		}
+
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
+	}
+
+	/**
+	 * generates multiple A4 pages with the Statistics for each User (Mitgliedsnummer)
+	 *
+	 *
+	 * @return void
+	 */
+	public function Statistik_User(array $data, mixed $mit_Mitgliedsnummer = null): void {
+		$ml = 10.0;
+		$mt = 15.0;
+		$mb = 20.0;
+		$w0 = 40.0;
+		$w  = 35.0;
+		$hh =  6.0;
+		$zh =  6.0;
+		$rowW = $w0 + 6 * $w;
+		$contentBottom = self::PAGE_H - $mb;
+
+		$header1 = ['Minimale', 'Maximale', 'Minimales', 'Maximales', 'Gesamt-'];
+		$header2 = ['Länge',    'Länge',    'Gewicht',   'Gewicht',   'Gewicht'];
+
+		$headerfillStyle = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'miterLimit' => 0.5, 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => $this->fillcolorheader]];
+		$greyfillStyle   = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'miterLimit' => 0.5, 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => $this->fillcolorstripe]];
+		$whiteFillStyle  = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'miterLimit' => 0.5, 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#ffffff']];
+
+		$this->addPage(['orientation' => 'L', 'format' => 'A4']);
+
+		$out = $this->graph->getStartTransform();
+		$y   = $mt;
+
+		foreach ($data as $Mitgliedsnummer => $gew_data) {
+			ksort($gew_data);
+			$block  = 3 * $hh + count($gew_data) * $zh + $zh;
+
+			if ($y + $block > $contentBottom && $y > $mt) {
+				$out .= $this->graph->getStopTransform();
+				$this->page->addContent($out);
+				$this->addPage(['orientation' => 'L', 'format' => 'A4']);
+				$out = $this->graph->getStartTransform();
+				$y   = $mt;
+			}
+			$title = sprintf('%s', $Mitgliedsnummer);
+			// title
+			$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TITLE);
+			$out .= $font['out'];
+			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->getTextCell(	txt: $title, 
+										posx: $ml, 
+										posy: $y, 
+										width: self::PAGE_W - 2 * $ml, 
+										height: $hh, offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+
+			$width = $this->font->getOrdArrWidth(
+				$this->uniconv->strToOrdArr(strval($title)	)
+			) * 25.4 / 72;
+
+			$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+			$out .= $font['out'];
+			$subtitle = ' ';
+			$out .= $this->getTextCell(	txt: $subtitle, 
+										posx: $ml + $width + 4, 
+										posy: $y+1.0, 
+										width: self::PAGE_W - 2 * $ml, 
+										height: $hh, offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+			$y += $hh + 2.0;
+
+			// header: Fischart (2 rows tall)
+			$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+			$out .= $font['out'];
+			$out .= $this->color->getPdfColor($this->textcolorheader);
+			$out .= $this->getTextCell(	txt: 'Fischart', 
+										posx: $ml, 
+										posy: $y, 
+										width: $w0, 
+										height: 2 * $hh, 
+										offset: 1, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+										styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+										drawcell: true,
+									);
+
+			// header: measurement columns (2 × hh each)
+			$cx = $ml + $w0;
+			//$out .= $this->color->getPdfColor($this->textcolorheader);
+			foreach ($header1 as $idx => $h1) {
+				$out .= $this->getTextCell(	txt: $h1,            
+											posx: $cx, 
+											posy: $y,       
+											width: $w, 
+											height: $hh+0.2, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+											styles: $this->buildFillStyle('LTR', $this->fillcolorheader),
+											drawcell: true,
+										);
+				$out .= $this->getTextCell(	txt: $header2[$idx], 
+											posx: $cx, 
+											posy: $y + $hh, 
+											width: $w, 
+											height: $hh, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+											styles: $this->buildFillStyle('LRB', $this->fillcolorheader),
+											drawcell: true,
+										);
+				$cx += $w;
+			}
+
+			// header: Anzahl (2 rows tall)
+			//$out .= $this->color->getPdfColor($this->textcolorheader);
+			$out .= $this->getTextCell(	txt: 'Anzahl', 
+										posx: $cx, 
+										posy: $y, 
+										width: $w, 
+										height: 2 * $hh, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+										styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+										drawcell: true,
+									);
+
+			$y += 2 * $hh;
+
+			// data rows
+			$fill    = false;
+			$gew_sum = 0;
+			$anz_sum = 0;
+			$out .= $this->color->getPdfColor('#000000');
+			foreach ($gew_data as $art => $row) {
+				$fillstyle = $this->buildFillStyle('LR', $fill ? $this->fillcolorstripe : '#ffffff');
+				//$out .= $this->color->getPdfColor('#000000');
+				$cx = $ml;
+				foreach ([
+					[1, $w0, $art,                                                                                                          \Com\Tecnick\Pdf\TextHAlign::Left],
+					[0, $w,  $this->No__ZERO('0 cm',    number_format((int) $this->No__null($row[0]), 0, '', '') . ' cm'),                  \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  $this->No__ZERO('0 cm',    number_format((int) $this->No__null($row[1]), 0, '', '') . ' cm'),                  \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  $this->No__ZERO('0,00 kg', number_format($this->No__null($row[2]) * 0.001, 2, ',', '') . ' kg'),               \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  $this->No__ZERO('0,00 kg', number_format($this->No__null($row[3]) * 0.001, 2, ',', '') . ' kg'),               \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  $this->No__ZERO('0,00 kg', number_format($this->No__null($row[4]) * 0.001, 2, ',', '') . ' kg'),               \Com\Tecnick\Pdf\TextHAlign::Center],
+					[0, $w,  number_format((int) $this->No__null($row[5]), 0, ',', ''),                                                     \Com\Tecnick\Pdf\TextHAlign::Center],
+				] as [$offset, $cw, $ctxt, $chalign]) {
+					//$out .= $this->color->getPdfColor('#000000');
+					$out .= $this->getTextCell(	txt: $ctxt == '' ? ' ' : $ctxt,  
+												posx: $cx, 
+												posy: $y, 
+												width: $cw, 
+												height: $zh, 
+												offset: $offset, 
+												linespace: 0, 
+												valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+												halign: $chalign,
+												styles: $fillstyle,
+												drawcell: true,
+											);
+					$cx += $cw;
+				}
+				$anz_sum += $row[5];
+				$gew_sum += $row[4];
+				$y    += $zh;
+				$fill  = !$fill;
+			}
+
+			// summary row
+			$cx = $ml;
+			foreach ([$w0, $w, $w, $w] as $cw) {
+				$out .= $this->getTextCell(	txt: ' ', 
+											posx: $cx, 
+											posy: $y, 
+											width: $cw, 
+											height: $zh, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center, 
+											styles: $this->buildFillStyle('T', '#ffffff'),
+											drawcell: true,
+											);
+				$cx += $cw;
+			}
+			$out .= $this->color->getPdfColor($this->textcolorheader);
+			foreach ([
+				[$w, 'Summe'],
+				[$w, number_format($gew_sum * 0.001, 2, ',', '') . ' kg'],
+				[$w, strval($anz_sum)],
+			] as [$sw, $stxt]) {
+				$out .= $this->getTextCell( txt: $stxt, 
+											posx: $cx, 
+											posy: $y, 
+											width: $sw, 
+											height: $zh, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+											styles: $this->buildFillStyle('LTRB', $this->fillcolorheader),
+											drawcell: true,
+											);
+				$cx += $sw;
+			}
+
+			$y += $zh + 5.0;
+		}
+
+		$out .= $this->graph->getStopTransform();
+		$this->page->addContent($out);
+	}
+
+
+
+
+
+    public function Statistik_Mehrjahresvergleich(array $data, string $typ = 'Anzahl'): void {
 
 		$headerfillStyle = [
 			'all' => [
@@ -179,8 +932,8 @@ error_log(print_r($gewaesserDetail, TRUE));
 		];
 
 		$this->addPage(['orientation' => 'L', 'format' => 'A4']);
-		$fontTable = $this->font->insert($this->pon, 'helvetica', '', $this->TabelleFontSizePt);
-		$fontBar   = $this->font->insert($this->pon, 'helvetica', '', 8);
+
+		
 
 		// data preparation
 		if ($typ === 'Anzahl') {
@@ -241,7 +994,8 @@ error_log(print_r($gewaesserDetail, TRUE));
 		$barStyle = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#ff0000', 'fillColor' => '#ff0000']];
 
 		$out = $this->graph->getStartTransform();
-		$out .= $fontTable['out'];
+		$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+		$out .= $font['out'];
 
 		// outer box
 		$out .= $this->graph->getRect($XDiag, $YDiag, $lDiag, $hDiag, 'D', $ls);
@@ -253,7 +1007,15 @@ error_log(print_r($gewaesserDetail, TRUE));
 			$lbl = $i * $valIndRepere . $einheit;
 			$lw  = $this->getStringWidth($lbl);
 			$out .= $this->color->getPdfColor('#000000');
-			$out .= $this->getTextCell(txt: $lbl, posx: $xpos - $lw / 2 - 1.0, posy: $YDiag + $hDiag + 1.0, width: $lw + 2.0, height: $hBar, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
+			$out .= $this->getTextCell(	txt: $lbl, 
+										posx: $xpos - $lw / 2 - 1.0, 
+										posy: $YDiag + $hDiag + 1.0,
+										width: $lw + 2.0, 
+										height: $hBar, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Center);
 		}
 
 		// bars, value labels, legend labels
@@ -269,16 +1031,34 @@ error_log(print_r($gewaesserDetail, TRUE));
 			}
 
 			// value label with white background
-			$out .= $fontBar['out'];
+			$font = $this->font->insert($this->pon, 'helvetica', '', 8);
+			$out .= $font['out'];
 			$labelTxt = $legends_every[$i] . $einheit;
 			$lw = $this->getStringWidth($labelTxt) + 2.0;
 			$out .= $this->graph->getRect($XDiag + $lval + 0.1, $barTopY, $lw, $eBaton, 'F', $whiteFillStyle);
 			$out .= $this->color->getPdfColor('#000000');
-			$out .= $this->getTextCell(txt: $labelTxt, posx: $XDiag + $lval + 0.1, posy: $barTopY, width: $lw, height: $eBaton, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
+			$out .= $this->getTextCell(	txt: $labelTxt, 
+										posx: $XDiag + $lval + 0.1, 
+										posy: $barTopY, 
+										width: $lw, 
+										height: $eBaton, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Center);
 
 			// legend label right-aligned to the left of the chart
-			$out .= $fontTable['out'];
-			$out .= $this->getTextCell(txt: $legends_first[$i], posx: $ml, posy: $yval - 2.0, width: $wLegend_first, height: $hBar * 2, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Right);
+			$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+			$out .= $font['out'];
+			$out .= $this->getTextCell(	txt: $legends_first[$i], 
+										posx: $ml, 
+										posy: $yval - 2.0, 
+										width: $wLegend_first, 
+										height: $hBar * 2, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Right);
 
 			$i++;
 		}
@@ -286,307 +1066,296 @@ error_log(print_r($gewaesserDetail, TRUE));
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
 	}
-	public function Statistik_gesamt(array $data, array $gewaesserDetail, string $typ = 'Anzahl'): void {
-		$typidx = ($typ === 'Anzahl') ? 5 : 4;
-		$w0     = 32.0; // Fischart column
-		$w      = 14.0; // per-Gewässer column
-		$hh     = 42.0; // rotated header height
-		$zh     =  6.0; // data row height
-		$ml     = 10.0; // left margin
-		$mt     = 10.0; // top margin
-
-		$headerfillStyle = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'miterLimit' => 0.5, 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => $this->fillcolorheader]];
-		$greyfillStyle   = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'miterLimit' => 0.5, 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => $this->fillcolorstripe]];
-		$whiteFillStyle  = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'miterLimit' => 0.5, 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#ffffff']];
-
-		$this->addPage(['orientation' => 'L', 'format' => 'A4']);
-		$fontTitle = $this->font->insert($this->pon, 'helvetica', '', $this->TitleFontSizePt);
-		$fontTable = $this->font->insert($this->pon, 'helvetica', '', $this->TabelleFontSizePt);
-
-		// reorder '20s' between 20 and 21
-		if (array_key_exists('20s', $data)) {
-			$data['20.5'] = $data['20s'];
-			unset($data['20s']);
-			ksort($data);
-			$b = [];
-			foreach ($data as $gnr => $gd) {
-				$b[$gnr === '20.5' ? '20s' : $gnr] = $gd;
-			}
-			$data = $b;
-		}
-
-		// collect all fish species and resolve Gewässer names
-		$allefische = [];
-		foreach ($data as $gewaessernr => $gew_data) {
-			ksort($gew_data);
-			foreach ($gew_data as $art => $zeile) {
-				$allefische[$art] = 0;
-			}
-		}
-		ksort($allefische);
-
-		$title = $typ === 'Anzahl' ? 'Gesamtstatistik  (nach Anzahl)' : 'Gesamtstatistik  (nach Gewicht in kg)';
-
-		$nbGew  = count($data);
-		$tableW = $w0 + ($nbGew + 1) * $w; // +1 for Summe column
-
-		$out = $this->graph->getStartTransform();
-		$out .= $fontTitle['out'];
-		$out .= $this->color->getPdfColor('#000000');
-		$out .= $this->getTextCell(txt: $title, posx: $ml, posy: $mt, width: $tableW, height: 8.0, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Left);
-
-		$y = $mt + 9.0;
-
-		// --- rotated column headers ---
-		// "Fischart" label cell (full header height)
-		$out .= $fontTable['out'];
-
-		$cx = $ml + $w0;
-		foreach ($data as $gewaessernr => $gew_data) {
-			$gewaessername = $gewaesserDetail[$gewaessernr]['Name'] ?? ('Nr. ' . $gewaessernr);
-			// header cell background
-			$out .= $this->graph->getRect($cx, $y, $w, $hh, 'DF', $headerfillStyle);
-			$out .= $this->graph->getStartTransform();
-			$textposX = $cx;        // visual left edge of this column
-			$textposY = $y + $hh;   // visual bottom edge of the rotated header band
-			$out .= $this->graph->getTranslation($textposX, $textposY);
-			$out .= $this->graph->getRotation(90.0, 0.0, 0.0);
-			$out .= $this->color->getPdfColor($this->textcolorheader);
-			$out .= $this->getTextCell(txt: $gewaessername, posx: 1.0, posy: 0.0, width: $hh - 2.0, height: $w, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Left);
-			$out .= $this->graph->getStopTransform();
-			$cx += $w;
-		}
-
-		// second header row (Nr. xx below rotated names)
-		$y += $hh;
-		$cx = $ml + $w0;
-
-		// "Fischart" header cell (not rotated)
-		$out .= $this->graph->getRect($ml, $y, $w0, $zh, 'DF', $headerfillStyle);
-		$out .= $this->color->getPdfColor($this->textcolorheader);
-		$out .= $this->getTextCell(txt: 'Fischart', posx: $ml+1, posy: $y, width: $w0, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Left);
-
-		foreach ($data as $gewaessernr => $gew_data) {
-			$out .= $this->graph->getRect($cx, $y, $w, $zh, 'DF', $headerfillStyle);
-			$out .= $this->color->getPdfColor($this->textcolorheader);
-			$out .= $this->getTextCell(txt: 'Nr. ' . $gewaessernr, posx: $cx, posy: $y, width: $w, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
-			$cx += $w;
-		}
-		// "Summe" header cell (not rotated)
-		$out .= $this->graph->getRect($cx, $y, $w, $zh, 'DF', $headerfillStyle);
-		$out .= $this->color->getPdfColor($this->textcolorheader);
-		$out .= $this->getTextCell(txt: 'Summe', posx: $cx, posy: $y, width: $w, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
 
 
+   //
+    // Diagramm Vorjahresvergleich erstellen
+    //
+    public function Statistik_Vorjahresvergleich(array $jahresvergleich, string $typ = 'Anzahl'): void
+    {
+        $data_prev = [];
 
-		$y += $zh;
+        $normalizeSpeciesKey = static function (string $art): string {
+            $art = trim($art);
+            $art = strtr($art, [
+                'Ä' => 'Ae', 'ä' => 'ae',
+                'Ö' => 'Oe', 'ö' => 'oe',
+                'Ü' => 'Ue', 'ü' => 'ue',
+                'ß' => 'ss',
+            ]);
 
-		// --- data rows ---
-		$fill    = false;
-		$sum_gew = [];
-		foreach ($allefische as $art => $muell) {
-			$fillstyle = $fill ? $greyfillStyle : $whiteFillStyle;
-			$out .= $this->graph->getRect($ml, $y, $tableW, $zh, 'DF', $fillstyle);
-			$out .= $this->color->getPdfColor('#000000');
-			$out .= $this->getTextCell(txt: $art, posx: $ml + 1.0, posy: $y, width: $w0 - 1.0, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Left);
-			$sum_art = 0;
-			$cx      = $ml + $w0;
-			foreach ($data as $gewaessernr => $gew_data) {
-				$anz = isset($gew_data[$art]) ? $gew_data[$art][$typidx] : 0;
-				$sum_art += $anz;
-				$sum_gew[$gewaessernr] = ($sum_gew[$gewaessernr] ?? 0) + $anz;
-				$cell = $typ === 'Anzahl'
-					? $this->No__ZERO('0', number_format($anz, 0, ',', ''))
-					: $this->No__ZERO('0,00', number_format($anz * 0.001, 2, ',', ''));
-				$out .= $this->getTextCell(txt: $cell, posx: $cx, posy: $y, width: $w, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
-				$cx += $w;
-			}
-			$sumCell = $typ === 'Anzahl' ? strval($sum_art) : number_format($sum_art * 0.001, 2, ',', '');
-			$out .= $this->getTextCell(txt: $sumCell, posx: $cx, posy: $y, width: $w, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
-			$y   += $zh;
-			$fill = !$fill;
-		}
+            return $art;
+        };
 
-		// --- summary row ---
-		$out .= $this->graph->getRect($ml, $y, $tableW, $zh, 'DF', $headerfillStyle);
-		$out .= $this->color->getPdfColor($this->textcolorheader);
-		$out .= $this->getTextCell(txt: 'Summe', posx: $ml, posy: $y, width: $w0, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
-		$gesamtSumme = 0;
-		$cx = $ml + $w0;
-		foreach ($data as $gewaessernr => $gew_data) {
-			$s = $sum_gew[$gewaessernr] ?? 0;
-			$cell = $typ === 'Anzahl' ? strval($s) : number_format($s * 0.001, 2, ',', '');
-			$out .= $this->getTextCell(txt: $cell, posx: $cx, posy: $y, width: $w, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
-			$gesamtSumme += $s;
-			$cx += $w;
-		}
-		$gesCell = $typ === 'Anzahl' ? strval($gesamtSumme) : number_format($gesamtSumme * 0.001, 2, ',', '');
-		$out .= $this->getTextCell(txt: $gesCell, posx: $cx, posy: $y, width: $w, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
+        $restoreSpeciesLabel = static function (string $art): string {
+            return strtr($art, [
+                'Ae' => 'Ä', 'ae' => 'ä',
+                'Oe' => 'Ö', 'oe' => 'ö',
+                'Ue' => 'Ü', 'ue' => 'ü',
+                'ss' => 'ß',
+            ]);
+        };
 
-		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
-	}
+        $readMetric = static function (array $row, string $typ): float {
+            $metricKeys = $typ === 'Anzahl'
+                ? ['Anzahl', 'anzahl', 'COUNT', 'count', 'Count', 5, '5']
+                : ['Gewicht', 'gewicht', 'Gewicht kg', 'gewicht_kg', 'Weight', 'weight', 4, '4'];
 
-	public function Statistik_Gewaesser(array $data, array $gewaesserDetail): void {
+            foreach ($metricKeys as $key) {
+                if (array_key_exists($key, $row)) {
+                    return (float) $row[$key];
+                }
+            }
 
-		$ml = 10.0; // left margin
-		$mt = 25.0; // top margin
-		$mb	= 15.0; // bottom margin
+            $index = $typ === 'Anzahl' ? 5 : 4;
+            if (array_key_exists($index, $row)) {
+                return (float) $row[$index];
+            }
 
-		$w0 = 42.0; // width of first column (Fischart)
-		$w  = 35.0; // width of other columns (measurements and Anzahl)
-		$hh = 6.0;  // height of header rows
-		$zh = 6.0;  // height of data rows
+            return 0.0;
+        };
 
-		$headerfillStyle = [
-			'all' => [
-				'lineWidth' => 0.1,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'miterLimit' => 0.5,
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => '#000000',
-				'fillColor' => $this->fillcolorheader,
-			],
-		];
-		$greyfillStyle = [
-			'all' => [
-				'lineWidth' => 0.1,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'miterLimit' => 0.5,
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => '#000000',
-				'fillColor' => $this->fillcolorstripe,
-			],
-		];
-		$whiteFillStyle = [
-			'all' => [
-				'lineWidth' => 0.1,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'miterLimit' => 0.5,
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => '#000000',
-				'fillColor' => '#ffffff',
-			],
-		];
+        foreach ($jahresvergleich as $jahr => $data) {
+            $YEAR = (int) $jahr;
 
-		$this->addPage([
-			'orientation' => 'L', 
-			'format' => 'A4'
-		]);
+            if ($typ === 'Anzahl') {
+                $typidx = 5;
+                $this->set_headerText('Fangstatistik ' . $YEAR . ' Vorjahresvergleich nach Anzahl');
+                $faktor = 1.0;
+                $digits = 0;
+                $einheit = '';
+                $formatierung = '%s';
+            } else {
+                $typidx = 4;
+                $this->set_headerText('Fangstatistik ' . $YEAR . ' Vorjahresvergleich nach Gewicht');
+                $faktor = 0.001;
+                $digits = 1;
+                $einheit = 'kg';
+                $formatierung = '%.1f';
+            }
 
-		$fontTitle = $this->font->insert($this->pon, 'helvetica', '', $this->TitleFontSizePt);
-		$fontTable = $this->font->insert($this->pon, 'helvetica', '', $this->TabelleFontSizePt);
-		$header1   = ['Minimale', 'Maximale', 'Minimales', 'Maximales', 'Gesamt-'];
-		$header2   = ['Länge',    'Länge',    'Gewicht',   'Gewicht',   'Gewicht'];
+            $data_diagramm_gew = [];
+            $data_diagramm_gew_old = [];
 
-		$out = $this->graph->getStartTransform();
-		$y   = $mt;
+            foreach ($data_prev as $gew_data) {
+                foreach ($gew_data as $art => $row) {
+                    $speciesKey = $normalizeSpeciesKey((string) $art);
+                    $value = $readMetric((array) $row, $typ);
+                    $data_diagramm_gew_old[$speciesKey] = isset($data_diagramm_gew_old[$speciesKey]) ? $data_diagramm_gew_old[$speciesKey] + $value : $value;
+                }
+            }
+            foreach ($data_diagramm_gew_old as $k => $v) {
+                if ($v > 0) {
+                    $data_diagramm_gew_old[$k] = round($v * $faktor, $digits);
+                } else {
+                    unset($data_diagramm_gew_old[$k]);
+                }
+            }
 
-		foreach ($data as $gewaessernr => $gew_data) {
-			ksort($gew_data);
-			$name  = $gewaesserDetail[$gewaessernr]['Name'] ?? ('Gewässer ' . $gewaessernr);
-			$block = $hh + 2.0 + 2 * $hh + count($gew_data) * $zh + $zh;
+            foreach ($data as $gew_data) {
+                foreach ($gew_data as $art => $row) {
+                    $speciesKey = $normalizeSpeciesKey((string) $art);
+                    $value = $readMetric((array) $row, $typ);
+                    $data_diagramm_gew[$speciesKey] = isset($data_diagramm_gew[$speciesKey]) ? $data_diagramm_gew[$speciesKey] + $value : $value;
+                }
+            }
+            foreach ($data_diagramm_gew as $k => $v) {
+                if ($v > 0) {
+                    $data_diagramm_gew[$k] = round($v * $faktor, $digits);
+                } else {
+                    unset($data_diagramm_gew[$k]);
+                }
+            }
 
-			if ($y + $block > (self::PAGE_H - $mb) && $y > $mt) {
-				$out .= $this->graph->getStopTransform();
-				$this->page->addContent($out);
-				$this->addPage(['orientation' => 'L', 'format' => 'A4']);
-				$out = $this->graph->getStartTransform();
-				$y   = $mt;
-			}
+            $datas = [];
+            foreach ($data_diagramm_gew as $k => $v) {
+                $datas[$k] = $v;
+                $datas[$k . ' '] = 0;
+            }
+            foreach ($data_diagramm_gew_old as $k => $v) {
+                $datas[$k] = isset($datas[$k]) ? $datas[$k] : 0;
+                $datas[$k . ' '] = $v;
+            }
+            ksort($datas);
 
-			// title
-			$out .= $fontTitle['out'];
-			$out .= $this->color->getPdfColor('#000000');
-			$out .= $this->getTextCell(txt: $name . '  (Gewässer Nr. ' . $gewaessernr . ')', posx: $ml, posy: $y, width: self::PAGE_W - 2 * $ml, height: $hh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Left);
-			$y += $hh + 2.0;
+            $chartData = [];
+            foreach ($datas as $k => $v) {
+                $chartData[$restoreSpeciesLabel($k)] = $v;
+            }
 
-			// header: Fischart (2 rows tall)
-			$out .= $fontTable['out'];
-			$out .= $this->graph->getRect($ml, $y, $w0, 2 * $hh, 'DF', $headerfillStyle);
-			$out .= $this->color->getPdfColor($this->textcolorheader);
-			$out .= $this->getTextCell(txt: 'Fischart', posx: $ml, posy: $y, width: $w0, height: 2 * $hh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
+            if (empty($chartData) || max($chartData) <= 0) {
+                $data_prev = $data;
+                continue;
+            }
 
-			// header: measurement columns (2 × hh each)
-			$cx = $ml + $w0;
-			foreach ($header1 as $idx => $h1) {
-				$out .= $this->graph->getRect($cx, $y, $w, 2 * $hh, 'DF', $headerfillStyle);
-				$out .= $this->color->getPdfColor($this->textcolorheader);
-				$out .= $this->getTextCell(txt: $h1,            posx: $cx, posy: $y,       width: $w, height: $hh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
-				$out .= $this->getTextCell(txt: $header2[$idx], posx: $cx, posy: $y + $hh, width: $w, height: $hh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
-				$cx += $w;
-			}
+            $this->addPage(['orientation' => 'L', 'format' => 'A4']);
 
-			// header: Anzahl (2 rows tall)
-			$out .= $this->graph->getRect($cx, $y, $w, 2 * $hh, 'DF', $headerfillStyle);
-			$out .= $this->color->getPdfColor($this->textcolorheader);
-			$out .= $this->getTextCell(txt: 'Anzahl', posx: $cx, posy: $y, width: $w, height: 2 * $hh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
+            $ml = 10.0;
+            $mt = 35.0;
+            $hBar = 4.5;
+            $eBaton = 3.5;
+            $nbDiv = 4;
+            $fontTable = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
 
-			$y += 2 * $hh;
-			$rowW = $w0 + 6 * $w;
+            $legends_every = [];
+            $legends_first = [];
+            $wLegend_first = 0.0;
+            foreach ($chartData as $label => $val) {
+                $legends_every[] = sprintf($formatierung, $val);
+                $cleanLabel = str_replace('Regenbogenforelle', 'Regenbogenf.', $label);
+                $legends_first[] = $cleanLabel;
+                $wLegend_first = max($this->getStringWidth($cleanLabel), $wLegend_first);
+            }
 
-			// data rows
-			$fill    = false;
-			$gew_sum = 0;
-			$anz_sum = 0;
+            $YDiag = $mt + 12.0;
+            $XDiag = $ml + $wLegend_first + 2.0;
+            $lDiag = self::PAGE_W - $XDiag - 12.0;
+            $hDiag = $hBar * (count($chartData) + 1);
 
-			foreach ($gew_data as $art => $row) {
-				$fillstyle = $fill ? $greyfillStyle : $whiteFillStyle;
-				$out .= $this->color->getPdfColor('#000000');
-				$cx = $ml;
-				foreach ([
-					[1, $w0, $art,                                                                                                         \Com\Tecnick\Pdf\TextHAlign::Left],
-					[0, $w,  $this->No__ZERO('0 cm',    number_format((int) $this->No__null($row[0]), 0, '', '') . ' cm'),                 \Com\Tecnick\Pdf\TextHAlign::Center],
-					[0, $w,  $this->No__ZERO('0 cm',    number_format((int) $this->No__null($row[1]), 0, '', '') . ' cm'),                 \Com\Tecnick\Pdf\TextHAlign::Center],
-					[0, $w,  $this->No__ZERO('0,00 kg', number_format($this->No__null($row[2]) * 0.001, 2, ',', '') . ' kg'),              \Com\Tecnick\Pdf\TextHAlign::Center],
-					[0, $w,  $this->No__ZERO('0,00 kg', number_format($this->No__null($row[3]) * 0.001, 2, ',', '') . ' kg'),              \Com\Tecnick\Pdf\TextHAlign::Center],
-					[0, $w,  $this->No__ZERO('0,00 kg', number_format($this->No__null($row[4]) * 0.001, 2, ',', '') . ' kg'),              \Com\Tecnick\Pdf\TextHAlign::Center],
-					[0, $w,  number_format((int) $this->No__null($row[5]), 0, ',', ''),                                                    \Com\Tecnick\Pdf\TextHAlign::Center],
-				] as [$offset, $cw, $ctxt, $chalign]) {
-					$out .= $this->graph->getRect($cx, $y, $cw, $zh, 'DF', $fillstyle);
-					$out .= $this->color->getPdfColor('#000000');
-					$out .= $this->getTextCell(txt: $ctxt, posx: $cx, posy: $y, width: $cw, height: $zh, offset: $offset, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: $chalign);
-					$cx += $cw;
-				}
-				$anz_sum += $row[5];
-				$gew_sum += $row[4];
-				$y += $zh;
-				$fill = !$fill;
-				$fillstyle = $fill ? $greyfillStyle : $whiteFillStyle;
-			}
+            $chartEndX = $XDiag + $lDiag;
+            $maxVal = (float) max($chartData);
+            $maxVal = max(1.0, ceil($maxVal * 0.011) * 100);
+            $valIndRepere = (float) ceil($maxVal / $nbDiv);
+            $maxVal = $valIndRepere * $nbDiv;
+            $lRepere = floor($lDiag / $nbDiv);
+            $lDiag = $lRepere * $nbDiv;
+            $unit = $lDiag / $maxVal;
 
-			// summary row
+            $gridStyle = ['all' => ['lineWidth' => 0.2, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#ffffff']];
+            $oldBarStyle = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#d6d6d6']];
+            $newBarStyle = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#7f9fc7']];
+            $whiteFillStyle = ['all' => ['lineWidth' => 0.0, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#ffffff']];
 
-			$out .= $this->graph->getRect($ml, $y, $rowW, $zh, 'DF', $fillstyle);
-			$out .= $this->color->getPdfColor('#000000');
-			$cx = $ml;
-			foreach ([$w0, $w, $w, $w] as $cw) {
-				$out .= $this->getTextCell(txt: '', posx: $cx, posy: $y, width: $cw, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
-				$cx += $cw;
-			}
-			foreach ([
-				[$w, 'Summe'],
-				[$w, number_format($gew_sum * 0.001, 2, ',', '') . ' kg'],
-				[$w, strval($anz_sum)],
-			] as [$sw, $stxt]) {
-				$out .= $this->graph->getRect($cx, $y, $sw, $zh, 'DF', $headerfillStyle);
-				$out .= $this->color->getPdfColor($this->textcolorheader);
-				$out .= $this->getTextCell(txt: $stxt, posx: $cx, posy: $y, width: $sw, height: $zh, offset: 0, linespace: 0, valign: \Com\Tecnick\Pdf\TextVAlign::Center, halign: \Com\Tecnick\Pdf\TextHAlign::Center);
-				$cx += $sw;
-			}
+            $out = $this->graph->getStartTransform();
+            $out .= $fontTable['out'];
+            $out .= $this->graph->getRect($XDiag, $YDiag, $lDiag, $hDiag, 'D', $gridStyle);
 
-			$y += $zh + 5.0;
-		}
+            for ($i = 0; $i <= $nbDiv; $i++) {
+                $xpos = $XDiag + $lRepere * $i;
+                $out .= $this->graph->getLine($xpos, $YDiag, $xpos, $YDiag + $hDiag, $gridStyle);
+                $lbl = sprintf('%s%s', $i * $valIndRepere, $einheit);
+                $lw = $this->getStringWidth($lbl);
+                $out .= $this->color->getPdfColor('#000000');
+                $out .= $this->getTextCell(	txt: $lbl, 
+											posx: $xpos - $lw / 2.0 - 1.0, 
+											posy: $YDiag + $hDiag + 1.0, 
+											width: $lw + 2.0, 
+											height: 4.0, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center);
+            }
 
-		$out .= $this->graph->getStopTransform();
-		$this->page->addContent($out);
-	}
+            $chartValues = array_values($chartData);
+            $chartLabels = array_keys($chartData);
+
+            foreach ($chartValues as $i => $val) {
+                $xval = $XDiag;
+                $lval = (int) ($val * $unit);
+                $yval = $YDiag + ($i + 1) * $hBar - $eBaton / 2.0;
+                $yBase = $yval + 0.5 * ($hBar - $eBaton);
+                $barStyle = ($i % 2 === 0) ? $newBarStyle : $oldBarStyle;
+                $out .= $this->graph->getRect($xval, $yBase, $lval, $eBaton, 'DF', $barStyle);
+
+                $labelTxt = sprintf($formatierung, $val) . $einheit;
+                $labelW = $this->getStringWidth($labelTxt) + 2.0;
+                $labelX = $xval + $lval + 0.1;
+                $out .= $this->graph->getRect($labelX, $yBase, $labelW, $eBaton, 'F', $whiteFillStyle);
+                $out .= $this->color->getPdfColor('#000000');
+                $out .= $this->getTextCell(	txt: $labelTxt, 
+											posx: $labelX, 
+											posy: $yBase, 
+											width: $labelW, 
+											height: $eBaton, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Center);
+
+                $speciesLabel = str_replace('Regenbogenforelle', 'Regenbogenf.', $chartLabels[$i]);
+                $out .= $this->getTextCell(	txt: $speciesLabel, 
+											posx: $ml, 
+											posy: $yBase - 1.0, 
+											width: $wLegend_first, 
+											height: $hBar * 2.0, 
+											offset: 0, 
+											linespace: 0, 
+											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+											halign: \Com\Tecnick\Pdf\TextHAlign::Right);
+            }
+
+            $val2 = sprintf('%d', $YEAR);
+            $val1 = sprintf('%d', $YEAR - 1);
+            $maxw = max($this->getStringWidth($val2), $this->getStringWidth($val1));
+
+            $legendBoxX = $chartEndX - $maxw * 2.5;
+            $legendBoxY1 = $YDiag + $hDiag - 2.0 - $hBar;
+            $legendBoxY2 = $YDiag + $hDiag - 2.0 - $hBar * 2.5;
+
+            $out .= $this->graph->getRect($legendBoxX, $legendBoxY1, $hBar, $hBar, 'DF', $oldBarStyle);
+            $out .= $this->graph->getRect($legendBoxX, $legendBoxY2, $hBar, $hBar, 'DF', $newBarStyle);
+            $out .= $this->color->getPdfColor('#000000');
+            $out .= $this->getTextCell(	txt: $val1, 
+										posx: $legendBoxX + $hBar + 2.0, 
+										posy: $legendBoxY1 + 0.5 * $hBar, 
+										width: $maxw, 
+										height: $hBar, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+            $out .= $this->getTextCell(	txt: $val2, 
+										posx: $legendBoxX + $hBar + 2.0, 
+										posy: $legendBoxY2 + 0.5 * $hBar, 
+										width: $maxw, 
+										height: $hBar, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+
+            $sum = array_sum($data_diagramm_gew);
+            $sum_old = array_sum($data_diagramm_gew_old);
+
+            if ($typ === 'Anzahl') {
+                $t1 = 'Anzahl ' . $YEAR . ': ' . $sum . $einheit;
+                $t2 = 'Anzahl ' . ($YEAR - 1) . ': ' . $sum_old . $einheit;
+            } else {
+                $t1 = 'Gesamtgewicht ' . $YEAR . ':  ' . $sum . $einheit;
+                $t2 = 'Gesamtgewicht ' . ($YEAR - 1) . ':  ' . $sum_old . $einheit;
+            }
+
+            $out .= $this->color->getPdfColor('#000000');
+            $out .= $this->getTextCell(	txt: $t1, 
+										posx: $XDiag, 
+										posy: $YDiag + $hDiag + 10.0, 
+										width: 90.0, 
+										height: 6.0, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+            $out .= $this->getTextCell(	txt: $t2, 
+										posx: $XDiag + $lRepere * $nbDiv * 0.5, 
+										posy: $YDiag + $hDiag + 10.0, 
+										width: 90.0, 
+										height: 6.0, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+
+            $out .= $this->graph->getStopTransform();
+            $this->page->addContent($out);
+
+            $data_prev = $data;
+        }
+    }
+
+
+
+
 
 	/**
 	 * Render the PDF document.
@@ -600,7 +1369,54 @@ error_log(print_r($gewaesserDetail, TRUE));
 		$year               = $this->getForm('year', date('Y') - 1);
 		$gewaesserStatistik = $this->getForm('gewaesser_statistik', []);
 		$jahres_statistik = $this->getForm('jahres_statistik', []);
-		$gewaesserDetail    = $this->getOption('gewaesser_detail', []);
+		$gewaesserDetail    = $this->getForm('gewaesser_detail', []);
+		$jahres_statistik_old = $this->getForm('jahres_statistik_old', []);
+		$user_statistik = $this->getForm('user_statistik', []);
+
+		$this->set_headerText('Fangstatistik ' . $year);
+
+		//$this->Statistik_gesamt($gewaesserStatistik, $gewaesserDetail, 'Anzahl');
+		//$this->Statistik_gesamt($gewaesserStatistik, $gewaesserDetail, 'Gewicht');
+		if (!empty($gewaesserStatistik) && !empty($gewaesserDetail)) {
+			$this->Statistik_Gewaesser($gewaesserStatistik, $gewaesserDetail);
+		}
+
+		$this->Statistik_User($user_statistik, true);
+		//$this->Statistik_Mehrjahresvergleich($jahres_statistik, 'Anzahl');
+		//$this->Statistik_Mehrjahresvergleich($jahres_statistik, 'Gewicht');
+
+		$gewaesser_statistik_years = $this->getForm('gewaesser_statistik_years', []);
+
+		//$this->Statistik_Vorjahresvergleich($gewaesser_statistik_years, 'Anzahl');
+		//$this->Statistik_Vorjahresvergleich($gewaesser_statistik_years, 'Gewicht');
+
+
+
+
+
+	}
+
+}
+
+
+/**
+ * Example PDF Template with header and footer.
+ */
+class PdfFangstatistikJahr extends PdfFangstatistik {
+
+	/**
+	 * Render the PDF document.
+	 *
+	 * @return void
+	 */
+	protected function render(): void {
+
+		$this->set_layout($this->getUrl('layout', ''));
+
+		$year               = $this->getForm('year', date('Y') - 1);
+		$gewaesserStatistik = $this->getForm('gewaesser_statistik', []);
+		$jahres_statistik = $this->getForm('jahres_statistik', []);
+		$gewaesserDetail    = $this->getForm('gewaesser_detail', []);
 
 		$this->set_headerText('Fangstatistik ' . $year);
 
@@ -610,5 +1426,80 @@ error_log(print_r($gewaesserDetail, TRUE));
 			$this->Statistik_Gewaesser($gewaesserStatistik, $gewaesserDetail);
 		}
 	}
-
 }
+
+
+/**
+ * Example PDF Template with header and footer.
+ */
+class PdfFangstatistikMehrjahresvergleich extends PdfFangstatistik {
+
+	/**
+	 * Render the PDF document.
+	 *
+	 * @return void
+	 */
+	protected function render(): void {
+
+		$this->set_layout($this->getUrl('layout', ''));
+
+
+		$this->set_headerText('Fangstatistik Mehrjahresvergleich');
+		$this->Statistik_Mehrjahresvergleich($mehrjahresvergleich, 'Anzahl');
+		$this->Statistik_Mehrjahresvergleich($mehrjahresvergleich, 'Gewicht');
+
+
+
+
+	}
+}
+
+
+/**
+ * Example PDF Template with header and footer.
+ */
+class PdfFangstatistikVorJahresvergleich extends PdfFangstatistik {
+
+	/**
+	 * Render the PDF document.
+	 *
+	 * @return void
+	 */
+	protected function render(): void {
+
+		$this->set_layout($this->getUrl('layout', ''));
+
+		$mehrjahres_statistik    = $this->getForm('gewaesser_statistik_years', []);
+
+		$this->set_headerText('Fangstatistik Jahresvergleich');
+		$this->Statistik_Vorjahresvergleich($mehrjahres_statistik, 'Anzahl');
+		$this->Statistik_Vorjahresvergleich($mehrjahres_statistik, 'Gewicht');
+	}
+}
+
+
+/**
+ * Example PDF Template with header and footer.
+ */
+class PdfFangstatistikUser extends PdfFangstatistik {
+
+	/**
+	 * Render the PDF document.
+	 *
+	 * @return void
+	 */
+	protected function render(): void {
+
+		$this->set_layout($this->getUrl('layout', ''));
+
+		$year               = $this->getForm('year', date('Y') - 1);
+		$user_statistik = $this->getForm('user_statistik', []);
+		$jahres_statistik = $this->getForm('jahres_statistik', []);
+		$gewaesserDetail    = $this->getForm('gewaesser_detail', []);
+
+		$this->set_headerText('Fangstatistik ' . $year);
+		$this->Statistik_User($user_statistik, true);
+
+	}
+}
+
