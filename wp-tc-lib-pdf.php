@@ -110,6 +110,66 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 		return new \Com\Tecnick\Pdf\Tcpdf();
 	}
 
+	public static function build_pdf_url($template_id, array $params = array(), $download = false, $base_url = '', $expires = null, $nr = '') {
+		self::init();
+
+		if (!is_string($template_id) || $template_id === '') {
+			return '';
+		}
+
+		$template_id = sanitize_key($template_id);
+		if ($template_id === '') {
+			return '';
+		}
+
+		$query = $params;
+		$query['get_pdf'] = $template_id;
+
+		if ($expires !== null && $expires !== '') {
+			$expires_date = self::normalize_long_term_expiry($expires);
+			if ($expires_date === '') {
+				return '';
+			}
+
+			$query['key'] = wp_hash($template_id . $expires_date . (string) $nr, 'auth');
+			$query['expires'] = $expires_date;
+			$query['nr'] = (string) $nr;
+		} else {
+			$query['nonce'] = wp_create_nonce($template_id);
+		}
+
+		if ($download) {
+			$query['filedownload'] = 1;
+		}
+
+		if ($base_url === '') {
+			$base_url = home_url('/');
+		}
+
+		return add_query_arg($query, $base_url);
+	}
+
+
+
+	private static function normalize_long_term_expiry($expires) {
+		if ($expires instanceof DateTimeInterface) {
+			return $expires->format('Y-m-d');
+		}
+
+		if (is_int($expires)) {
+			return gmdate('Y-m-d', $expires);
+		}
+
+		if (is_string($expires) && $expires !== '') {
+			$timestamp = strtotime($expires);
+			if ($timestamp !== false) {
+				return gmdate('Y-m-d', $timestamp);
+			}
+		}
+
+		return '';
+	}
+
 	public static function activate() {
 		if (version_compare(PHP_VERSION, '8.2.0', '<')) {
 			wp_die(__('TC Lib PDF for WordPress requires PHP 8.2 or newer.', 'tc-lib-pdf-wp'));
@@ -133,8 +193,22 @@ add_action('plugins_loaded', function() {
 	}
 }, 11);
 
+if (!function_exists('tc_lib_pdf_wp_create_pdf_url')) {
+	function tc_lib_pdf_wp_create_pdf_url($template_id, array $params = array(), $download = false, $base_url = '', $expires = null, $nr = '') {
+		return Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url($template_id, $params, $download, $base_url, $expires, $nr);
+	}
+}
+
 if (!function_exists('tc_lib_pdf_wp_create_pdf')) {
 	function tc_lib_pdf_wp_create_pdf() {
 		return Tc_Lib_Pdf_Wp_Bootstrap::create_pdf();
+	}
+}
+
+
+if (file_exists(__DIR__ . '/include/class-dashboard-pdf-links.php')) {
+	require_once __DIR__ . '/include/class-dashboard-pdf-links.php';
+	if (is_admin()) {
+		Tc_Lib_Pdf_Dashboard_Pdf_Links::init();
 	}
 }

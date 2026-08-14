@@ -17,7 +17,7 @@ require_once __DIR__ . '/class-pdf-template.php';
 /**
  * Example PDF Template with header and footer.
  */
-class PdfMitgliedsantrag extends PdfTemplate {
+class PdfMitgliedsantrag2 extends PdfTemplate {
 
 	/**
 	 * Constructor.

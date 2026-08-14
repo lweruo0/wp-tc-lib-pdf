@@ -47,18 +47,18 @@ PdfRegistry::register('fangstatistik', 'PdfFangstatistikJahr', __DIR__ . '/class
 //https://bfv-ehingen.de/?fpdfDiagramm=1&yy=2024
 PdfRegistry::register('vorjahresvergleich', 'PdfFangstatistikVorJahresvergleich', __DIR__ . '/class-pdf-fangstatistik.php');
 //https://bfv-ehingen.de/?JahresDiagramm=1&yy=2024
-PdfRegistry::register('mehrjahresvergleich', 'PdfFangstatistikMehrjahresvergleich', __DIR__ . '/class-pdf-fangstatistik.php');
+PdfRegistry::register('jahresvergleich', 'PdfFangstatistikMehrjahresvergleich', __DIR__ . '/class-pdf-fangstatistik.php');
 //https://bfv-ehingen.de/?pdf_make_JahresDiagramm=1&yy=2024
 PdfRegistry::register('fangstatistikuservergleich', 'PdfFangstatistikUser', __DIR__ . '/class-pdf-fangstatistik.php');
 //https://bfv-ehingen.de/?fpdfUser=1&yy=2024
-PdfRegistry::register('fangstatistik_demo', 'PdfFangstatistik', __DIR__ . '/class-pdf-fangstatistik.php');
+// PdfRegistry::register('fangstatistik_demo', 'PdfFangstatistik', __DIR__ . '/class-pdf-fangstatistik.php');
 
 
 
 // https://bfv-ehingen.de/?mitgliedsantrag=1&mn=244&vn=Alexander&n=Lammert&y=2026&key=cc11bdd3e4e5c1263e0a76c5745d23d2
-PdfRegistry::register('mitgliedsantrag', 'PdfMitgliedsantrag', __DIR__ . '/class-pdf-mitgliedsantrag.php');
+PdfRegistry::register('mitgliedsantrag', 'PdfMitgliedsantrag2', __DIR__ . '/class-pdf-mitgliedsantrag.php');
 // https://bfv-ehingen.de/?infoblatt-antrag=1&mn=244
-PdfRegistry::register('mitgliedsantraginfo', 'PdfMitgliedsantrag', __DIR__ . '/class-pdf-mitgliedsantrag.php');
+PdfRegistry::register('mitgliedsantraginfo', 'PdfMitgliedsantrag2', __DIR__ . '/class-pdf-mitgliedsantrag.php');
 
 
 // Add more templates here as needed:
@@ -104,23 +104,28 @@ class Pdf_Dispatcher {
 	 * @return bool
 	 */
 	private function should_render_pdf(): bool {
-		if (!isset($_GET['get_pdf']) || !isset($_GET['nonce'])) {
+
+		// Check if the 'get_pdf' parameter is present in the GET request
+		if (!isset($_GET['get_pdf'])) {
 			return false;
 		}
 
-		$template_id = sanitize_text_field(wp_unslash($_GET['get_pdf']));
-
 		// Validate template exists
+		$template_id = sanitize_text_field(wp_unslash($_GET['get_pdf']));
 		if (!PdfRegistry::exists($template_id)) {
 			return false;
 		}
 
-		// Verify nonce for security
-		if (!$this->verify_nonce()) {
-			return false;
+		if (isset($_GET['key']) && $this->verify_long_term_authorisation()) {
+			return true;
 		}
 
-		return true;
+		if (isset($_GET['nonce']) && $this->verify_nonce()) {
+			return true;
+		}
+
+		// No valid authorization provided
+		return false;
 	}
 
 	/**
@@ -159,15 +164,50 @@ class Pdf_Dispatcher {
 		}
 	}
 
+
+
+	/**
+	 * Verify the long-term authorisation for security.
+	 *
+	 * @return bool
+	 */
+	private function verify_long_term_authorisation(): bool {
+		if (!isset($_GET['key'], $_GET['get_pdf'])) {
+			return false;
+		}
+
+		$hash_from_url = sanitize_text_field(wp_unslash($_GET['key']));
+		$template_id = sanitize_text_field(wp_unslash($_GET['get_pdf']));
+		$nr = sanitize_text_field(wp_unslash($_GET['nr'] ?? ''));
+		$date_str = sanitize_text_field(wp_unslash($_GET['expires'] ?? ''));
+
+		if ($date_str === '') {
+			return false;
+		}
+
+		$expires = DateTimeImmutable::createFromFormat('!Y-m-d', $date_str, wp_timezone());
+		if (!$expires instanceof DateTimeImmutable) {
+			return false;
+		}
+
+		if ($expires->setTime(0, 0, 0) < (new DateTimeImmutable('today', wp_timezone()))) {
+			return false;
+		}
+
+		$expected_hash = wp_hash($template_id . $expires->format('Y-m-d') . $nr, 'auth');
+		return hash_equals($expected_hash, $hash_from_url);
+	}
+
+
 	/**
 	 * Verify the nonce for security.
 	 *
 	 * @return bool
 	 */
 	private function verify_nonce(): bool {
-        return true;
-		// $nonce = sanitize_text_field(wp_unslash($_GET['nonce']));
-		// return wp_verify_nonce($nonce, 'get_pdf_render');
+		$nonce = sanitize_text_field(wp_unslash($_GET['nonce']));
+		$template_id = sanitize_text_field(wp_unslash($_GET['get_pdf']));
+		return wp_verify_nonce($nonce, $template_id);
 	}
 
 	/**
