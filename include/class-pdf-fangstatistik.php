@@ -42,17 +42,23 @@ class PdfFangstatistik extends PdfTemplate {
     public string $fillcolorheader = '#444444';
     public string $fillcolorstripe = '#eeeeee';
 
+    public string $fillcolorbar1 = '#628fc3';
+    public string $fillcolorbar2 = '#c7dbf2';
+
 	/**
 	 * Constructor.
 	 */
 	public function __construct() {
 		parent::__construct();
+		if (function_exists('setlocale')) {
+			setlocale(LC_COLLATE, 'de_DE.UTF-8', 'de_DE.utf8', 'German_Germany.utf8');
+		}
 		$this->enableDefaultPageContent(true); // Enable default header/footer and page content
 		$this->initializeUrlData(); // Load $_GET parameters into $this->urldata
 		$this->setHeaderTitlePosition(120.0, 5.0);
 		$this->setHeaderSubtitlePosition(20.0, 22.0);
-		$this->setHeaderLogoPosition(266.0, 6.0);
-		$this->setHeaderLogoWidth(50.0);
+		$this->setHeaderLogoPosition(270.0, 6.0);
+		$this->setHeaderLogoWidth(20.0);
 		//$this->enableFooter(false); // Disable footer for this template
 	}
 
@@ -125,9 +131,16 @@ class PdfFangstatistik extends PdfTemplate {
 		if ($this->layout !== 'print') {
 			$this->textcolorheader = '#fff6ab';
 			$this->fillcolorheader = '#444444';
+			$this->fillcolorbar1 = '#cab70e';
+			$this->fillcolorbar2 = '#fff6ab';	
+			$this->setHeaderLogoImage(__DIR__ . '/images/logo_bfv2.png');
+
 		} else {
 			$this->textcolorheader = '#000000';
 			$this->fillcolorheader = '#eeeeee';
+			$this->fillcolorbar1 = '#909090';
+			$this->fillcolorbar2 = '#eeeeee';
+			$this->setHeaderLogoImage(__DIR__ . '/images/logo_bfv2.png_print');
 		}
 	}
 
@@ -200,7 +213,8 @@ class PdfFangstatistik extends PdfTemplate {
 		if (array_key_exists('20s', $data)) {
 			$data['20.5'] = $data['20s'];
 			unset($data['20s']);
-			ksort($data);
+			uksort($data, 'strcoll');
+
 			$b = [];
 			foreach ($data as $gnr => $gd) {
 				$b[$gnr === '20.5' ? '20s' : $gnr] = $gd;
@@ -211,12 +225,12 @@ class PdfFangstatistik extends PdfTemplate {
 		// collect all fish species and resolve Gewässer names
 		$allefische = [];
 		foreach ($data as $gewaessernr => $gew_data) {
-			ksort($gew_data);
+			uksort($gew_data, 'strcoll');
 			foreach ($gew_data as $art => $zeile) {
 				$allefische[$art] = 0;
 			}
 		}
-		ksort($allefische);
+		uksort($allefische, 'strcoll');
 
 		$nbGew  = count($data);
 		$tableW = $w0 + ($nbGew + 1) * $w; // +1 for Summe column
@@ -262,7 +276,6 @@ class PdfFangstatistik extends PdfTemplate {
 		foreach ($data as $gewaessernr => $gew_data) {
 			$gewaessername = $gewaesserDetail[$gewaessernr]['Name'] ?? ('Nr. ' . $gewaessernr);
 			// header cell background
-			//$out .= $this->graph->getRect($cx, $y, $w, $hh, 'DF', $headerfillStyle);
 			$out .= $this->graph->getStartTransform();
 			$textposX = $cx;        // visual left edge of this column
 			$textposY = $y + $hh;   // visual bottom edge of the rotated header band
@@ -475,7 +488,7 @@ class PdfFangstatistik extends PdfTemplate {
 		$y   = $mt;
 
 		foreach ($data as $gewaessernr => $gew_data) {
-			ksort($gew_data);
+			uksort($gew_data, 'strcoll');
 			$name  = $gewaesserDetail[$gewaessernr]['Name'] ?? ('Gewässer ' . $gewaessernr);
 			$block = $hh + 2.0 + 2 * $hh + count($gew_data) * $zh + $zh;
 
@@ -588,6 +601,7 @@ class PdfFangstatistik extends PdfTemplate {
 			$gew_sum = 0;
 			$anz_sum = 0;
 			$out .= $this->color->getPdfColor('#000000');
+			uksort($gew_data, 'strcoll');
 
 			foreach ($gew_data as $art => $row) {
 				$fillstyle = $this->buildFillStyle('LR', $fill ? $this->fillcolorstripe : '#ffffff');
@@ -688,9 +702,6 @@ class PdfFangstatistik extends PdfTemplate {
 		$header1 = ['Minimale', 'Maximale', 'Minimales', 'Maximales', 'Gesamt-'];
 		$header2 = ['Länge',    'Länge',    'Gewicht',   'Gewicht',   'Gewicht'];
 
-		$headerfillStyle = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'miterLimit' => 0.5, 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => $this->fillcolorheader]];
-		$greyfillStyle   = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'miterLimit' => 0.5, 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => $this->fillcolorstripe]];
-		$whiteFillStyle  = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'miterLimit' => 0.5, 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#ffffff']];
 
 		$this->addPage(['orientation' => 'L', 'format' => 'A4']);
 
@@ -698,7 +709,7 @@ class PdfFangstatistik extends PdfTemplate {
 		$y   = $mt;
 
 		foreach ($data as $Mitgliedsnummer => $gew_data) {
-			ksort($gew_data);
+			uksort($gew_data, 'strcoll');
 			$block  = 3 * $hh + count($gew_data) * $zh + $zh;
 
 			if ($y + $block > $contentBottom && $y > $mt) {
@@ -809,6 +820,7 @@ class PdfFangstatistik extends PdfTemplate {
 			$gew_sum = 0;
 			$anz_sum = 0;
 			$out .= $this->color->getPdfColor('#000000');
+			uksort($gew_data, 'strcoll');
 			foreach ($gew_data as $art => $row) {
 				$fillstyle = $this->buildFillStyle('LR', $fill ? $this->fillcolorstripe : '#ffffff');
 				//$out .= $this->color->getPdfColor('#000000');
@@ -894,30 +906,18 @@ class PdfFangstatistik extends PdfTemplate {
 
     public function Statistik_Mehrjahresvergleich(array $data, string $typ = 'Anzahl'): void {
 
-		$headerfillStyle = [
-			'all' => [
-				'lineWidth' => 0.1,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'miterLimit' => 0.5,
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => '#000000',
-				'fillColor' => $this->fillcolorheader,
-			],
-		];
-		$greyfillStyle = [
-			'all' => [
-				'lineWidth' => 0.1,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'miterLimit' => 0.5,
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => '#000000',
-				'fillColor' => $this->fillcolorstripe,
-			],
-		];
+
+
+		if (empty($data) || max($data) <= 0) {
+			return;
+		}
+		$ml = 10.0;
+		$mt = 35.0;
+		$mb = 20.0;
+		$hh =  6.0;
+		$hBar   = 8.0;
+		$heightBar = 6.0;
+
 		$whiteFillStyle = [
 			'all' => [
 				'lineWidth' => 0.1,
@@ -927,89 +927,127 @@ class PdfFangstatistik extends PdfTemplate {
 				'dashArray' => [],
 				'dashPhase' => 0,
 				'lineColor' => '#000000',
-				'fillColor' => '#ffffff',
+				'fillColor' => '#ff00ff',
 			],
 		];
 
 		$this->addPage(['orientation' => 'L', 'format' => 'A4']);
 
 		
-
+		$title = 'Jahresvergleich';
 		// data preparation
 		if ($typ === 'Anzahl') {
-			$this->set_headerText('Fangstatistik Jahresvergleiche nach Anzahl');
+			$subtitle = '(nach Anzahl)';
 			$faktor      = 1;
 			$einheit     = '';
 			$formatierung = '%s';
 		} else {
-			$this->set_headerText('Fangstatistik Jahresvergleiche nach Gewicht');
+			$subtitle = '(nach Gewicht in kg)';
 			$faktor      = 0.001;
 			$einheit     = 'kg';
-			$formatierung = '%.1f';
+			$formatierung = '%.1fkg';
 		}
+		$out = '';
 
-		$datas = [];
+		$y   = $mt;
+		// title
+		$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TITLE);
+		$out .= $font['out'];
+		$out .= $this->color->getPdfColor('#000000');
+		$out .= $this->getTextCell(	txt: $title, 
+									posx: $ml, 
+									posy: $y, 
+									width: self::PAGE_W - 2 * $ml, 
+									height: $hh, 
+									offset: 0, 
+									linespace: 0, 
+									valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+									halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+
+		$width = $this->font->getOrdArrWidth(
+			$this->uniconv->strToOrdArr(strval($title)	)
+		) * 25.4 / 72;
+
+		$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+		$out .= $font['out'];
+		$out .= $this->getTextCell(	txt: $subtitle, 
+									posx: $ml + $width + 4, 
+									posy: $y+1.0, 
+									width: self::PAGE_W - 2 * $ml, 
+									height: $hh, 
+									offset: 0, 
+									linespace: 0, 
+									valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+									halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+		$y += $hh + 2.0;
+
+
 		foreach ($data as $k => $v) {
-			$datas[$k] = $v[$typ] * $faktor;
+			$data[$k] = $v[$typ] * $faktor;
 		}
-		ksort($datas);
-		$data = [];
-		foreach ($datas as $k => $v) {
-			$data[str_replace('Ae', 'Ä', $k)] = $v;
-		}
-
-		if (empty($data) || max($data) <= 0) {
-			return;
-		}
+		uksort($data, 'strcoll');
 
 		$NbVal  = count($data);
-		$nbDiv  = 10;
-		$hBar   = 8.0;
-		$eBaton = 6.0;
 
-		$legends_every = [];
-		$legends_first = [];
-		$wLegend_first = 0.0;
-		foreach ($data as $l => $val) {
-			$legends_every[] = sprintf($formatierung, $val);
-			$label           = str_replace('Regenbogenforelle', 'Regenbogenf.', $l);
-			$legends_first[] = $label;
-			$wLegend_first   = max($this->getStringWidth($label), $wLegend_first);
+		$legends_right = [];
+		$legends_left = [];
+		$wLegend_left = 0.0;
+		foreach ($data as $label => $val) {
+			$legends_right[] = sprintf($formatierung, $val);
+			$legends_left[] = $label;
+			$wLegend_left   = max($this->getStringWidth($label), $wLegend_left);
 		}
 
-		$ml    = 10.0;
-		$mt    = 35.0;
-		$XDiag = $ml + $wLegend_first + 2.0;
-		$YDiag = $mt + 5.0;
+
+		$XDiag = $ml + $wLegend_left + 2.0;
 		$hDiag = $hBar * ($NbVal + 1);
 
-		$maxVal       = ceil(max($data) * 0.011) * 100;
+		$maxVal       = ceil(max($data) / 450) * 500;
+
+		$nbDiv  = (int)($maxVal/500);
+
 		$valIndRepere = ceil($maxVal / $nbDiv);
 		$maxVal       = $valIndRepere * $nbDiv;
 		$lRepere      = floor((self::PAGE_W - $ml - $XDiag) / $nbDiv);
 		$lDiag        = (float)($lRepere * $nbDiv);
 		$unit         = $lDiag / $maxVal;
 
-		$ls = ['lineWidth' => 0.2, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000'];
-		$barStyle = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#ff0000', 'fillColor' => '#ff0000']];
+		$LineStyle = [	'lineWidth' => 0.2, 
+						'lineCap' => 'butt', 
+						'lineJoin' => 'miter', 
+						'dashArray' => [], 
+						'dashPhase' => 0, 
+						'lineColor' => '#000000'];
 
-		$out = $this->graph->getStartTransform();
+
+		$barStyle = ['all' => [	'lineWidth' => 0.1, 
+								'lineCap' => 'butt', 
+								'lineJoin' => 'miter', 
+								'dashArray' => [], 
+								'dashPhase' => 0, 
+								'lineColor' => '#000000', 
+								'fillColor' => $this->fillcolorbar1,
+							]];
+
+
+
+		$out .= $this->graph->getStartTransform();
 		$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
 		$out .= $font['out'];
 
 		// outer box
-		$out .= $this->graph->getRect($XDiag, $YDiag, $lDiag, $hDiag, 'D', $ls);
+		$out .= $this->graph->getRect($XDiag, $y, $lDiag, $hDiag, 'D', $LineStyle);
 
 		// scale: vertical division lines + labels below
 		for ($i = 0; $i <= $nbDiv; $i++) {
 			$xpos = $XDiag + $lRepere * $i;
-			$out .= $this->graph->getLine($xpos, $YDiag, $xpos, $YDiag + $hDiag, $ls);
+			$out .= $this->graph->getLine($xpos, $y, $xpos, $y + $hDiag, $LineStyle);
 			$lbl = $i * $valIndRepere . $einheit;
 			$lw  = $this->getStringWidth($lbl);
 			$out .= $this->color->getPdfColor('#000000');
 			$out .= $this->getTextCell(	txt: $lbl, 
 										posx: $xpos - $lw / 2 - 1.0, 
-										posy: $YDiag + $hDiag + 1.0,
+										posy: $y + $hDiag + 1.0,
 										width: $lw + 2.0, 
 										height: $hBar, 
 										offset: 0, 
@@ -1022,39 +1060,42 @@ class PdfFangstatistik extends PdfTemplate {
 		$i = 0;
 		foreach ($data as $val) {
 			$lval    = (int)($val * $unit);
-			$yval    = $YDiag + ($i + 1) * $hBar - $eBaton / 2;
-			$barTopY = $yval + 0.5 * ($hBar - $eBaton);
+			$yval    = $y + ($i + 1) * $hBar - $heightBar / 2;
+			$barTopY = $yval + 0.5 * ($hBar - $heightBar);
 
 			// bar
 			if ($lval > 0) {
-				$out .= $this->graph->getRect($XDiag, $barTopY, $lval, $eBaton, 'DF', $barStyle);
+				$out .= $this->graph->getRect($XDiag, $barTopY, $lval, $heightBar, 'DF', $barStyle);
 			}
 
 			// value label with white background
 			$font = $this->font->insert($this->pon, 'helvetica', '', 8);
 			$out .= $font['out'];
-			$labelTxt = $legends_every[$i] . $einheit;
-			$lw = $this->getStringWidth($labelTxt) + 2.0;
-			$out .= $this->graph->getRect($XDiag + $lval + 0.1, $barTopY, $lw, $eBaton, 'F', $whiteFillStyle);
+			$lw = $this->getStringWidth($legends_right[$i]) + 2.0;
+
 			$out .= $this->color->getPdfColor('#000000');
-			$out .= $this->getTextCell(	txt: $labelTxt, 
-										posx: $XDiag + $lval + 0.1, 
+			$out .= $this->getTextCell(	txt: $legends_right[$i], 
+										posx: $XDiag + $lval + 0.5, 
 										posy: $barTopY, 
 										width: $lw, 
-										height: $eBaton, 
+										height: $heightBar, 
 										offset: 0, 
 										linespace: 0, 
 										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
-										halign: \Com\Tecnick\Pdf\TextHAlign::Center);
+										halign: \Com\Tecnick\Pdf\TextHAlign::Center,
+										styles: $this->buildFillStyle('', '#ffffff'),
+										drawcell: true,
+										);
+
 
 			// legend label right-aligned to the left of the chart
 			$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
 			$out .= $font['out'];
-			$out .= $this->getTextCell(	txt: $legends_first[$i], 
+			$out .= $this->getTextCell(	txt: $legends_left[$i], 
 										posx: $ml, 
-										posy: $yval - 2.0, 
-										width: $wLegend_first, 
-										height: $hBar * 2, 
+										posy: $barTopY, 
+										width: $wLegend_left, 
+										height: $heightBar,
 										offset: 0, 
 										linespace: 0, 
 										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
@@ -1071,9 +1112,16 @@ class PdfFangstatistik extends PdfTemplate {
    //
     // Diagramm Vorjahresvergleich erstellen
     //
-    public function Statistik_Vorjahresvergleich(array $jahresvergleich, string $typ = 'Anzahl'): void
+    public function Statistik_Vorjahresvergleich(array $data, array $data_prev, int $jahr, string $typ = 'Anzahl'): void
     {
-        $data_prev = [];
+
+		$ml = 10.0;
+		$mt = 15.0;
+		$mb = 10.0;
+		$hBar = 3.8;
+		$heightBar = 3.0;
+		$hh =  6.0;
+
 
         $normalizeSpeciesKey = static function (string $art): string {
             $art = trim($art);
@@ -1114,20 +1162,19 @@ class PdfFangstatistik extends PdfTemplate {
 
             return 0.0;
         };
-
-        foreach ($jahresvergleich as $jahr => $data) {
-            $YEAR = (int) $jahr;
-
+		$title = 'Vorjahresvergleich ' . $jahr;
+        $YEAR = $jahr;
+            $this->set_headerText('');
             if ($typ === 'Anzahl') {
                 $typidx = 5;
-                $this->set_headerText('Fangstatistik ' . $YEAR . ' Vorjahresvergleich nach Anzahl');
+				$subtitle = '(nach Anzahl)';
                 $faktor = 1.0;
                 $digits = 0;
                 $einheit = '';
                 $formatierung = '%s';
             } else {
                 $typidx = 4;
-                $this->set_headerText('Fangstatistik ' . $YEAR . ' Vorjahresvergleich nach Gewicht');
+				$subtitle = '(nach Gewicht in kg)';
                 $faktor = 0.001;
                 $digits = 1;
                 $einheit = 'kg';
@@ -1138,6 +1185,7 @@ class PdfFangstatistik extends PdfTemplate {
             $data_diagramm_gew_old = [];
 
             foreach ($data_prev as $gew_data) {
+				uksort($gew_data, 'strcoll');
                 foreach ($gew_data as $art => $row) {
                     $speciesKey = $normalizeSpeciesKey((string) $art);
                     $value = $readMetric((array) $row, $typ);
@@ -1153,6 +1201,7 @@ class PdfFangstatistik extends PdfTemplate {
             }
 
             foreach ($data as $gew_data) {
+				uksort($gew_data, 'strcoll');
                 foreach ($gew_data as $art => $row) {
                     $speciesKey = $normalizeSpeciesKey((string) $art);
                     $value = $readMetric((array) $row, $typ);
@@ -1176,69 +1225,128 @@ class PdfFangstatistik extends PdfTemplate {
                 $datas[$k] = isset($datas[$k]) ? $datas[$k] : 0;
                 $datas[$k . ' '] = $v;
             }
-            ksort($datas);
-
+			uksort($datas, 'strcoll');
             $chartData = [];
             foreach ($datas as $k => $v) {
                 $chartData[$restoreSpeciesLabel($k)] = $v;
             }
 
             if (empty($chartData) || max($chartData) <= 0) {
-                $data_prev = $data;
-                continue;
+                return;
             }
 
             $this->addPage(['orientation' => 'L', 'format' => 'A4']);
 
-            $ml = 10.0;
-            $mt = 35.0;
-            $hBar = 4.5;
-            $eBaton = 3.5;
-            $nbDiv = 4;
-            $fontTable = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+			$out = '';
+			$y = $mt;
+			// title
+			$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TITLE);
+			$out .= $font['out'];
+			$out .= $this->color->getPdfColor('#000000');
+			$out .= $this->getTextCell(	txt: $title, 
+										posx: $ml, 
+										posy: $y, 
+										width: self::PAGE_W - 2 * $ml, 
+										height: $hh, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
 
-            $legends_every = [];
-            $legends_first = [];
+			$width = $this->font->getOrdArrWidth(
+				$this->uniconv->strToOrdArr(strval($title)	)
+			) * 25.4 / 72;
+
+			$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+			$out .= $font['out'];
+			$out .= $this->getTextCell(	txt: $subtitle, 
+										posx: $ml + $width + 4, 
+										posy: $y+1.0, 
+										width: self::PAGE_W - 2 * $ml, 
+										height: $hh, 
+										offset: 0, 
+										linespace: 0, 
+										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
+										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
+			$y += $hh + 2.0;
+
+
+            $legends_right = [];
+            $legends_left = [];
             $wLegend_first = 0.0;
             foreach ($chartData as $label => $val) {
-                $legends_every[] = sprintf($formatierung, $val);
+                $legends_right[] = sprintf($formatierung, $val);
                 $cleanLabel = str_replace('Regenbogenforelle', 'Regenbogenf.', $label);
-                $legends_first[] = $cleanLabel;
+                $legends_left[] = $cleanLabel;
                 $wLegend_first = max($this->getStringWidth($cleanLabel), $wLegend_first);
             }
 
-            $YDiag = $mt + 12.0;
+
             $XDiag = $ml + $wLegend_first + 2.0;
             $lDiag = self::PAGE_W - $XDiag - 12.0;
-            $hDiag = $hBar * (count($chartData) + 1);
+            //$hDiag = $hBar * (count($chartData) + 1);
+			
+			$hDiag = self::PAGE_H - $mt - $mb - $wLegend_first - 2.0;
+			$hBar = $hDiag / (count($chartData) + 1);
+
 
             $chartEndX = $XDiag + $lDiag;
             $maxVal = (float) max($chartData);
-            $maxVal = max(1.0, ceil($maxVal * 0.011) * 100);
+            //$maxVal = max(1.0, ceil($maxVal * 0.011) * 100);
+
+			$maxVal = max(1.0, ceil(max($chartData) / 490) * 500);
+			$nbDiv  = (int)($maxVal/500);
+
             $valIndRepere = (float) ceil($maxVal / $nbDiv);
             $maxVal = $valIndRepere * $nbDiv;
             $lRepere = floor($lDiag / $nbDiv);
             $lDiag = $lRepere * $nbDiv;
             $unit = $lDiag / $maxVal;
 
-            $gridStyle = ['all' => ['lineWidth' => 0.2, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#ffffff']];
-            $oldBarStyle = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#d6d6d6']];
-            $newBarStyle = ['all' => ['lineWidth' => 0.1, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#7f9fc7']];
-            $whiteFillStyle = ['all' => ['lineWidth' => 0.0, 'lineCap' => 'butt', 'lineJoin' => 'miter', 'dashArray' => [], 'dashPhase' => 0, 'lineColor' => '#000000', 'fillColor' => '#ffffff']];
+            $LineStyle = [	'lineWidth' => 0.2, 
+							'lineCap' => 'butt', 
+							'lineJoin' => 'miter', 
+							'dashArray' => [], 
+							'dashPhase' => 0, 
+							'lineColor' => '#000000'];
 
-            $out = $this->graph->getStartTransform();
-            $out .= $fontTable['out'];
-            $out .= $this->graph->getRect($XDiag, $YDiag, $lDiag, $hDiag, 'D', $gridStyle);
+            $oldBarStyle = ['all' => [	'lineWidth' => 0.1, 
+										'lineCap' => 'butt', 
+										'lineJoin' => 'miter', 
+										'dashArray' => [], 
+										'dashPhase' => 0, 
+										'lineColor' => '#000000', 
+										'fillColor' => $this->fillcolorbar2,
+									]];
+            $newBarStyle = ['all' => [	'lineWidth' => 0.1, 
+										'lineCap' => 'butt', 
+										'lineJoin' => 'miter', 
+										'dashArray' => [], 
+										'dashPhase' => 0, 
+										'lineColor' => '#000000', 
+										'fillColor' => $this->fillcolorbar1,
+									]];
+
+            $out .= $this->graph->getStartTransform();
+            $font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+            $out .= $font['out'];
+
+			$out .= $this->graph->getLine($XDiag, $y, $XDiag + $lDiag-22, $y, $LineStyle);
+			$out .= $this->graph->getLine($XDiag, $y+$hDiag, $XDiag + $lDiag, $y+$hDiag, $LineStyle);
 
             for ($i = 0; $i <= $nbDiv; $i++) {
                 $xpos = $XDiag + $lRepere * $i;
-                $out .= $this->graph->getLine($xpos, $YDiag, $xpos, $YDiag + $hDiag, $gridStyle);
+				if ($i === $nbDiv) {
+                	$out .= $this->graph->getLine($xpos, $y+17, $xpos, $y + $hDiag, $LineStyle);
+				} else {
+                	$out .= $this->graph->getLine($xpos, $y, $xpos, $y + $hDiag, $LineStyle);
+				}
                 $lbl = sprintf('%s%s', $i * $valIndRepere, $einheit);
                 $lw = $this->getStringWidth($lbl);
                 $out .= $this->color->getPdfColor('#000000');
                 $out .= $this->getTextCell(	txt: $lbl, 
 											posx: $xpos - $lw / 2.0 - 1.0, 
-											posy: $YDiag + $hDiag + 1.0, 
+											posy: $y + $hDiag + 1.0, 
 											width: $lw + 2.0, 
 											height: 4.0, 
 											offset: 0, 
@@ -1253,52 +1361,73 @@ class PdfFangstatistik extends PdfTemplate {
             foreach ($chartValues as $i => $val) {
                 $xval = $XDiag;
                 $lval = (int) ($val * $unit);
-                $yval = $YDiag + ($i + 1) * $hBar - $eBaton / 2.0;
-                $yBase = $yval + 0.5 * ($hBar - $eBaton);
-                $barStyle = ($i % 2 === 0) ? $newBarStyle : $oldBarStyle;
-                $out .= $this->graph->getRect($xval, $yBase, $lval, $eBaton, 'DF', $barStyle);
+                $yval = $y + ($i + 1) * $hBar - $heightBar / 2.0;
+
+				if ($i % 2) {
+					$yBase = $yval - 0.5 * ($hBar - $heightBar);
+					$barStyle = $oldBarStyle;
+				} else {
+					$yBase = $yval + 0.5 * ($hBar - $heightBar);
+					$barStyle = $newBarStyle;
+				}
+                $out .= $this->graph->getRect($xval, $yBase, $lval, $heightBar, 'DF', $barStyle);
 
                 $labelTxt = sprintf($formatierung, $val) . $einheit;
-                $labelW = $this->getStringWidth($labelTxt) + 2.0;
-                $labelX = $xval + $lval + 0.1;
-                $out .= $this->graph->getRect($labelX, $yBase, $labelW, $eBaton, 'F', $whiteFillStyle);
+                $labelW = $this->getStringWidth($labelTxt);
+                $labelX = $xval + $lval;
+				$font = $this->font->insert($this->pon, 'helvetica', '', 7);
+				$out .= $font['out'];
+                //$out .= $this->graph->getRect($labelX, $yBase, $labelW, $heightBar, 'F', $whiteFillStyle);
                 $out .= $this->color->getPdfColor('#000000');
                 $out .= $this->getTextCell(	txt: $labelTxt, 
-											posx: $labelX, 
-											posy: $yBase, 
+											posx: $labelX+0.5, 
+											posy: $yBase+0.4, 
 											width: $labelW, 
-											height: $eBaton, 
+											height: $heightBar - 1.0, 
 											offset: 0, 
 											linespace: 0, 
 											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
-											halign: \Com\Tecnick\Pdf\TextHAlign::Center);
+											halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+											styles: $this->buildFillStyle('', '#ffffff'),
+											drawcell: true,
+											);
 
-                $speciesLabel = str_replace('Regenbogenforelle', 'Regenbogenf.', $chartLabels[$i]);
-                $out .= $this->getTextCell(	txt: $speciesLabel, 
+				$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TABLE);
+				$out .= $font['out'];
+
+				if ($i % 2 === 0) {
+			
+                	$speciesLabel = str_replace('Regenbogenforelle', 'Regenbogenf.', $chartLabels[$i]);
+					$out .= $this->getTextCell(	txt: $speciesLabel, 
 											posx: $ml, 
-											posy: $yBase - 1.0, 
+											posy: $yBase - ($hBar-$heightBar+0.2), 
 											width: $wLegend_first, 
 											height: $hBar * 2.0, 
 											offset: 0, 
 											linespace: 0, 
 											valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
-											halign: \Com\Tecnick\Pdf\TextHAlign::Right);
-            }
+											halign: \Com\Tecnick\Pdf\TextHAlign::Right,
+											styles: $this->buildFillStyle('', '#ffffff'),
+											drawcell: false,
+											);
+            
+				}
+			}
 
             $val2 = sprintf('%d', $YEAR);
             $val1 = sprintf('%d', $YEAR - 1);
             $maxw = max($this->getStringWidth($val2), $this->getStringWidth($val1));
 
             $legendBoxX = $chartEndX - $maxw * 2.5;
-            $legendBoxY1 = $YDiag + $hDiag - 2.0 - $hBar;
-            $legendBoxY2 = $YDiag + $hDiag - 2.0 - $hBar * 2.5;
+            $legendBoxY1 = $y + $hDiag - 2.0 - $hBar;
+            $legendBoxY2 = $y + $hDiag - 2.0 - $hBar * 2.5;
 
             $out .= $this->graph->getRect($legendBoxX, $legendBoxY1, $hBar, $hBar, 'DF', $oldBarStyle);
             $out .= $this->graph->getRect($legendBoxX, $legendBoxY2, $hBar, $hBar, 'DF', $newBarStyle);
             $out .= $this->color->getPdfColor('#000000');
             $out .= $this->getTextCell(	txt: $val1, 
 										posx: $legendBoxX + $hBar + 2.0, 
-										posy: $legendBoxY1 + 0.5 * $hBar, 
+										posy: $legendBoxY1, 
 										width: $maxw, 
 										height: $hBar, 
 										offset: 0, 
@@ -1307,14 +1436,14 @@ class PdfFangstatistik extends PdfTemplate {
 										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
             $out .= $this->getTextCell(	txt: $val2, 
 										posx: $legendBoxX + $hBar + 2.0, 
-										posy: $legendBoxY2 + 0.5 * $hBar, 
+										posy: $legendBoxY2, 
 										width: $maxw, 
 										height: $hBar, 
 										offset: 0, 
 										linespace: 0, 
 										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
 										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
-
+/*
             $sum = array_sum($data_diagramm_gew);
             $sum_old = array_sum($data_diagramm_gew_old);
 
@@ -1329,7 +1458,7 @@ class PdfFangstatistik extends PdfTemplate {
             $out .= $this->color->getPdfColor('#000000');
             $out .= $this->getTextCell(	txt: $t1, 
 										posx: $XDiag, 
-										posy: $YDiag + $hDiag + 10.0, 
+										posy: $y + $hDiag + 5.0, 
 										width: 90.0, 
 										height: 6.0, 
 										offset: 0, 
@@ -1338,19 +1467,18 @@ class PdfFangstatistik extends PdfTemplate {
 										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
             $out .= $this->getTextCell(	txt: $t2, 
 										posx: $XDiag + $lRepere * $nbDiv * 0.5, 
-										posy: $YDiag + $hDiag + 10.0, 
+										posy: $y + $hDiag + 10.0, 
 										width: 90.0, 
 										height: 6.0, 
 										offset: 0, 
 										linespace: 0, 
 										valign: \Com\Tecnick\Pdf\TextVAlign::Center, 
 										halign: \Com\Tecnick\Pdf\TextHAlign::Left);
-
+*/
             $out .= $this->graph->getStopTransform();
             $this->page->addContent($out);
 
-            $data_prev = $data;
-        }
+
     }
 
 
@@ -1375,27 +1503,35 @@ class PdfFangstatistik extends PdfTemplate {
 
 		$this->set_headerText('Fangstatistik ' . $year);
 
-		//$this->Statistik_gesamt($gewaesserStatistik, $gewaesserDetail, 'Anzahl');
-		//$this->Statistik_gesamt($gewaesserStatistik, $gewaesserDetail, 'Gewicht');
+		$this->Statistik_gesamt($gewaesserStatistik, $gewaesserDetail, 'Anzahl');
+		$this->Statistik_gesamt($gewaesserStatistik, $gewaesserDetail, 'Gewicht');
 		if (!empty($gewaesserStatistik) && !empty($gewaesserDetail)) {
 			$this->Statistik_Gewaesser($gewaesserStatistik, $gewaesserDetail);
 		}
 
 		$this->Statistik_User($user_statistik, true);
-		//$this->Statistik_Mehrjahresvergleich($jahres_statistik, 'Anzahl');
-		//$this->Statistik_Mehrjahresvergleich($jahres_statistik, 'Gewicht');
+		$this->Statistik_Mehrjahresvergleich($jahres_statistik, 'Anzahl');
+		$this->Statistik_Mehrjahresvergleich($jahres_statistik, 'Gewicht');
 
 		$gewaesser_statistik_years = $this->getForm('gewaesser_statistik_years', []);
 
-		//$this->Statistik_Vorjahresvergleich($gewaesser_statistik_years, 'Anzahl');
-		//$this->Statistik_Vorjahresvergleich($gewaesser_statistik_years, 'Gewicht');
 
 
+        $years = array_keys($gewaesser_statistik_years);
+        rsort($years, SORT_NUMERIC);
 
-
+        foreach ($years as $jahr) {
+			$data = $gewaesser_statistik_years[$jahr];
+			$prevJahr = (int) $jahr - 1;
+			$data_prev = $gewaesser_statistik_years[$prevJahr] ?? [];
+			if (empty($data_prev)) {
+				continue;
+			}
+			$this->Statistik_Vorjahresvergleich($data, $data_prev, (int) $jahr, 'Anzahl');
+			$this->Statistik_Vorjahresvergleich($data, $data_prev, (int) $jahr, 'Gewicht');
+		}
 
 	}
-
 }
 
 
@@ -1405,21 +1541,44 @@ class PdfFangstatistik extends PdfTemplate {
 class PdfFangstatistikJahr extends PdfFangstatistik {
 
 	/**
+	 * Load data for this template.
+	 *
+	 * Override this in subclasses or call setOptions()/setFormdata()/setAddressdata()
+	 * from the dispatcher before rendering to inject dynamic data.
+	 *
+	 * @return void
+	 */
+	protected function loadData(): void {
+		$verein = $this->getUrl('verein', '');
+        $year = (int) $this->getUrl('jahr', date('Y') - 1);
+
+		if (function_exists('bfvfangbuch')) {
+			$instance = bfvfangbuch();
+			$gewaesserDetail = $instance->get_gewaesser_details();
+		    $gewaesserStatistik = $instance->get_gewaesser_statistik_v2($year, $verein);
+		} else {
+			$gewaesserDetail = [];
+			$gewaesserStatistik = [];
+		}
+		/* daten für render bereitstellen */
+		$this->setForm('gewaesser_detail', $gewaesserDetail);
+		$this->setForm('gewaesser_statistik', $gewaesserStatistik);
+		$this->setForm('year', $year);
+		$this->setForm('verein', $verein);
+		$this->createStorageFolder('statistik');
+
+		$this->setHeaderText('Fangstatistik '. (string) $year , '');
+		$this->set_layout($this->getUrl('layout', ''));
+	}
+
+	/**
 	 * Render the PDF document.
 	 *
 	 * @return void
 	 */
 	protected function render(): void {
-
-		$this->set_layout($this->getUrl('layout', ''));
-
-		$year               = $this->getForm('year', date('Y') - 1);
 		$gewaesserStatistik = $this->getForm('gewaesser_statistik', []);
-		$jahres_statistik = $this->getForm('jahres_statistik', []);
 		$gewaesserDetail    = $this->getForm('gewaesser_detail', []);
-
-		$this->set_headerText('Fangstatistik ' . $year);
-
 		$this->Statistik_gesamt($gewaesserStatistik, $gewaesserDetail, 'Anzahl');
 		$this->Statistik_gesamt($gewaesserStatistik, $gewaesserDetail, 'Gewicht');
 		if (!empty($gewaesserStatistik) && !empty($gewaesserDetail)) {
@@ -1443,14 +1602,27 @@ class PdfFangstatistikMehrjahresvergleich extends PdfFangstatistik {
 
 		$this->set_layout($this->getUrl('layout', ''));
 
+		$jahres_statistik = $this->getForm('jahres_statistik', []);
+		$this->set_headerText('Fangstatistik');
+		$this->Statistik_Mehrjahresvergleich($jahres_statistik, 'Anzahl');
+		$this->Statistik_Mehrjahresvergleich($jahres_statistik, 'Gewicht');
+	
+		//$this->set_headerText('Fangstatistik');
+		$gewaesser_statistik_years = $this->getForm('gewaesser_statistik_years', []);
 
-		$this->set_headerText('Fangstatistik Mehrjahresvergleich');
-		$this->Statistik_Mehrjahresvergleich($mehrjahresvergleich, 'Anzahl');
-		$this->Statistik_Mehrjahresvergleich($mehrjahresvergleich, 'Gewicht');
+        $years = array_keys($gewaesser_statistik_years);
+        rsort($years, SORT_NUMERIC);
 
-
-
-
+        foreach ($years as $jahr) {
+			$data = $gewaesser_statistik_years[$jahr];
+			$prevJahr = (int) $jahr - 1;
+			$data_prev = $gewaesser_statistik_years[$prevJahr] ?? [];
+			if (empty($data_prev)) {
+				continue;
+			}
+			$this->Statistik_Vorjahresvergleich($data, $data_prev, (int) $jahr, 'Anzahl');
+			$this->Statistik_Vorjahresvergleich($data, $data_prev, (int) $jahr, 'Gewicht');
+		}
 	}
 }
 
@@ -1469,11 +1641,13 @@ class PdfFangstatistikVorJahresvergleich extends PdfFangstatistik {
 
 		$this->set_layout($this->getUrl('layout', ''));
 
-		$mehrjahres_statistik    = $this->getForm('gewaesser_statistik_years', []);
+		$gewaesser_statistik_years = $this->getForm('gewaesser_statistik_years', []);
 
 		$this->set_headerText('Fangstatistik Jahresvergleich');
-		$this->Statistik_Vorjahresvergleich($mehrjahres_statistik, 'Anzahl');
-		$this->Statistik_Vorjahresvergleich($mehrjahres_statistik, 'Gewicht');
+        foreach ($gewaesser_statistik_years as $jahr => $data) {
+			$this->Statistik_Vorjahresvergleich($data, $jahr, 'Anzahl');
+			$this->Statistik_Vorjahresvergleich($data, $jahr, 'Gewicht');
+		}
 	}
 }
 

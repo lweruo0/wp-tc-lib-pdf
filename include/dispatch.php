@@ -48,7 +48,7 @@ PdfRegistry::register('fangstatistik', 'PdfFangstatistikJahr', __DIR__ . '/class
 PdfRegistry::register('vorjahresvergleich', 'PdfFangstatistikVorJahresvergleich', __DIR__ . '/class-pdf-fangstatistik.php');
 //https://bfv-ehingen.de/?JahresDiagramm=1&yy=2024
 PdfRegistry::register('mehrjahresvergleich', 'PdfFangstatistikMehrjahresvergleich', __DIR__ . '/class-pdf-fangstatistik.php');
-//https://bfv-ehingen.de/?fpdfUser=1&yy=2024
+//https://bfv-ehingen.de/?pdf_make_JahresDiagramm=1&yy=2024
 PdfRegistry::register('fangstatistikuservergleich', 'PdfFangstatistikUser', __DIR__ . '/class-pdf-fangstatistik.php');
 //https://bfv-ehingen.de/?fpdfUser=1&yy=2024
 PdfRegistry::register('fangstatistik_demo', 'PdfFangstatistik', __DIR__ . '/class-pdf-fangstatistik.php');

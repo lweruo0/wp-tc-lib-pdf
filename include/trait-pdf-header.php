@@ -145,10 +145,10 @@ trait PdfHeaderTrait {
 			}
 		}
 
-		// page number: 1-based current page and total
+		// page number: current page only; total page count is not reliably known while
+		// the repeating page content is generated, so it must not be displayed here.
 		$currentPage = $this->page->getPageID() + 1;
-		$totalPages  = count($this->page->getPages());
-		$pageNum     = $currentPage . '/' . $totalPages;
+		$pageNum     = (string) $currentPage;
 
 		$pageNumW = max(20.0, $this->getStringWidth($pageNum) + 4.0);
 		$leftW    = $tw - $pageNumW;
