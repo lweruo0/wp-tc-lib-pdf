@@ -36,7 +36,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
             $expires,
             $nr
         );
-        echo '<p><a href="' . esc_url($url) . '">' . esc_html($label) . '</a></p>';
+        echo '<p><a target="_blank" rel="noopener noreferrer" href="' . esc_url($url) . '">' . esc_html($label) . '</a></p>';
     }   
     private static function shortterm_url( $label, $typ, $param=array() ): void {
         $url = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url(
@@ -47,7 +47,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
             '',
             ''
         );
-        echo '<p><a href="' . esc_url($url) . '">' . esc_html($label) . '</a></p>';
+        echo '<p><a target="_blank" rel="noopener noreferrer" href="' . esc_url($url) . '">' . esc_html($label) . '</a></p>';
     }
 
 

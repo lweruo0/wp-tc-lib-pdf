@@ -135,7 +135,9 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 			$query['expires'] = $expires_date;
 			$query['nr'] = (string) $nr;
 		} else {
-			$query['nonce'] = wp_create_nonce($template_id);
+			$jahr = $params['jahr'] ?? '';
+			$nr_str = (string) $nr;
+			$query['nonce'] = wp_create_nonce($template_id.$nr_str.$jahr);
 		}
 
 		if ($download) {

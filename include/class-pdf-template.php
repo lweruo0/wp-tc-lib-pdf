@@ -96,7 +96,9 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 	public function output(): void {
 		$this->loadData();
 		$filename = $this->getFileNameAbs();
-		if ($filename !== '' && file_exists($filename) && is_file($filename)) {
+		$new = $this->getUrl('new', false);
+
+		if ($filename !== '' && file_exists($filename) && is_file($filename) && !$new) {
 			header ( "Expires: 0" );
 			header ( "Cache-Control: must-revalidate" );
 			header ( 'Cache-Control: pre-check=0, post-check=0, max-age=0', false );
@@ -109,10 +111,18 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 			exit ();
 		}
 
-
 		$this->initialize();
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
+
+		$storagePath = $this->getStoragePath();
+		if ($storagePath !== '') {
+			//file_put_contents($filename, $rawpdf);
+		}
+		$filename = $this->getFileName();
+		if ($filename !== '') {
+			$this->setPDFFilename($filename);
+		}
 		$this->downloadPDF($rawpdf);
 	}
 
@@ -128,8 +138,9 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		$this->loadData();
 
 		$filename = $this->getFileNameAbs();
+		$new = $this->getUrl('new', false);
 
-		if ($filename !== '' && file_exists($filename) && is_file($filename)) {
+		if ($filename !== '' && file_exists($filename) && is_file($filename) && !$new) {
 			header ( "Expires: 0" );
 			header ( "Cache-Control: must-revalidate" );
 			header ( 'Cache-Control: pre-check=0, post-check=0, max-age=0', false );
@@ -145,6 +156,17 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		$this->initialize();
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
+		$storagePath = $this->getStoragePath();
+		if ($storagePath !== '') {
+			//file_put_contents($filename, $rawpdf);
+		}
+		$filename = $this->getFileName();
+
+		error_log(print_r("dddasssssssssss {$filename}", TRUE));
+		
+		if ($filename !== '') {
+			$this->setPDFFilename($filename);
+		}
 		$this->renderPDF($rawpdf);
 	}
 
@@ -172,7 +194,6 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		}
 
 		// Generate PDF
-
 		$this->initialize();
 		$this->render();
 		$rawpdf = $this->getOutPDFString();
@@ -180,5 +201,4 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		// Save to file
 		return file_put_contents($filename, $rawpdf) !== false;
 	}
-
 }

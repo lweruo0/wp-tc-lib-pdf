@@ -207,7 +207,9 @@ class Pdf_Dispatcher {
 	private function verify_nonce(): bool {
 		$nonce = sanitize_text_field(wp_unslash($_GET['nonce']));
 		$template_id = sanitize_text_field(wp_unslash($_GET['get_pdf']));
-		return wp_verify_nonce($nonce, $template_id);
+		$nr = sanitize_text_field(wp_unslash($_GET['nr'] ?? ''));
+		$jahr = sanitize_text_field(wp_unslash($_GET['jahr'] ?? ''));
+		return wp_verify_nonce($nonce, $template_id.$nr.$jahr);
 	}
 
 	/**

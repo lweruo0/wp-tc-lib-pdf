@@ -109,8 +109,7 @@ class PdfFangstatistik extends PdfTemplate {
 
 		$this->setHeaderText('Fangstatistik', $year > 0 ? (string) $year : '');
 		$this->setHeaderLogoImage($this->print_layout ? __DIR__ . '/images/logo_bfv2_print.png' : __DIR__ . '/images/logo_bfv2.png');
-		//$adressData = get_option ( 'bfv_adressen' );
-		//$this->setAddressdata($adressData);
+		$this->setFileName("fangstatistik_{$year}.pdf");
 		$this->createStorageFolder('statistik');
 	}
 
@@ -1515,8 +1514,6 @@ class PdfFangstatistik extends PdfTemplate {
 
 		$gewaesser_statistik_years = $this->getForm('gewaesser_statistik_years', []);
 
-
-
         $years = array_keys($gewaesser_statistik_years);
         rsort($years, SORT_NUMERIC);
 
@@ -1566,7 +1563,7 @@ class PdfFangstatistikJahr extends PdfFangstatistik {
 		$this->setForm('year', $year);
 		$this->setForm('verein', $verein);
 		$this->createStorageFolder('statistik');
-
+		$this->setFileName("fangstatistik_{$year}.pdf");
 		$this->setHeaderText('Fangstatistik '. (string) $year , '');
 		$this->set_layout($this->getUrl('layout', ''));
 	}

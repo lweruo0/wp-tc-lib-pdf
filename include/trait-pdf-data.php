@@ -227,13 +227,9 @@ trait PdfDataTrait {
 	}
 
 	/**
-	 * Set the absolute file name for the PDF including the folder name.
+	 * Get the base file name for the PDF.
 	 *
-	 * Combines the storage folder path with the given file name.
-	 *
-	 * @param string $fileName The file name (without path).
-	 *
-	 * @return void
+	 * @return string
 	 */
 	public function getFileName(): string {
 		return $this->fileName;
