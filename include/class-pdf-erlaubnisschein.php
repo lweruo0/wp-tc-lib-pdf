@@ -58,20 +58,23 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 
 		$adressData = get_option('bfv_adressen');
 		$this->setAddressdata($adressData ?: []);
-		$this->createStorageFolder('bfv_erlaubnisschein');
-		$this->setFileName("erlaubnisschein_$rechnungsnummer.pdf");
 
-		if (function_exists('bfverlaubnisscheine')) {
-			$instance = bfverlaubnisscheine();
-			$formdata = $instance->get_formdata_by_rechnungsnummer($rechnungsnummer);
-		} else {
-			$formdata = [];
+		$this->createStorageFolder('bfv_erlaubnisschein');
+		$this->setFileName("erlaubnis_$rechnungsnummer.pdf");
+
+		$formdata = $this->getAllFormdata();
+		if (empty($formdata)) {
+			if (function_exists('bfverlaubnisscheine')) {
+				$instance = bfverlaubnisscheine();
+				$formdata = $instance->get_formdata_by_rechnungsnummer($rechnungsnummer);
+			} else {
+				$formdata = [];
+			}
 		}
 
 		$formdata['statistik_options'] = get_option ( 'bfv_erlaubnisschein_statistik' );
 		$formdata['schonzeiten'] = get_option ( 'bfv_erlaubnisschein_schonzeit' );
 		$formdata['gewaesser'] = get_option ( 'bfv_gewaesser' );
-
 		$formdata['documenttype'] = 'Erlaubnisschein';
 		$formdata['returnme'] = 'falls unzustellbar, bitte zurück';
 		$this->setFormdata($formdata);
@@ -679,7 +682,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			//$out .= $this->graph->getStartTransform();
 
 			$qrsize = 40.0;
-			$qrX = $xpos + self::PAGE_W * 0.5 - self::MARGIN - $qrsize - 1.0;
+			$qrX = $xpos + self::PAGE_W * 0.5 - self::MARGIN - $qrsize - 5.0;
 			$qrY = $ypos + self::PAGE_H * 0.5 - self::MARGIN - $qrsize - 9.0;
 			$qrContent = $url;
 
@@ -1401,19 +1404,6 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			],
 		];
 
-		$testFillStyle = [
-			'all' => [
-				'lineWidth' => 0.1,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'miterLimit' => 0.5,
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => 'black',
-				'fillColor' => 'orange',
-			],
-		];
-
 
 		$tableX = 5.0;
 		$tableY = 14.0;
@@ -1512,21 +1502,6 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		}
 		return $out;
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

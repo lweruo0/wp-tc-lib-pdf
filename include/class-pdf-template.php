@@ -119,10 +119,6 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		if ($storagePath !== '') {
 			//file_put_contents($filename, $rawpdf);
 		}
-		$filename = $this->getFileName();
-		if ($filename !== '') {
-			$this->setPDFFilename($filename);
-		}
 		$this->downloadPDF($rawpdf);
 	}
 
@@ -160,13 +156,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		if ($storagePath !== '') {
 			//file_put_contents($filename, $rawpdf);
 		}
-		$filename = $this->getFileName();
 
-		error_log(print_r("dddasssssssssss {$filename}", TRUE));
-		
-		if ($filename !== '') {
-			$this->setPDFFilename($filename);
-		}
 		$this->renderPDF($rawpdf);
 	}
 

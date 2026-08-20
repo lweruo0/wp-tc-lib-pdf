@@ -26,7 +26,7 @@ PdfRegistry::register('rechnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-
 // PdfRegistry::register('rechnung_vorbereitungslehrgang', 'PdfRechnungVorbereitungslehrgang', __DIR__ . '/class-pdf-rechnung-vorbereitungslehrgang.php');
 
 // https://bfv-ehingen.de/?mahnung=2026-P-0147&key=68115147e855ecdcd7c9395b5bbe8ff9
-PdfRegistry::register('mahnung_erlaubnis', 'PdfRechnungErlaubnis', __DIR__ . '/class-pdf-rechnung-erlaubnis.php');
+PdfRegistry::register('mahnung_erlaubnis', 'PdfMahnungErlaubnis', __DIR__ . '/class-pdf-rechnung-erlaubnis.php');
 // https://bfv-ehingen.de/?mahnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e
 PdfRegistry::register('mahnung_merchandise', 'PdfRechnungMerchandise', __DIR__ . '/class-pdf-rechnung-merchandise.php');
 // https://bfv-ehingen.de/?mahnung_antrag=244&key=45042c927a

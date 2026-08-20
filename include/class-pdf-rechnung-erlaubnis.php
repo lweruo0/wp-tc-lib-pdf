@@ -60,14 +60,14 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$this->createStorageFolder('bfv_erlaubnisschein');
 		$this->setFileName("rechnung_$rechnungsnummer.pdf");
 
-
-			
-
-		if (function_exists('bfverlaubnisscheine')) {
-			$instance = bfverlaubnisscheine();
-			$formdata = $instance->get_formdata_by_rechnungsnummer($rechnungsnummer);
-		} else {
-			$formdata = [];
+		$formdata = $this->getAllFormdata();
+		if (empty($formdata)) {
+			if (function_exists('bfverlaubnisscheine')) {
+				$instance = bfverlaubnisscheine();
+				$formdata = $instance->get_formdata_by_rechnungsnummer($rechnungsnummer);
+			} else {
+				$formdata = [];
+			}
 		}
 
 		$name = $this->getAddress ( 'name_verein',  '' );
@@ -85,6 +85,18 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$formdata['sender'] = $this->getAddress('sender', "$name, $addr, $city");
 		$formdata['date'] = isset($formdata['created_at']) ? date("d.m.Y", strtotime($formdata['created_at'])) : date("d.m.Y");
 		$formdata['zahlungsfrist'] = $formdata['zahlungsfrist_original'] ?? date ( "d.m.Y", strtotime('+7 days') );
+		
+		$text_below = 'Der Rechnungsbetrag von ' . number_format ( $formdata['brutto'] ?? 0, 2, ',', '' ) . ' € ist spätestens zum ' . $this->getForm('zahlungsfrist', '') . ' fällig.';
+		$text_below .= ' Nach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht ';
+		$text_below .= 'innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das ';
+		$text_below .= 'Rechnungsdatum dem Leistungsdatum.';
+		$formdata['text_below'] = $text_below;
+		
+		$text_before = 'für den von uns am ' . $formdata['date'] . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
+
+		$formdata['texts_before'] = [$text_before];
+
+
 		$this->setFormdata($formdata);
 	}
 
@@ -95,12 +107,50 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$rechnung_anrede = $this->getForm('rechnung_anrede', 'Herr');
 		$rechnungsnummer = $this->getForm('rechnungsnummer', '');
 
-		$y += self::ROW_HEIGHT;
 		$out = $this->graph->getStartTransform();
-		$fontb = $this->font->insert($this->pon, 'helvetica', 'B', 11);
 		$out .= $this->color->getPdfColor('#000000');
 
-		$out .= $fontb['out'];
+
+		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
+		$out .= $font['out'];
+
+		$out .= $this->getTextCell(
+			txt: 'Ehingen, den ' . $this->getForm('date', ''),
+			posx: 125.0,
+			posy: $y,
+			width: 165.0,
+			height: $font['size'],
+			offset: 0,
+			linespace: 0,
+			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+		);
+
+
+		// optionalen Text für Zahlungserinnerung einfügen, falls vorhanden
+		$text_zahlungserinnerung = $this->getForm('text_zahlungserinnerung', '');
+		if (!empty($text_zahlungserinnerung)) {
+			$font = $this->font->insert($this->pon, 'helvetica', 'B', 17);
+			$lineHeight = $font['height'];
+			$out .= $font['out'];
+			$out .= $this->getTextCell(
+				txt: $text_zahlungserinnerung,
+				posx: 25.0,
+				posy: $y,
+				width: 165.0,
+				height: 5.0,
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			);
+			$y += self::ROW_HEIGHT*2;
+		} else {
+			$y += self::ROW_HEIGHT;
+		}
+
+		$font = $this->font->insert($this->pon, 'helvetica', 'B', 11);
+		$out .= $font['out'];
 		$out .= $this->getTextCell(
 			txt: 'Rechnung Nr. ' . $rechnungsnummer,
 			posx: 25.0,
@@ -117,20 +167,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
 		$out .= $font['out'];
 
-		$y -= self::ROW_HEIGHT;
-		$out .= $this->getTextCell(
-			txt: 'Ehingen, den ' . $this->getForm('date', ''),
-			posx: 125.0,
-			posy: $y,
-			width: 165.0,
-			height: $font['size'],
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
-
-		$y += self::ROW_HEIGHT*3;
+		$y += self::ROW_HEIGHT*2;
 		$greetingText = ($rechnung_anrede == 'Frau') 
 			? "Sehr geehrte Frau " . $rechnung_name . ','
 			: "Sehr geehrter Herr " . $rechnung_name . ',';
@@ -147,19 +184,21 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 		$y += $font['size']*0.5;
-		$text = 'für den von uns am ' . $this->getForm('date', '') . ' bezogenen Erlaubnisschein berechnen wir Ihnen:';
-		$out .= $this->getTextCell(
-			txt: $text,
-			posx: 25.0,
-			posy: $y,
-			width: 165.0,
-			height: $font['size'],
-			offset: 0,
-			linespace: 0,
-			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-		);
-		$y += $font['size']*0.5;
+
+		foreach ($this->getForm('texts_before', []) as $text) {
+			$out .= $this->getTextCell(
+				txt: $text,
+				posx: 25.0,
+				posy: $y,
+				width: 165.0,
+				height: $font['size'],
+				offset: 0,
+				linespace: 0,
+				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
+				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
+			);
+			$y += $font['size']*0.5;
+		}
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
 		return $y;
@@ -187,7 +226,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			$y += self::ROW_HEIGHT * 0.2; // Add a small gap before the next line
 			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 125, 5, 5, 30, 'Rabatt (' . $this->getForm('rabattcode', '') . ')', '', '', '-' . number_format($this->getForm('rabatt_netto', 0), 2, ',', '') . ' €', 255);
 		}
-
+	
 		$y += self::ROW_HEIGHT;
 		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Nettobetrag', '', '', number_format($this->getForm('netto', 0), 2, ',', '') . ' €', 255);
 
@@ -195,24 +234,23 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Umsatzsteuer ' . $this->getForm('steuersatz', 0) . '%', '', '', number_format($this->getForm('steuer', 0), 2, ',', '') . ' €', 255);
 		}
 
+		if ($this->getForm('mahngebuehr', 0) > 0) {
+			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 100, 5, 30, 30, 'Mahngebühr', '', '', number_format($this->getForm('mahngebuehr', 0), 2, ',', '') . ' €', 255);
+		}
+
 		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 100, 5, 30, 30, 'Rechnungsbetrag', '', '', number_format($this->getForm('brutto', 0), 2, ',', '') . ' €', 230, 'BU');
 
 		$y += self::ROW_HEIGHT*0.5;
-		$text = 'Der Rechnungsbetrag von ' . number_format ( $this->getForm('brutto', 0), 2, ',', '' ) . ' € ist spätestens zum ' . $this->getForm('zahlungsfrist', '') . ' fällig.';
-		$text .= 'Nach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht ';
-		$text .= 'innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das ';
-		$text .= 'Rechnungsdatum dem Leistungsdatum.';
-
 		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
 		$out .= $font['out'];
 		$out .= $this->color->getPdfColor('#000000');
 
 		$out .= $this->getTextCell(
-			txt: $text,
+			txt: $this->getForm('text_below', ''),
 			posx: 25.0,
 			posy: $y,
 			width: 165.0,
-			height: self::ROW_HEIGHT * 3,
+			height: self::ROW_HEIGHT * 5,
 			offset: 0,
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Top,
@@ -221,7 +259,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 
 		$out .= $this->graph->getStopTransform();
 		$this->page->addContent($out);
-		return $y + self::ROW_HEIGHT * 3;
+		return $y + self::ROW_HEIGHT * 5;
 	}
 
 
@@ -232,7 +270,6 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 	 */
 	protected function render(): void {
 		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
-
 		$this->addPage();
 		$this->add_adress_field();
 		$this->add_falzmarken();
@@ -241,5 +278,81 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$y = $this->add_anschreiben_rechnung(105);
 		$y += self::ROW_HEIGHT*0.5;
 		$this->add_rechnung_block($y);
+	}
+}
+
+class PdfMahnungErlaubnis extends PdfRechnungErlaubnis {
+
+	/**
+	 * Load data for this template.
+	 *
+	 * Override this in subclasses or call setOptions()/setFormdata()/setAddressdata()
+	 * from the dispatcher before rendering to inject dynamic data.
+	 *
+	 * @return void
+	 */
+	protected function loadData(): void {
+		parent::loadData();
+
+		$rechnungsnummer = $this->getUrl('nr', '');
+		$this->setFileName("mahnung_$rechnungsnummer.pdf");
+
+		$formdata = $this->getAllFormdata();
+		$betrag = number_format ( $formdata ['brutto'], 2, ',', '' );
+		if ($betrag == '0,00' ) {
+			return;
+		}
+
+		$formdata['documenttype'] = 'Mahnung Erlaubnisschein';
+		$formdata['zahlungsfrist'] = $formdata['zahlungsfrist_original'] ?? date ( "d.m.Y", strtotime('+7 days') );
+		$zweitemahnung = $this->getUrl('zweitemahnung', '');
+
+		$betrag = number_format ( $formdata ['brutto'], 2, ',', '' );
+		if ($betrag == '0,00' ) {
+			return;
+		}
+
+		$mahngebuehr = number_format($this->getOption('mahngebuehr', 0.0), 2, ',', '');
+		if ($mahngebuehr == '0,00') {
+			$ohnemahngebuehr = 'true';
+		} else {
+			$ohnemahngebuehr = $this->getUrl('ohnemahngebuehr', '');
+		}
+
+		if ($zweitemahnung != '') {
+			$formdata ['text_zahlungserinnerung'] = '2. Zahlungserinnerung';
+		} else {
+			$formdata ['text_zahlungserinnerung'] = 'Zahlungserinnerung';
+		}
+
+		if ($ohnemahngebuehr != ''){
+			$formdata ['mahngebuehr'] = 0;
+		} else {
+			if ($zweitemahnung != '') {
+				$formdata ['mahngebuehr'] = (float)$this->getOption('mahngebuehr', 0.0) * 2;
+				$formdata ['brutto'] += $formdata ['mahngebuehr'];
+			} else {
+				$formdata ['mahngebuehr'] = $this->getOption('mahngebuehr', 0.0);
+				$formdata ['brutto'] += (float)$formdata ['mahngebuehr'];
+			}
+		}
+
+		$text_below = 'Der offene Betrag von ' . number_format ( $formdata ['brutto'], 2, ',', '' ) . ' € ist spätestens zum ' . $formdata ['zahlungsfrist'] . ' fällig.';
+		$text_below .= ' Sollte bis dahin kein Zahlungseingang erfolgen, müssten wir weitere Schritte prüfen.';
+		$text_below .= ' Falls Sie die Zahlung bereits veranlasst haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.';
+		$formdata['text_below'] = $text_below;
+
+		$formdata['texts_before'] = [];
+		$formdata['texts_before'][]= "die Bezahlung der Rechnung Nr. " . $formdata ['rechnungsnummer'] . " war am " . $formdata ['zahlungsfrist_original'] . " fällig.";
+		$formdata['texts_before'][]= "";
+		$formdata['texts_before'][] = "Leider konnten wir bisher keinen Zahlungseingang verbuchen. ";
+
+		if ($formdata ['mahngebuehr'] > 0.0) {
+			$formdata['texts_before'][] = "Aufgrund der uns zusätzlich entstehenden Kosten und Aufwände sehen wir uns leider";
+			$formdata['texts_before'][] = "gezwungen Mahngebühren in Rechnung zu stellen. Der offene Betrag setzt sich wie";
+			$formdata['texts_before'][] = "folgt zusammen: ";
+		}
+
+		$this->setFormdata($formdata);
 	}
 }
