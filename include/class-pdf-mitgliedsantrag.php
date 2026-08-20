@@ -39,21 +39,27 @@ class PdfMitgliedsantrag2 extends PdfTemplate {
 	protected function loadData(): void {
 
 		$options = get_option('bfv_mitgliedsantrag_einstellungen');
+		$options['daten_erklaerung'] = get_option ( 'bfv_mitgliedsantrag_daten' );
+		$options['foto_erklaerung'] = get_option ( 'bfv_mitgliedsantrag_fotos' );
 		$this->setOptions($options);
 
 		$adressData = get_option ( 'bfv_adressen' );
 		$this->setAddressdata($adressData);
 		$this->createStorageFolder('bfv_mitgliedsantrag');
 
-
-		$mitgliedsnummern = preg_split("/[,-]/", $this->getUrl('mnr', ''), -1, PREG_SPLIT_NO_EMPTY);
-		$formdata = [];
-		if (function_exists('bfvmitgliedsantrag')) {
-			$instance = bfvmitgliedsantrag ();
-			foreach ( $mitgliedsnummern as $mitgliedsnummer ) {
-				$formdata[] = $instance->get_formdata_by_mitgliedsnummer ( $mitgliedsnummer );
+		$formdata = $this->getAllFormdata();
+		if (empty($formdata)) {
+			if (function_exists('bfvmitgliedsantrag')) {
+				$instance = bfvmitgliedsantrag();
+				$mitgliedsnummern = preg_split("/[,-]/", $this->getUrl('mnr', ''), -1, PREG_SPLIT_NO_EMPTY);
+				foreach ( $mitgliedsnummern as $mitgliedsnummer ) {
+					$formdata[] = $instance->get_formdata_by_mitgliedsnummer ( $mitgliedsnummer );
+				}
+			} else {
+				$formdata = [];
 			}
-		} 
+		}
+
 		$formdata['documenttype'] = 'Mitgliedsantrag';
 
 		$this->setFormdata($formdata);
