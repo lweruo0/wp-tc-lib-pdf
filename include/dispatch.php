@@ -58,7 +58,7 @@ PdfRegistry::register('fangstatistikuservergleich', 'PdfFangstatistikUser', __DI
 // https://bfv-ehingen.de/?mitgliedsantrag=1&mn=244&vn=Alexander&n=Lammert&y=2026&key=cc11bdd3e4e5c1263e0a76c5745d23d2
 PdfRegistry::register('mitgliedsantrag', 'PdfMitgliedsantrag2', __DIR__ . '/class-pdf-mitgliedsantrag.php');
 // https://bfv-ehingen.de/?infoblatt-antrag=1&mn=244
-PdfRegistry::register('mitgliedsantraginfo', 'PdfMitgliedsantrag2', __DIR__ . '/class-pdf-mitgliedsantrag.php');
+PdfRegistry::register('mitgliedsantraginfo', 'PdfMitgliedsantragInfoBlatt', __DIR__ . '/class-pdf-mitgliedsantrag.php');
 
 
 // Add more templates here as needed:

@@ -74,6 +74,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
         self::long_term_link('Rechnung Erlaubnis 2026-P-0148', 'rechnung_erlaubnis', '2099-12-31', '2026-P-0148');
         self::long_term_link('TODO Mahnung Erlaubnis 2026-P-0148', 'mahnung_erlaubnis', '2099-12-31', '2026-P-0148');
 
+        self::shortterm_url('TODO Mitgliedsantrag 160' , 'mitgliedsantrag', ['mnr' => '160-233-234-235']);
         self::shortterm_url('TODO Mitgliedsantrag 233' , 'mitgliedsantrag', ['mnr' => '233']);
         self::shortterm_url('TODO Mitgliedsantraginfo 233', 'mitgliedsantraginfo', ['mnr' => '233']);
         self::long_term_link('Rechnung Mitgliedsantrag 233', 'rechnung_antrag', '2099-12-31', '233');
@@ -83,8 +84,39 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
         self::shortterm_url('Jahresvergleich', 'jahresvergleich');
         self::shortterm_url('Uservergleich 2024', 'fangstatistikuservergleich',  ['jahr' => '2024']);
 
-        //self::update_urls();
 
+    }
+
+
+	/*
+	 *
+	 *
+	 *
+	 */
+	private static function update_ad() {
+
+		$repository = Quform::getService ( 'repository' );
+		$formFactory = Quform::getService ( 'formFactory' );
+		$form = $formFactory->create ( $repository->getConfig ( 4 ) );
+		$entries = $repository->getEntries ( $form, array (
+				'order_by' => 'created_at',
+				'order' => 'ASC',
+				'limit' => 10000,
+		) );
+
+		/* wir suchen die Bestellungen mit der richtigen Rechnungsnummer */
+		if (is_array ( $entries )) {
+			foreach ( $entries as $entry ) {
+                $entryId = $entry ['id'];
+                if (isset($entry['element_16']) && $entry['element_16'] === '12.10.2026') {
+                    error_log(print_r($entry['element_16'], TRUE));
+                    $update_ids = array();
+                    $update_ids[16] = '24.10.2026';
+                    $repository->saveEntryData($entryId, $update_ids);
+                    //error_log(print_r($entry, TRUE));
+                }
+            }
+        }
     }
 
 	/*

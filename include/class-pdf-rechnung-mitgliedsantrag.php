@@ -61,8 +61,6 @@ class PdfRechnungMitgliedsantrag extends PdfTemplate {
 
 
 
-
-
 		$this->setFileName("rechnung_$rechnungsnummer.pdf");
 
 		//$mitgliedsnummern = preg_split("/[,-]/", $_GET['rechnungantrag'], -1, PREG_SPLIT_NO_EMPTY);
