@@ -1426,7 +1426,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				continue; // Skip the first 6 columns for vertical separators
 			}
 
-			$out .= $this->graph->getLine($verticalSeparatorX-$columnWidths[$i]*0.5, $horizontalY, $verticalSeparatorX-$columnWidths[$i]*0.5, $horizontalY + (27 * $zeilenhoehe), $lineStyle);
+			$out .= $this->graph->getLine($verticalSeparatorX-$columnWidths[$i]*0.5, $horizontalY, $verticalSeparatorX-$columnWidths[$i]*0.5, $horizontalY + (27 * $zeilenhoehe), $whiteFillStyle);
 			for ($row = 0; $row <= 26; $row++) {
 				$out .= $this->graph->getRect($verticalSeparatorX-$columnWidths[$i]*0.5-1.5, $horizontalY+$zeilenhoehe*0.5-1.5, 3, 3, 'DF', $whiteFillStyle);
 				$horizontalY += $zeilenhoehe;

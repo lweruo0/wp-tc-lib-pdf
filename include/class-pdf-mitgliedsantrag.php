@@ -309,7 +309,7 @@ class PdfMitgliedsantrag2 extends PdfMitgliedsantragData {
 	}
 
 
-	protected function addApplicationSignature(int $ypos, string $label, string $signatureKey): string {
+	protected function addApplicationSignature(int|float $ypos, string $label, string $signatureKey): string {
 		$out = $this->graph->getStartTransform();
 		$font = $this->font->insert($this->pon, 'helvetica', '', self::FONT_SIZE_TEXT_LETTER);
 		$out .= $font['out'];
@@ -1021,7 +1021,7 @@ class PdfMitgliedsantragInfoBlatt extends PdfMitgliedsantragData {
 				posx: $row['labelX'],
 				posy: $y,
 				width: $row['labelW'],
-				height: $row['labelW'] > 0 ? $row_height : $row_height,
+				height: $row_height,
 				offset: 1,
 				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
@@ -1286,7 +1286,7 @@ class PdfMitgliedsantragInfoBlatt extends PdfMitgliedsantragData {
 		$x4 = $x3 + $w3;
 
 		$rows = [
-			['label' => 'IBAN:', 'value' => iban_to_human_format((string) $this->getForm('kontoinhaber_iban', '')), 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => 'BIC:', 'rightLabelX' => $x3, 'rightValue' => (string) $this->getForm('kontoinhaber_bic', ''), 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4],
+			['label' => 'IBAN:', 'value' =>$this->iban_to_human_format((string) $this->getForm('kontoinhaber_iban', '')), 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => 'BIC:', 'rightLabelX' => $x3, 'rightValue' => (string) $this->getForm('kontoinhaber_bic', ''), 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4],
 			['label' => 'ab:', 'value' => date('d.m.Y', strtotime((string) $this->getForm('created_at', ''))), 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => '', 'rightLabelX' => $x3, 'rightValue' => '', 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4],
 			['label' => 'Name:', 'value' => ((string) $this->getForm('kontoinhaber_name', '') . ', ' . (string) $this->getForm('kontoinhaber_vorname', '')), 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => '', 'rightLabelX' => $x3, 'rightValue' => '!!  LS  !!    ' . ((string) $this->getForm('beitrag_summe', '')) . '€', 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4],
 		];

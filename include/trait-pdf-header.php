@@ -339,7 +339,7 @@ trait PdfHeaderTrait {
 
 			$logoKey = $this->image->getKey($headerLogoFile);
 			$logoW = $this->headerLogoWidth > 0.0 ? $this->headerLogoWidth : self::HEADER_LOGO_W;
-			$logoDim = $this->image->getImageDimensionsByKey($logoKey, $logoW, $this->headerLogoHeight, true);
+			$logoDim = $this->image->getImageDimensionsByKey($logoKey, (int) $logoW, (int) $this->headerLogoHeight, true);
 			$logoX = $this->headerLogoX >= 0.0 ? $this->headerLogoX : $rm - $logoDim['width'];
 			$headerOut .= $this->image->getSetImage(
 				$this->headerLogoImageId,

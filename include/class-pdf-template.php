@@ -200,6 +200,18 @@ abstract class PdfTemplateBase extends \Com\Tecnick\Pdf\Tcpdf {
  */
 abstract class PdfTemplate extends PdfTemplateBase {
 
+	# Convert an IBAN to human format. To do this, we
+	# simply insert spaces right now, as per the ECBS
+	# (European Committee for Banking Standards) 
+	# recommendations available at:
+	# http://www.europeanpaymentscouncil.eu/knowledge_bank_download.cfm?file=ECBS%20standard%20implementation%20guidelines%20SIG203V3.2.pdf 
+	public function iban_to_human_format($iban) {
+		# Remove all spaces
+		$iban = str_replace(' ','',$iban);
+		# Add spaces every four characters
+		return wordwrap($iban,4,' ',true);
+	}
+
 	/*
 	 * Builds a fill style array for the PDF.
 	 *

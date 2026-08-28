@@ -889,7 +889,7 @@ class PdfFangstatistik extends PdfTemplate {
 				'dashArray' => [],
 				'dashPhase' => 0,
 				'lineColor' => '#000000',
-				'fillColor' => '#ff00ff',
+				'fillColor' => '#ffffff',
 			],
 		];
 
@@ -998,7 +998,7 @@ class PdfFangstatistik extends PdfTemplate {
 		$out .= $font['out'];
 
 		// outer box
-		$out .= $this->graph->getRect($XDiag, $y, $lDiag, $hDiag, 'D', $LineStyle);
+		$out .= $this->graph->getRect($XDiag, $y, $lDiag, $hDiag, 'D', ['all' => $LineStyle]);
 
 		// scale: vertical division lines + labels below
 		for ($i = 0; $i <= $nbDiv; $i++) {
@@ -1605,8 +1605,13 @@ class PdfFangstatistikVorJahresvergleich extends PdfFangstatistik {
 
 		$this->set_headerText('Fangstatistik Jahresvergleich');
         foreach ($gewaesser_statistik_years as $jahr => $data) {
-			$this->Statistik_Vorjahresvergleich($data, $jahr, 'Anzahl');
-			$this->Statistik_Vorjahresvergleich($data, $jahr, 'Gewicht');
+			$prevJahr = (int) $jahr - 1;
+			$data_prev = $gewaesser_statistik_years[$prevJahr] ?? [];
+			if (empty($data_prev)) {
+				continue;
+			}
+			$this->Statistik_Vorjahresvergleich($data, $data_prev, (int) $jahr, 'Anzahl');
+			$this->Statistik_Vorjahresvergleich($data, $data_prev, (int) $jahr, 'Gewicht');
 		}
 	}
 }
