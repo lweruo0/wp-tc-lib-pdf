@@ -3,7 +3,7 @@
  * Plugin Name: TC Lib PDF for WordPress
  * Plugin URI: https://github.com/lweruo0/wp-tc-lib-pdf
  * Description: Bootstrap plugin for tc-lib-pdf via Composer.
- * Version: 2026.07.18
+ * Version: 2026.08.28
  * Author: Oliver Ruoß
  * License: GPL-2.0-or-later
  */
