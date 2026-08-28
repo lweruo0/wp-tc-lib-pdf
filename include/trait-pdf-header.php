@@ -25,9 +25,6 @@ trait PdfHeaderTrait {
 	/** Width reserved for the header logo (mm). */
 	private const HEADER_LOGO_W = 65;
 
-	/** Maximum height reserved for the header logo (mm). */
-	private const HEADER_LOGO_H = 28;
-
 	/** Document title shown left-aligned in the header. */
 	private string $headerTitle = '';
 

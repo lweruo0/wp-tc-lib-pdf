@@ -19,15 +19,6 @@ if (!defined('ABSPATH')) {
  */
 trait PdfTeilnehmerlisteTrait {
 
-	/** Default Y position for participant list area (mm). */
-	private const TEILNEHMERLISTE_Y = 71.0;
-
-	/** Default width for participant list area (mm). */
-	private const TEILNEHMERLISTE_W = 75.0;
-
-	/** Default height for participant list area (mm). */
-	private const TEILNEHMERLISTE_H = 24.0;
-
 	public function generiere_Zeile8(
 		float $x,
 		float $y,
@@ -116,7 +107,7 @@ trait PdfTeilnehmerlisteTrait {
 				continue;
 			}
 
-			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'S', ['lineWidth' => 0.5]);
+			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'S', ['all' => ['lineWidth' => 0.5]	]);
 			$cursorX += $cellW;
 		}
 

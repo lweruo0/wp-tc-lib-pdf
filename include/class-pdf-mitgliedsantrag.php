@@ -77,42 +77,6 @@ abstract class PdfMitgliedsantragData extends PdfTemplate {
 		$this->setFormdata($formdata);
 	}
 
-	public function buildFillStyle(string $stylestring, string $fillColor, string $lineColor = '#000000', float $lineWidth = 0.1): array {
-		$fillStyle = [
-			'lineWidth' => 0.0,
-			'lineCap' => 'butt',
-			'lineJoin' => 'miter',
-			'dashArray' => [],
-			'dashPhase' => 0,
-			'lineColor' => $fillColor,
-			'fillColor' => $fillColor,
-		];
-
-		$styles = [
-			'all' => $fillStyle,
-			0 => $fillStyle,
-			1 => $fillStyle,
-			2 => $fillStyle,
-			3 => $fillStyle,
-		];
-
-		if (\strpos($stylestring, 'T') !== false) {
-			$styles[0] = \array_merge($fillStyle, ['lineWidth' => $lineWidth, 'lineColor' => $lineColor]);
-		}
-		if (\strpos($stylestring, 'R') !== false) {
-			$styles[1] = \array_merge($fillStyle, ['lineWidth' => $lineWidth, 'lineColor' => $lineColor]);
-		}
-		if (\strpos($stylestring, 'B') !== false) {
-			$styles[2] = \array_merge($fillStyle, ['lineWidth' => $lineWidth, 'lineColor' => $lineColor]);
-		}
-		if (\strpos($stylestring, 'L') !== false) {
-			$styles[3] = \array_merge($fillStyle, ['lineWidth' => $lineWidth, 'lineColor' => $lineColor]);
-		}
-
-		return $styles;
-	}
-
-
 
 	public function seite_attachments(): void {
 		$attachments = $this->getForm('attachments', []);

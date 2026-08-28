@@ -17,7 +17,7 @@ require_once __DIR__ . '/trait-pdf-data.php';
 /**
  * Abstract PDF Template class.
  */
-abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
+abstract class PdfTemplateBase extends \Com\Tecnick\Pdf\Tcpdf {
 	use PdfDataTrait;
 
 	/**
@@ -122,6 +122,7 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		$this->downloadPDF($rawpdf);
 	}
 
+
 	/**
 	 * Generate and stream the PDF inline to the browser (Content-Disposition: inline).
 	 *
@@ -191,4 +192,68 @@ abstract class PdfTemplate extends \Com\Tecnick\Pdf\Tcpdf {
 		// Save to file
 		return file_put_contents($filename, $rawpdf) !== false;
 	}
+}
+
+
+/**
+ * Abstract PDF Template class.
+ */
+abstract class PdfTemplate extends PdfTemplateBase {
+
+	/*
+	 * Builds a fill style array for the PDF.
+	 *
+	 * @param string $stylestring The sides to apply the line style to (T, R, B, L).
+	 * @param string $fillColor The fill color.
+	 * @param string $lineColor The line color.
+	 * @param float $lineWidth The line width.
+	 * @return array The fill style array.
+	 */
+
+	public function buildFillStyle(string $stylestring, string $fillColor, string $lineColor = '#000000', float $lineWidth = 0.1): array {
+		$fillStyle = [
+			'lineWidth' => 0.0,
+			'lineCap' => 'butt',
+			'lineJoin' => 'miter',
+			'dashArray' => [],
+			'dashPhase' => 0,
+			'lineColor' => $fillColor,
+			'fillColor' => $fillColor,
+		];
+
+		/* if all sides are specified, apply the line style to all sides */
+		if (\strpos($stylestring, 'T') !== false && 
+		    \strpos($stylestring, 'R') !== false && 
+		    \strpos($stylestring, 'B') !== false && 
+		    \strpos($stylestring, 'L') !== false) {
+			$fillStyle['lineWidth'] = $lineWidth;
+			$fillStyle['lineColor'] = $lineColor;
+			return array('all' => $fillStyle);
+		}
+		/* if not all sides are specified, apply the line style individually */
+		$styles = [
+			'all' => $fillStyle,
+			0 => $fillStyle,
+			1 => $fillStyle,
+			2 => $fillStyle,
+			3 => $fillStyle,
+		];
+
+		if (\strpos($stylestring, 'T') !== false) {
+			$styles[0] = \array_merge($fillStyle, ['lineWidth' => $lineWidth, 'lineColor' => $lineColor]);
+		}
+		if (\strpos($stylestring, 'R') !== false) {
+			$styles[1] = \array_merge($fillStyle, ['lineWidth' => $lineWidth, 'lineColor' => $lineColor]);
+		}
+		if (\strpos($stylestring, 'B') !== false) {
+			$styles[2] = \array_merge($fillStyle, ['lineWidth' => $lineWidth, 'lineColor' => $lineColor]);
+		}
+		if (\strpos($stylestring, 'L') !== false) {
+			$styles[3] = \array_merge($fillStyle, ['lineWidth' => $lineWidth, 'lineColor' => $lineColor]);
+		}
+
+		return $styles;
+	}
+
+
 }

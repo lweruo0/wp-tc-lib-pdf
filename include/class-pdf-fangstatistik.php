@@ -156,41 +156,6 @@ class PdfFangstatistik extends PdfTemplate {
 		return ($myZero == $mySTR) ? '' : $mySTR;
 	}
 
-	private function buildFillStyle(string $stylestring, string $fillColor): array {
-		$fillStyle = [
-			'lineWidth' => 0.0,
-			'lineCap' => 'butt',
-			'lineJoin' => 'miter',
-			'dashArray' => [],
-			'dashPhase' => 0,
-			'lineColor' => '#000000',
-			'fillColor' => $fillColor,
-		];
-
-		$styles = [
-			'all' => $fillStyle,
-			0 => $fillStyle,
-			1 => $fillStyle,
-			2 => $fillStyle,
-			3 => $fillStyle,
-		];
-
-		if (\strpos($stylestring, 'T') !== false) {
-			$styles[0] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
-		}
-		if (\strpos($stylestring, 'R') !== false) {
-			$styles[1] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
-		}
-		if (\strpos($stylestring, 'B') !== false) {
-			$styles[2] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
-		}
-		if (\strpos($stylestring, 'L') !== false) {
-			$styles[3] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
-		}
-
-		return $styles;
-	}
-
 	/**
 	 * generates one A4 page with the Gesamtstatistik table, either by Anzahl or by Gewicht
 	 *

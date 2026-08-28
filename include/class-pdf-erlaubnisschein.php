@@ -983,41 +983,6 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$out .= $font_text['out'];
 		$rowHeight = 3.5;
 
-		$buildCellStyles = static function (string $stylestring, string $fillColor): array {
-			$fillStyle = [
-				'lineWidth' => 0,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => '#000000',
-				'fillColor' => $fillColor,
-			];
-
-			$styles = [
-				'all' => $fillStyle,
-				0 => $fillStyle,
-				1 => $fillStyle,
-				2 => $fillStyle,
-				3 => $fillStyle,
-			];
-
-			if (\strpos($stylestring, 'T') !== false) {
-				$styles[0] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
-			}
-			if (\strpos($stylestring, 'R') !== false) {
-				$styles[1] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
-			}
-			if (\strpos($stylestring, 'B') !== false) {
-				$styles[2] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
-			}
-			if (\strpos($stylestring, 'L') !== false) {
-				$styles[3] = \array_merge($fillStyle, ['lineWidth' => 0.1, 'lineColor' => '#000000']);
-			}
-
-			return $styles;
-		};
-
 		$out .= $this->getTextCell(
 			txt: 'Fischart',
 			posx: $x,
@@ -1028,7 +993,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-			styles: $buildCellStyles('LTRB', '#f0f0f0'),
+			styles: $this->buildFillStyle('LTRB', '#f0f0f0'),
 			drawcell: true,
 		);
 		$x += 34.0;
@@ -1042,7 +1007,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-			styles: $buildCellStyles('LTRB', '#f0f0f0'),
+			styles: $this->buildFillStyle('LTRB', '#f0f0f0'),
 			drawcell: true,
 		);
 		$x += 34.0;
@@ -1056,7 +1021,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-			styles: $buildCellStyles('LTRB', '#f0f0f0'),
+			styles: $this->buildFillStyle('LTRB', '#f0f0f0'),
 			drawcell: true,
 		);
 		$x += 34.0;
@@ -1070,7 +1035,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 			linespace: 0,
 			valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 			halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-			styles: $buildCellStyles('LTRB', '#f0f0f0'),
+			styles: $this->buildFillStyle('LTRB', '#f0f0f0'),
 			drawcell: true,
 		);
 		$y += $rowHeight;
@@ -1108,7 +1073,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
-				styles: $buildCellStyles($borderParts[0], '#ffffff'),
+				styles: $this->buildFillStyle($borderParts[0], '#ffffff'),
 				drawcell: true,
 			);
 			$xRow += 34.0;
@@ -1122,7 +1087,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-				styles: $buildCellStyles($borderParts[1], '#ffffff'),
+				styles: $this->buildFillStyle($borderParts[1], '#ffffff'),
 				drawcell: true,
 			);
 			$xRow += 34.0;
@@ -1136,7 +1101,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-				styles: $buildCellStyles($borderParts[2], '#ffffff'),
+				styles: $this->buildFillStyle($borderParts[2], '#ffffff'),
 				drawcell: true,
 			);
 			$xRow += 34.0;
@@ -1150,7 +1115,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 				linespace: 0,
 				valign: \Com\Tecnick\Pdf\TextVAlign::Center,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-				styles: $buildCellStyles($borderParts[3], '#ffffff'),
+				styles: $this->buildFillStyle($borderParts[3], '#ffffff'),
 				drawcell: true,
 			);
 			$y += $rowHeight;
