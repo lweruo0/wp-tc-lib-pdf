@@ -75,8 +75,8 @@ class PdfRechnungVorbereitungsLehrgang2 extends PdfTemplate {
 		$city = $this->getAddress ( 'ort_verein',  '' );
 
 		$formdata['documenttype'] = 'Rechnung Vorbereitungslehrgang';
-		$formdata['first_name'] = $formdata['rechnung_vorname'] ?? '';
-		$formdata['last_name'] = $formdata['rechnung_name'] ?? '';
+		$vorname = $formdata['first_name'] = $formdata['rechnung_vorname'] ?? '';
+		$name = $formdata['last_name'] = $formdata['rechnung_name'] ?? '';
 		$formdata['street'] = $formdata['rechnung_strasse'] ?? '';
 		$formdata['zip'] = $formdata['rechnung_plz'] ?? '';
 		$formdata['city'] = $formdata['rechnung_ort'] ?? '';
@@ -157,9 +157,10 @@ class PdfRechnungVorbereitungsLehrgang2 extends PdfTemplate {
 		}
 
 
-
 		$this->setFormdata($formdata);
-	}
+		$this->setFileName("{$name}-{$vorname}-{$rechnungsnummer}_rechnung.pdf");
+
+		}
 
 	/**
 	 * Render the PDF document.
