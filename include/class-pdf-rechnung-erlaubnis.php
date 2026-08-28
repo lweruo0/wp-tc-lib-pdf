@@ -86,7 +86,7 @@ class PdfRechnungErlaubnis extends PdfTemplate {
 		$formdata['date'] = isset($formdata['created_at']) ? date("d.m.Y", strtotime($formdata['created_at'])) : date("d.m.Y");
 		$formdata['zahlungsfrist'] = $formdata['zahlungsfrist_original'] ?? date ( "d.m.Y", strtotime('+7 days') );
 		
-		$text_below = 'Der Rechnungsbetrag von ' . number_format ( $formdata['brutto'] ?? 0, 2, ',', '' ) . ' € ist spätestens zum ' . $this->getForm('zahlungsfrist', '') . ' fällig.';
+		$text_below = 'Der Rechnungsbetrag von ' . number_format ( $formdata['brutto'] ?? 0, 2, ',', '' ) . ' € ist spätestens zum ' . $formdata['zahlungsfrist'] . ' fällig.';
 		$text_below .= ' Nach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht ';
 		$text_below .= 'innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das ';
 		$text_below .= 'Rechnungsdatum dem Leistungsdatum.';
