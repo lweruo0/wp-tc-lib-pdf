@@ -340,7 +340,7 @@ trait PdfRechnungsdatenTrait {
 		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Nettobetrag', '', '', number_format($this->getForm('netto', 0), 2, ',', '') . ' €', 255);
 
 		if ($this->getForm('steuer', 0) > 0) {
-			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, $this->getForm('bezeichnung_steuer', 'Umsatzsteuer'), '', '', number_format($this->getForm('steuer', 0), 2, ',', '') . ' €', 255);
+			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 100, 5, 30, 30, $this->getForm('bezeichnung_steuer', 'Umsatzsteuer'), '', '', number_format($this->getForm('steuer', 0), 2, ',', '') . ' €', 255);
 		}
 
 		if ($this->getForm('mahngebuehr', 0) > 0) {
