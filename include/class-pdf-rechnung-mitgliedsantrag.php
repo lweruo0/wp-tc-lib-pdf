@@ -53,28 +53,38 @@ class PdfRechnungMitgliedsantrag extends PdfTemplate {
 
 		$rechnungsnummer = $this->getUrl('nr', '');
 		$options = get_option('bfv_mitgliedsantrag_einstellungen');
+		//$options['daten_erklaerung'] = get_option ( 'bfv_mitgliedsantrag_daten' );
+		//$options['foto_erklaerung'] = get_option ( 'bfv_mitgliedsantrag_fotos' );
 		$this->setOptions($options);
 
 		$adressData = get_option ( 'bfv_adressen' );
 		$this->setAddressdata($adressData);
 		$this->createStorageFolder('bfv_mitgliedsantrag');
 
+		$formdata = $this->getAllFormdata();
+		if (empty($formdata)) {
 
-
-
+		
 
 		$this->setFileName("rechnung_$rechnungsnummer.pdf");
 
-		//$mitgliedsnummern = preg_split("/[,-]/", $_GET['rechnungantrag'], -1, PREG_SPLIT_NO_EMPTY);
-		//foreach ( $mitgliedsnummern as $mitgliedsnummer ) {
-
 		if (function_exists('bfvmitgliedsantrag')) {
 			$instance = bfvmitgliedsantrag ();
-			$formdata = $instance->get_formdata_by_mitgliedsnummer ( $mitgliedsnummer );
+			$mitgliedsnummern = preg_split("/[,-]/", $this->getUrl('mnr', ''), -1, PREG_SPLIT_NO_EMPTY);
+			foreach ( $mitgliedsnummern as $mitgliedsnummer ) {
+				$formddaten  = $instance->get_formdata_by_mitgliedsnummer ( $mitgliedsnummer );
+				$formddaten['documenttype'] = 'Rechnung Mitgliedsantrag';
+				$formdata[] = $formddaten;				
+			}
 		} else {
 			$formdata = [];
 		}
 		}
+		$formdata['documenttype'] = 'Rechnung Mitgliedsantrag';
+		$this->setFormdata($formdata);
+	}
+
+
 
 	protected function add_anschreiben_rechnung($y): float {
 
@@ -219,15 +229,25 @@ class PdfRechnungMitgliedsantrag extends PdfTemplate {
 	 * @return void
 	 */
 	protected function render(): void {
+
+
 		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
 
-		$this->addPage();
-		$this->add_adress_field();
-		$this->add_falzmarken();
-		$this->add_absender();
-		$this->add_rechnungsdaten();
-		$y = $this->add_anschreiben_rechnung(105);
-		$y += self::ROW_HEIGHT*0.5;
-		$this->add_rechnung_block($y);
+		$allformdata = $this->getAllFormdata();
+		foreach ($allformdata as $idx => $formdata) {
+			if (!is_array($formdata)) {
+				continue;
+			}
+			$this->setFormdata($formdata);
+
+			$this->addPage();
+			$this->add_adress_field();
+			$this->add_falzmarken();
+			$this->add_absender();
+			$this->add_rechnungsdaten();
+			$y = $this->add_anschreiben_rechnung(105);
+			$y += self::ROW_HEIGHT*0.5;
+			$this->add_rechnung_block($y);
+		}
 	}
 }
