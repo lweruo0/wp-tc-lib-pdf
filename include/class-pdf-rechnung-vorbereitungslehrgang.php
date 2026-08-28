@@ -147,11 +147,11 @@ class PdfRechnungVorbereitungsLehrgang2 extends PdfTemplate {
 						];
 		}
 
-		if ($formdata ['steuersatz'] > 0) {
+		if (($formdata ['steuersatz']??0) > 0) {
 			$formdata['bezeichnung_steuer'] = 'Umsatzsteuer ' . $formdata ['steuersatz'] . '%';
 		}
 
-        if ($formdata ['steuersatz_getraenke']??0 > 0 && $formdata ['steuersatz_essen']??0> 0) {
+        if (($formdata ['steuersatz_getraenke']??0) > 0 && ($formdata ['steuersatz_essen']??0) > 0) {
 			//$formdata['steuer'] = 
 			$formdata['bezeichnung_steuer'] = 'Umsatzsteuer ' . $formdata ['steuersatz_essen'] . '% (Verzehr) / ' . $formdata ['steuersatz_getraenke'] . '% (Getränke)';
 		}
