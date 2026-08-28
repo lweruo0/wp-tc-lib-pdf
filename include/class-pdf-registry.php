@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+require_once __DIR__ . '/interface-pdf-output.php';
+
 /**
  * PDF Template Registry class.
  */
@@ -84,10 +86,10 @@ class PdfRegistry {
 	 *
 	 * @param string $id Template identifier.
 	 *
-	 * @return PdfTemplate|null The template instance or null if not found.
+	 * @return PdfOutputInterface|null The template instance or null if not found.
 	 * @throws Exception When template class cannot be loaded or instantiated.
 	 */
-	public static function create(string $id): ?PdfTemplate {
+	public static function create(string $id): ?PdfOutputInterface {
 		$template = self::get($id);
 
 		if (!$template) {
@@ -109,8 +111,8 @@ class PdfRegistry {
 
 		$instance = new $class();
 
-		if (!$instance instanceof PdfTemplate) {
-			throw new Exception("Template class must extend PdfTemplate: {$class}");
+		if (!$instance instanceof PdfOutputInterface) {
+			throw new Exception("Template class must implement PdfOutputInterface: {$class}");
 		}
 
 		return $instance;

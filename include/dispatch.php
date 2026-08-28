@@ -54,6 +54,9 @@ PdfRegistry::register('fangstatistikuservergleich', 'PdfFangstatistikUser', __DI
 //https://bfv-ehingen.de/?fpdfUser=1&yy=2024
 // PdfRegistry::register('fangstatistik_demo', 'PdfFangstatistik', __DIR__ . '/class-pdf-fangstatistik.php');
 
+// https://bfv-ehingen.de/?get_pdf=anmeldung_lfvbw&nr=123&nn=Mustermann&vn=Max&key=...
+PdfRegistry::register('anmeldung_lfvbw', 'PdfTemplateLFVBW', __DIR__ . '/class-pdf-anmeldunglfvwb.php');
+
 
 
 // https://bfv-ehingen.de/?mitgliedsantrag=1&mn=244&vn=Alexander&n=Lammert&y=2026&key=cc11bdd3e4e5c1263e0a76c5745d23d2

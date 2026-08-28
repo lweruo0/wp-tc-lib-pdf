@@ -13,11 +13,12 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/trait-pdf-data.php';
+require_once __DIR__ . '/interface-pdf-output.php';
 
 /**
  * Abstract PDF Template class.
  */
-abstract class PdfTemplateBase extends \Com\Tecnick\Pdf\Tcpdf {
+abstract class PdfTemplateBase extends \Com\Tecnick\Pdf\Tcpdf implements PdfOutputInterface {
 	use PdfDataTrait;
 
 	/**
