@@ -22,7 +22,7 @@ require_once __DIR__ . '/trait-pdf-rechnungsdaten.php';
 /**
  * Example PDF Template with header and footer.
  */
-class PdfRechnungVorbereitungsLehrgang extends PdfTemplate {
+class PdfRechnungVorbereitungsLehrgang2 extends PdfTemplate {
 	use PdfHeaderFooterTrait;
 	use PdfAdressTrait;
 	use PdfFalzmarkenTrait;
