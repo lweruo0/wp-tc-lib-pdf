@@ -323,7 +323,6 @@ trait PdfRechnungsdatenTrait {
 
 
 		foreach ($this->getForm('rechnungsposten', []) as $posten) {
-			$y += self::ROW_HEIGHT * 0.1;
 			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, $posten['bezeichnung'], $posten['anzahl'], $posten['einzelpreis'], $posten['gesamtpreis'], 255);
 		}
 

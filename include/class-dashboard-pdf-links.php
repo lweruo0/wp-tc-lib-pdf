@@ -80,6 +80,8 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
         self::long_term_link('Rechnung Mitgliedsantrag 233', 'rechnung_antrag', '2099-12-31', '233');
         self::long_term_link('TODO Mahnung Mitgliedsantrag 233', 'mahnung_antrag', '2099-12-31', '233');
 
+        self::long_term_link('Rechnung Vorbereitungslehrgang 12', 'rechnung_vorbereitungslehrgang','2099-12-31', '2026-L-0012');
+
         self::shortterm_url('Statistik 2024', 'fangstatistik', ['jahr' => '2024']);
         self::shortterm_url('Jahresvergleich', 'jahresvergleich');
         self::shortterm_url('Uservergleich 2024', 'fangstatistikuservergleich',  ['jahr' => '2024']);
