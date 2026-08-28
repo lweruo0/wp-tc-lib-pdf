@@ -21,7 +21,6 @@ require_once __DIR__ . '/trait-pdf-falzmarken.php';
  */
 abstract class PdfMitgliedsantragData extends PdfTemplate {
 	use PdfHeaderTrait;
-	private const FONT_SIZE_TITLE = 18;
 	protected const FONT_SIZE_TEXT = 11;
 	protected const FONT_SIZE_TEXT_LETTER = 12;
 
@@ -800,7 +799,7 @@ class PdfMitgliedsantrag2 extends PdfMitgliedsantragData {
 			$kostenzeilen[] = ['jährlicher Mitgliedsbeitrag:', $beitrag_foerder];
 		}
 		$anz_zeilen = count($kostenzeilen);
-		$out .= $this->getBox($x, $y, $row_height * $anz_zeilen + $row_height, $width, $row_height, 'Kosten bei Vereinseintritt', $kostenzeilen, $summe);
+		$out .= $this->getBox($x, $y, $row_height * $anz_zeilen + $row_height, $width, $row_height, 'Kosten bei Vereinseintritt');
 
 
 		$box_top = $y;

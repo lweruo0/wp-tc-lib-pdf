@@ -32,8 +32,6 @@ class PdfFangstatistik extends PdfTemplate {
 
 	/** print layout */
 	private bool $print_layout = false;
-	private const TEXT_H1 = 17;
-    private const TEXT_TABLE = 10;
 
 	public $layout = '';
     public $modifiedTime = '';

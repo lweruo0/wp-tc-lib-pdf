@@ -1334,41 +1334,8 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$out = '';
 
 
-
-
-		$lineStyle = [
-			'lineWidth' => 0.1,
-			'lineCap' => 'butt',
-			'lineJoin' => 'miter',
-			'dashArray' => [],
-			'dashPhase' => 0,
-			'lineColor' => 'black',
-		];
-		$fillStyle = [
-			'all' => [
-				'lineWidth' => 0.1,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'miterLimit' => 0.5,
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => 'black',
-				'fillColor' => '#efefef',
-			],
-		];
-		$whiteFillStyle = [
-			'all' => [
-				'lineWidth' => 0.1,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'miterLimit' => 0.5,
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => 'black',
-				'fillColor' => 'white',
-			],
-		];
-
+		$whiteFillStyle = $this->buildFillStyle('LTRB', '#ffffff', '#000000', 0.1);
+		$fillStyle = $this->buildFillStyle('LTRB', '#efefef', '#000000', 0.1);
 
 		$tableX = 5.0;
 		$tableY = 14.0;
@@ -1379,7 +1346,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 
 		$out .= $font_text['out'];
 		$out .= $this->color->getPdfColor('#000000');
-		$out .= $this->graph->getRect($tableX, $tableY, $tableW, $tableH, 'D', $lineStyle);
+		$out .= $this->graph->getRect($tableX, $tableY, $tableW, $tableH, 'D', $whiteFillStyle);
 
 		$columnWidths = [
 			$breite1,

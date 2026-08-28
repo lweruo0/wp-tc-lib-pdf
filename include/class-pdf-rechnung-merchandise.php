@@ -29,9 +29,6 @@ class PdfRechnungMerchandise extends PdfTemplate {
 	use PdfAbsenderTrait;
 	use PdfRechnungsdatenTrait;
 
-	/** Height of each row (mm). */
-	private const ROW_HEIGHT = 6;
-
 	/**
 	 * Constructor.
 	 */

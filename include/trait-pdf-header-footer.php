@@ -265,7 +265,7 @@ trait PdfHeaderFooterTrait {
 			}
 
 			$logoKey = $this->image->getKey($headerLogoFile);
-			$logoDim = $this->image->getImageDimensionsByKey($logoKey, self::HEADER_LOGO_W, self::HEADER_LOGO_H, true);
+			$logoDim = $this->image->getImageDimensionsByKey($logoKey, (int)self::HEADER_LOGO_W, (int)self::HEADER_LOGO_H, true);
 			$headerOut .= $this->image->getSetImage(
 				$this->headerLogoImageId,
 				$rm - $logoDim['width'],
