@@ -315,8 +315,4 @@ trait PdfRechnungsdatenTrait {
 		$this->page->addContent($this->generiere_Zeile($x, $y, $h, $w1, $w2, $w3, $w4, $t1, $t2, $t3, $t4, $grey, $fontstyle));
 		return $y + $h;
 	}
-
-
-
-
 }

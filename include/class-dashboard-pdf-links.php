@@ -66,7 +66,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 
 
     public static function render(): void {
-        if (!class_exists('Tc_Lib_Pdf_Wp_Bootstrap') || !method_exists('Tc_Lib_Pdf_Wp_Bootstrap', 'build_pdf_url')) {
+        if (!class_exists('Tc_Lib_Pdf_Wp_Bootstrap')) {
             echo '<p>' . esc_html__('PDF-URL-Helper noch nicht verfügbar.', 'tc-lib-pdf-wp') . '</p>';
             return;
         }
@@ -93,6 +93,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 	 *
 	 *
 	 */
+	/** @phpstan-ignore-next-line */
 	private static function update_ad() {
 
 		$repository = Quform::getService ( 'repository' );
@@ -124,11 +125,13 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 	 *
 	 *
 	 */
+	/** @phpstan-ignore-next-line */
 	private static function update_urls() {
 		$formdata = array ();
 
         $options_quform = get_option ( 'bfv_erlaubnisschein_quform' );
 
+        
 		$repository = Quform::getService ( 'repository' );
 		$formFactory = Quform::getService ( 'formFactory' );
 		$form = $formFactory->create ( $repository->getConfig ( $options_quform ['quform_id'] ) );
