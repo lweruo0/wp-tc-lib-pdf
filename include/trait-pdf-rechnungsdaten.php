@@ -96,36 +96,23 @@ trait PdfRechnungsdatenTrait {
 		float $y = self::RECHNUNG_Y,
 		float $width = self::RECHNUNG_W,
 		float $height = self::RECHNUNG_H,
-		bool $drawFrame = false,
 		?array $rows = null,
 	): string {
 		$data = $rows ?? $this->getRechnungsdaten();
+
+		if ($data['brutto'] <= 0.004) {
+			return '';
+		}
+
 		$out = $this->graph->getStartTransform();
 		$out .= $this->color->getPdfColor('#f1f1f1');
 		$out .= $this->graph->getRect($x, $y, $width, $height, 'F');
-
-		if ($drawFrame) {
-			$frameStyle = [[
-				'lineWidth' => 0.35,
-				'lineCap' => 'butt',
-				'lineJoin' => 'miter',
-				'dashArray' => [],
-				'dashPhase' => 0,
-				'lineColor' => '#666666',
-			]];
-			$out .= $this->graph->getRect($x, $y, $width, $height, 'D', $frameStyle);
-		}
 
 		$innerX = $x + 1.0;
 		$innerW = max(0.0, $width - 2.0);
 		$rowH = 4.0;
 
-		$labelFont = $this->font->insert($this->pon, 'helvetica', '', 11);
-		$valueFont = $this->font->insert($this->pon, 'helvetica', '', 11);
-
 		$cursorY = $y + 1.0;;
-
-
 
 		$dataRows = [
 			['label' => 'IBAN:', 'value' => $data['iban_verein'], 'w_korrektur' => -0.5],
@@ -136,11 +123,10 @@ trait PdfRechnungsdatenTrait {
 
 		];
 
-
+		$font = $this->font->insert($this->pon, 'helvetica', '', 11);
+		$out .= $font['out'];
+		$out .= $this->color->getPdfColor('#000000');
 		foreach ($dataRows as $row) {
-
-			$out .= $labelFont['out'];
-			$out .= $this->color->getPdfColor('#000000');
 			$out .= $this->getTextCell(
 				txt: $row['label'],
 				posx: $innerX,
@@ -152,9 +138,6 @@ trait PdfRechnungsdatenTrait {
 				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 			);
-
-			$out .= $valueFont['out'];
-			$out .= $this->color->getPdfColor('#333333');
 			$out .= $this->getTextCell(
 				txt: $row['value'],
 				posx: $innerX,
@@ -166,10 +149,9 @@ trait PdfRechnungsdatenTrait {
 				valign: \Com\Tecnick\Pdf\TextVAlign::Top,
 				halign: \Com\Tecnick\Pdf\TextHAlign::Right,
 			);
-
 			$cursorY += $rowH*1.1;
 		}
-
+		/* QR code Fotoüberweisung */
 		$qrContent = (string) ($data['qr_content'] ?? '');
 		if ($qrContent !== '') {
 			$qrX = $x - $height - 4.0;
@@ -224,10 +206,9 @@ trait PdfRechnungsdatenTrait {
 		float $y = self::RECHNUNG_Y,
 		float $width = self::RECHNUNG_W,
 		float $height = self::RECHNUNG_H,
-		bool $drawFrame = false,
 		?array $rows = null,
 	): float {
-		$this->page->addContent($this->generate_rechnungsdaten($x, $y, $width, $height, $drawFrame, $rows));
+		$this->page->addContent($this->generate_rechnungsdaten($x, $y, $width, $height, $rows));
 		return $y + $height;
 	}
 
