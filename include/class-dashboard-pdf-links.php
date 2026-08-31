@@ -40,22 +40,31 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
             echo '<p>' . esc_html__('PDF-URL-Helper noch nicht verfügbar.', 'tc-lib-pdf-wp') . '</p>';
             return;
         }
-        self::pdf_link('Erlaubnis 2026-P-0148', 'erlaubnisschein', ['nr' => '2026-P-0148'], '2099-12-31');
-        self::pdf_link('Rechnung Erlaubnis 2026-P-0148', 'rechnung_erlaubnis', ['nr' => '2026-P-0148'], '2099-12-31');
-        self::pdf_link('TODO Mahnung Erlaubnis 2026-P-0148', 'mahnung_erlaubnis', ['nr' => '2026-P-0148'], '2099-12-31');
 
-        self::pdf_link('TODO Mitgliedsantrag 160' , 'mitgliedsantrag', ['mnr' => '160-233-234-235']);
-        self::pdf_link('TODO Mitgliedsantrag 233' , 'mitgliedsantrag', ['mnr' => '233']);
-        self::pdf_link('TODO Mitgliedsantraginfo 233', 'mitgliedsantraginfo', ['mnr' => '233']);
-        self::pdf_link('Rechnung Mitgliedsantrag 233', 'rechnung_antrag', ['mnr' => '233'], '2099-12-31');
-        self::pdf_link('TODO Mahnung Mitgliedsantrag 233', 'mahnung_antrag', ['mnr' => '233'], '2099-12-31');
+        self::pdf_link('✓ Arbeitsdienst Liste 12.09.2026', 'liste_arbeitsdienst', ['dienst' => '12.09.2026'], '2099-12-31');
+        self::pdf_link('✓ Jugendveranstaltung Liste 25.09.2026', 'liste_jugendveranstaltung', ['veranstaltung' => '25.09.2026'], '2099-12-31');
 
-        self::pdf_link('Rechnung Vorbereitungslehrgang 12', 'rechnung_vorbereitungslehrgang', ['nr' => '2026-L-0012'], '2099-12-31');
-        self::pdf_link('TODO anmeldung_lfvbw' , 'anmeldung_lfvbw',  ['nr' => '2026-L-0012']);
+        self::pdf_link('✓ Erlaubnis 2026-P-0148', 'erlaubnisschein', ['nr' => '2026-P-0148'], '2099-12-31');
+        self::pdf_link('✓ Erlaubnis Rechnung 2026-P-0148', 'rechnung_erlaubnis', ['nr' => '2026-P-0148'], '2099-12-31');
+        self::pdf_link('✓ Erlaubnis Mahnung 2026-P-0148', 'mahnung_erlaubnis', ['nr' => '2026-P-0148'], '2099-12-31');
 
-        self::pdf_link('Statistik 2024', 'fangstatistik', ['jahr' => '2024']);
+        self::pdf_link('✓ Vorbereitungslehrgang Rechnung', 'rechnung_vorbereitungslehrgang', ['nr' => '2026-L-0012'], '2099-12-31');
+        self::pdf_link('✓ Vorbereitungslehrgang Anmeldung LFVBW' , 'anmeldung_lfvbw',  ['nr' => '2026-L-0012']);
+
+        self::pdf_link('✓ Vorbereitungslehrgang Rechnung', 'rechnung_vorbereitungslehrgang', ['nr' => '2026-L-0012'], '2099-12-31');
+        self::pdf_link('✓ Vorbereitungslehrgang Anmeldung LFVBW' , 'anmeldung_lfvbw',  ['nr' => '2026-L-0012']);
+
+        self::pdf_link('✓ Statistik 2024', 'fangstatistik', ['jahr' => '2024']);
         self::pdf_link('Jahresvergleich', 'jahresvergleich');
+        self::pdf_link('vorjahresvergleich', 'vorjahresvergleich');
         self::pdf_link('Uservergleich 2024', 'fangstatistikuservergleich',  ['jahr' => '2024']);
+
+        self::pdf_link('Mitgliedsantrag 160' , 'mitgliedsantrag', ['mnr' => '160-233-234-235']);
+        self::pdf_link('Mitgliedsantrag Rechnung', 'rechnung_antrag', ['mnr' => '233'], '2099-12-31');
+        self::pdf_link('Mitgliedsantrag Mahnung 233', 'mahnung_antrag', ['mnr' => '233'], '2099-12-31');
+
+        self::pdf_link('Huette Rechnung' , 'rechnung_huette', ['nr' => '2026-H-0002'], '2099-12-31');
+        self::pdf_link('Merchandise Rechnung' , 'rechnung_merchandise', ['nr' => '2026-J-00001'], '2099-12-31');
 
         //self::update_urls();
     }

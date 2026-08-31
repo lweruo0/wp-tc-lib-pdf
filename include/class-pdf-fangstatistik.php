@@ -1554,6 +1554,14 @@ class PdfFangstatistikJahr extends PdfFangstatistik {
 class PdfFangstatistikMehrjahresvergleich extends PdfFangstatistik {
 
 	/**
+	 * loadData
+	 */
+	protected function loadData(): void {
+		parent::loadData();
+		$this->setFileName("PdfFangstatistikMehrjahresvergleich.pdf");
+	}
+
+	/**
 	 * Render the PDF document.
 	 *
 	 * @return void
@@ -1593,6 +1601,14 @@ class PdfFangstatistikMehrjahresvergleich extends PdfFangstatistik {
 class PdfFangstatistikVorJahresvergleich extends PdfFangstatistik {
 
 	/**
+	 * loadData
+	 */
+	protected function loadData(): void {
+		parent::loadData();
+		$this->setFileName("PdfFangstatistikVorJahresvergleich.pdf");
+	}
+
+	/**
 	 * Render the PDF document.
 	 *
 	 * @return void
@@ -1621,6 +1637,14 @@ class PdfFangstatistikVorJahresvergleich extends PdfFangstatistik {
  * Example PDF Template with header and footer.
  */
 class PdfFangstatistikUser extends PdfFangstatistik {
+
+	/**
+	 * loadData
+	 */
+	protected function loadData(): void {
+		parent::loadData();
+		$this->setFileName("PdfFangstatistikUser.pdf");
+	}
 
 	/**
 	 * Render the PDF document.
