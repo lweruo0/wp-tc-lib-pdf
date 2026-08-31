@@ -57,6 +57,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
         self::pdf_link('Jahresvergleich', 'jahresvergleich');
         self::pdf_link('Uservergleich 2024', 'fangstatistikuservergleich',  ['jahr' => '2024']);
 
+        self::update_urls();
     }
 
 
@@ -103,7 +104,10 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 
         $options_quform = get_option ( 'bfv_erlaubnisschein_quform' );
 
-        
+        //$this->options_quform_fruehjahr = get_option('bfv_vorbereitungslehrgang_quform_fruehjahr', []);
+        $options_quform = get_option('bfv_vorbereitungslehrgang_quform_herbst', []);
+
+
 		$repository = Quform::getService ( 'repository' );
 		$formFactory = Quform::getService ( 'formFactory' );
 		$form = $formFactory->create ( $repository->getConfig ( $options_quform ['quform_id'] ) );
@@ -114,45 +118,20 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 				'search'
 		) );
 
-//        [element_228] => https://bfv-ehingen.de/?rechnung=2023-P-0001&key=7be199174adee8084415f887be90ebf1
-//        [element_229] => https://bfv-ehingen.de/?erlaubnis=2023-P-0001&key=7be199174adee8084415f887be90ebf1
-//        [element_230] => https://bfv-ehingen.de/?mahnung=2023-P-0001&key=7be199174adee8084415f887be90ebf1
 
-
-        $id_rechnungsnummer = 'element_' . $options_quform ['id_rechnungsnummer'];
-        $id_url_mahnung = 'element_' . $options_quform ['id_url_mahnung'];
-        $id_url_rechnung = 'element_' . $options_quform ['id_url_rechnung'];
-        $id_url_erlaubnisschein = 'element_' . $options_quform ['id_url_erlaubnisschein'];
-
+        $id_rechnungsnummer = 'element_' . $options_quform ['rechnungsnummer_id'];
+       
 		/* wir suchen die Bestellungen mit der richtigen Rechnungsnummer */
 		if (is_array ( $entries )) {
 			foreach ( $entries as $entry ) {
-                $entryId = $entry ['id'];
                 
-
-                $old_values = array('id'=>$entryId);
-                $old_values[$id_rechnungsnummer] = $entry [$id_rechnungsnummer];
-                $old_values[$id_url_mahnung] = $entry [$id_url_mahnung];
-                $old_values[$id_url_rechnung] = $entry [$id_url_rechnung];
-                $old_values[$id_url_erlaubnisschein] = $entry [$id_url_erlaubnisschein];
-
                 $rechnungsnummer = $entry [$id_rechnungsnummer];
-
-                $url_mahnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('mahnung_erlaubnis', ['nr' => $rechnungsnummer], '2099-12-31');
-                $url_erlaubnisschein_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('erlaubnisschein', ['nr' => $rechnungsnummer], '2099-12-31');
-                $url_rechnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('rechnung_erlaubnis', ['nr' => $rechnungsnummer], '2099-12-31');
-
+                $url_mahnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('anmeldung_lfvbw', ['nr' => $rechnungsnummer], '+5years');
+                $url_rechnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('rechnung_vorbereitungslehrgang', ['nr' => $rechnungsnummer], '+5years');
                 $update_ids = array();
-                $update_ids [(int) $options_quform ['id_url_mahnung']] = $url_mahnung_new;
-                $update_ids [(int) $options_quform ['id_url_rechnung']] = $url_rechnung_new;
-                $update_ids [(int) $options_quform ['id_url_erlaubnisschein']] = $url_erlaubnisschein_new;
-
-
-                $repository->saveEntryData($entryId, $update_ids);
-
-                error_log(print_r($old_values, TRUE));
-
-
+                $update_ids [(int) $options_quform ['url_lfvbw_id']] = $url_mahnung_new;
+                $update_ids [(int) $options_quform ['url_rechnung_id']] = $url_rechnung_new;
+                $repository->saveEntryData($entry ['id'], $update_ids);
             }
         }
     }
