@@ -57,7 +57,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
         self::pdf_link('Jahresvergleich', 'jahresvergleich');
         self::pdf_link('Uservergleich 2024', 'fangstatistikuservergleich',  ['jahr' => '2024']);
 
-        self::update_urls();
+        //self::update_urls();
     }
 
 
