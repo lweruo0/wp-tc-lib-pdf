@@ -110,7 +110,7 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 		return new \Com\Tecnick\Pdf\Tcpdf();
 	}
 
-	public static function build_pdf_url($template_id, array $params = array(), $download = false, $base_url = '', $expires = null, $nr = '') {
+	public static function build_pdf_url($template_id, array $query_args = array(), $expires = null) {
 		self::init();
 
 		if (!is_string($template_id) || $template_id === '') {
@@ -122,8 +122,9 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 			return '';
 		}
 
-		$query = $params;
-		$query['get_pdf'] = $template_id;
+		$query_args['get_pdf'] = $template_id;
+		$nr = (string) ($query_args['nr'] ?? '');
+		$jahr = (string) ($query_args['jahr'] ?? '');
 
 		if ($expires !== null && $expires !== '') {
 			$expires_date = self::normalize_long_term_expiry($expires);
@@ -131,24 +132,13 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 				return '';
 			}
 
-			$query['key'] = wp_hash($template_id . $expires_date . (string) $nr, 'auth');
-			$query['expires'] = $expires_date;
-			$query['nr'] = (string) $nr;
+			$query_args['key'] = wp_hash($template_id . $expires_date . $nr, 'auth');
+			$query_args['expires'] = $expires_date;
 		} else {
-			$jahr = $params['jahr'] ?? '';
-			$nr_str = (string) $nr;
-			$query['nonce'] = wp_create_nonce($template_id.$nr_str.$jahr);
+			$query_args['nonce'] = wp_create_nonce($template_id . $nr . $jahr);
 		}
 
-		if ($download) {
-			$query['filedownload'] = 1;
-		}
-
-		if ($base_url === '') {
-			$base_url = home_url('/');
-		}
-
-		return add_query_arg($query, $base_url);
+		return add_query_arg($query_args, home_url('/'));
 	}
 
 
@@ -196,8 +186,8 @@ add_action('plugins_loaded', function() {
 }, 11);
 
 if (!function_exists('tc_lib_pdf_wp_create_pdf_url')) {
-	function tc_lib_pdf_wp_create_pdf_url($template_id, array $params = array(), $download = false, $base_url = '', $expires = null, $nr = '') {
-		return Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url($template_id, $params, $download, $base_url, $expires, $nr);
+	function tc_lib_pdf_wp_create_pdf_url($template_id, array $params = array(), $expires = null) {
+		return Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url($template_id, $params, $expires);
 	}
 }
 

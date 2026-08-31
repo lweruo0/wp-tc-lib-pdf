@@ -28,66 +28,34 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
             array(__CLASS__, 'render')
         );
     }
+ 
 
-    private static function long_term_url( $typ, $expires, $nr, $param=array() ) {
-        return Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url(
-           $typ,
-            $param,
-            false,
-            '',
-            $expires,
-            $nr
-        );
-    }   
-
-
-    private static function long_term_link( $label, $typ, $expires, $nr, $param=array() ): void {
-        $url = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url(
-           $typ,
-            $param,
-            false,
-            '',
-            $expires,
-            $nr
-        );
+    private static function pdf_link( $label, $typ, $query_args=array(), $expires=''  ): void {
+        $url = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url($typ, $query_args, $expires);
         echo '<p><a target="_blank" rel="noopener noreferrer" href="' . esc_url($url) . '">' . esc_html($label) . '</a></p>';
     }   
-    private static function shortterm_url( $label, $typ, $param=array() ): void {
-        $url = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url(
-            $typ,
-            $param,
-            false,
-            '',
-            '',
-            ''
-        );
-        echo '<p><a target="_blank" rel="noopener noreferrer" href="' . esc_url($url) . '">' . esc_html($label) . '</a></p>';
-    }
-
 
     public static function render(): void {
         if (!class_exists('Tc_Lib_Pdf_Wp_Bootstrap')) {
             echo '<p>' . esc_html__('PDF-URL-Helper noch nicht verfügbar.', 'tc-lib-pdf-wp') . '</p>';
             return;
         }
-        self::long_term_link('Erlaubnis 2026-P-0148', 'erlaubnisschein', '2099-12-31', '2026-P-0148');
-        self::long_term_link('Rechnung Erlaubnis 2026-P-0148', 'rechnung_erlaubnis', '2099-12-31', '2026-P-0148');
-        self::long_term_link('TODO Mahnung Erlaubnis 2026-P-0148', 'mahnung_erlaubnis', '2099-12-31', '2026-P-0148');
+        self::pdf_link('Erlaubnis 2026-P-0148', 'erlaubnisschein', ['nr' => '2026-P-0148'], '2099-12-31');
+        self::pdf_link('Rechnung Erlaubnis 2026-P-0148', 'rechnung_erlaubnis', ['nr' => '2026-P-0148'], '2099-12-31');
+        self::pdf_link('TODO Mahnung Erlaubnis 2026-P-0148', 'mahnung_erlaubnis', ['nr' => '2026-P-0148'], '2099-12-31');
 
-        self::shortterm_url('TODO Mitgliedsantrag 160' , 'mitgliedsantrag', ['mnr' => '160-233-234-235']);
-        self::shortterm_url('TODO Mitgliedsantrag 233' , 'mitgliedsantrag', ['mnr' => '233']);
-        self::shortterm_url('TODO Mitgliedsantraginfo 233', 'mitgliedsantraginfo', ['mnr' => '233']);
-        self::long_term_link('Rechnung Mitgliedsantrag 233', 'rechnung_antrag', '2099-12-31', '233');
-        self::long_term_link('TODO Mahnung Mitgliedsantrag 233', 'mahnung_antrag', '2099-12-31', '233');
+        self::pdf_link('TODO Mitgliedsantrag 160' , 'mitgliedsantrag', ['mnr' => '160-233-234-235']);
+        self::pdf_link('TODO Mitgliedsantrag 233' , 'mitgliedsantrag', ['mnr' => '233']);
+        self::pdf_link('TODO Mitgliedsantraginfo 233', 'mitgliedsantraginfo', ['mnr' => '233']);
+        self::pdf_link('Rechnung Mitgliedsantrag 233', 'rechnung_antrag', ['mnr' => '233'], '2099-12-31');
+        self::pdf_link('TODO Mahnung Mitgliedsantrag 233', 'mahnung_antrag', ['mnr' => '233'], '2099-12-31');
 
-        self::long_term_link('Rechnung Vorbereitungslehrgang 12', 'rechnung_vorbereitungslehrgang','2099-12-31', '2026-L-0012');
-        self::shortterm_url('TODO anmeldung_lfvbw' , 'anmeldung_lfvbw',  ['nr' => '2026-L-0012']);
+        self::pdf_link('Rechnung Vorbereitungslehrgang 12', 'rechnung_vorbereitungslehrgang', ['nr' => '2026-L-0012'], '2099-12-31');
+        self::pdf_link('TODO anmeldung_lfvbw' , 'anmeldung_lfvbw',  ['nr' => '2026-L-0012']);
 
-        self::shortterm_url('Statistik 2024', 'fangstatistik', ['jahr' => '2024']);
-        self::shortterm_url('Jahresvergleich', 'jahresvergleich');
-        self::shortterm_url('Uservergleich 2024', 'fangstatistikuservergleich',  ['jahr' => '2024']);
-
-
+        self::pdf_link('Statistik 2024', 'fangstatistik', ['jahr' => '2024']);
+        self::pdf_link('Jahresvergleich', 'jahresvergleich');
+        self::pdf_link('Uservergleich 2024', 'fangstatistikuservergleich',  ['jahr' => '2024']);
 
     }
 
@@ -170,9 +138,9 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 
                 $rechnungsnummer = $entry [$id_rechnungsnummer];
 
-                $url_mahnung_new = self::long_term_url('mahnung_erlaubnis', '2099-12-31', $rechnungsnummer);
-                $url_erlaubnisschein_new = self::long_term_url('erlaubnisschein', '2099-12-31', $rechnungsnummer);
-                $url_rechnung_new = self::long_term_url('rechnung_erlaubnis', '2099-12-31', $rechnungsnummer);
+                $url_mahnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('mahnung_erlaubnis', ['nr' => $rechnungsnummer], '2099-12-31');
+                $url_erlaubnisschein_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('erlaubnisschein', ['nr' => $rechnungsnummer], '2099-12-31');
+                $url_rechnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('rechnung_erlaubnis', ['nr' => $rechnungsnummer], '2099-12-31');
 
                 $update_ids = array();
                 $update_ids [(int) $options_quform ['id_url_mahnung']] = $url_mahnung_new;
