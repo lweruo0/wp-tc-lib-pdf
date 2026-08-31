@@ -35,8 +35,6 @@ class PdfTemplateLFVBW implements PdfOutputInterface {
 	 */
 	protected function loadData(): void {
 		$rechnungsnummer = $this->getUrl('nr', '');
-		$name = $this->getUrl('nn', '');
-		$vorname = $this->getUrl('vn', '');
 
 		$this->createStorageFolder('bfv_vorbereitungslehrgang');
 
@@ -68,6 +66,8 @@ class PdfTemplateLFVBW implements PdfOutputInterface {
 		];
 
 		$this->setFormdata($formdata);
+        $name = $formdata ['name'];
+        $vorname = $formdata ['vorname'];
 		$this->setFileName("{$name}-{$vorname}-{$rechnungsnummer}_lfvwb.pdf");
 	}
 

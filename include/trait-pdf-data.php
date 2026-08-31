@@ -224,7 +224,7 @@ trait PdfDataTrait {
 	 */
 	public function setFileName(string $fileName): void {
 		$this->fileName = $fileName;
-		if ($fileName !== '') {
+		if ($fileName !== '' && method_exists($this, 'setPDFFilename')) {
 			$this->setPDFFilename($fileName);
 		}
 	}

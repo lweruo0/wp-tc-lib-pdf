@@ -180,7 +180,7 @@ class PdfRechnungVorbereitungsLehrgang2 extends PdfTemplate {
 	}
 }
 
-class PdfMahnungVorbereitungslehrgang extends PdfRechnungVorbereitungslehrgang {
+class PdfMahnungVorbereitungslehrgang extends PdfRechnungVorbereitungsLehrgang2 {
 
 	/**
 	 * Load data for this template.
