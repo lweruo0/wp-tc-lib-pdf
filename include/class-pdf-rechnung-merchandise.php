@@ -97,8 +97,8 @@ class PdfRechnungMerchandise extends PdfTemplate {
 
 		$brutto = number_format ( $formdata ['brutto'], 2, ',', '' );
 		$frist = $formdata['zahlungsfrist'];
-		$text_below = 'Der Rechnungsbetrag von '.$brutto.' € ist spätestens zum '.$frist.' fällig. ';
-		$text_below .= '\nNach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das Rechnungsdatum dem Leistungsdatum.';
+		$text_below = "Der Rechnungsbetrag von {$brutto} € ist spätestens zum {$frist} fällig. ";
+		$text_below .= "\nNach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das Rechnungsdatum dem Leistungsdatum.";
 		$formdata['text_below'] = $text_below;
 		
         $text_before = 'für die am ' . $formdata['date']. ' bestellten Merchandise-Artikel berechnen wir Ihnen:';
@@ -189,9 +189,11 @@ class PdfMahnungMerchandise extends PdfRechnungMerchandise {
 			}
 		}
 
-		$text_below = 'Der offene Betrag von ' . number_format ( $formdata ['brutto'], 2, ',', '' ) . ' € ist spätestens zum ' . $formdata ['zahlungsfrist'] . ' fällig.';
-		$text_below .= ' Sollte bis dahin kein Zahlungseingang erfolgen, müssten wir weitere Schritte prüfen.';
-		$text_below .= ' Falls Sie die Zahlung bereits veranlasst haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.';
+		$brutto = number_format ( $formdata ['brutto'], 2, ',', '' );
+		$frist = $formdata ['zahlungsfrist'];
+		$text_below = "Der offene Betrag von {$brutto} € ist spätestens zum {$frist} fällig.";
+		$text_below .= "\nSollte bis dahin kein Zahlungseingang erfolgen, müssten wir weitere Schritte prüfen.";
+		$text_below .= "\nFalls Sie die Zahlung bereits veranlasst haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.";
 		$formdata['text_below'] = $text_below;
 
 		$formdata['texts_before'] = [];
