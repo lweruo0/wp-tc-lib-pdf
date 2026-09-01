@@ -196,7 +196,6 @@ class PdfMahnungMerchandise extends PdfRechnungMerchandise {
 
 		$formdata['texts_before'] = [];
 		$formdata['texts_before'][]= "die Bezahlung der Rechnung Nr. " . $formdata ['rechnungsnummer'] . " war am " . $formdata ['zahlungsfrist_original'] . " fällig.";
-		$formdata['texts_before'][]= "";
 		$formdata['texts_before'][] = "Leider konnten wir bisher keinen Zahlungseingang verbuchen. ";
 
 		if ($formdata ['mahngebuehr'] > 0.0) {

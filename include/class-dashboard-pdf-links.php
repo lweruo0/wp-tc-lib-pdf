@@ -65,7 +65,8 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 
         self::pdf_link('Huette Rechnung' , 'rechnung_huette', ['nr' => '2026-H-0002'], '2099-12-31');
         self::pdf_link('Merchandise Rechnung' , 'rechnung_merchandise', ['nr' => '2026-J-00001'], '2099-12-31');
-
+        
+        self::update_urls();
     }
 
 
@@ -101,6 +102,8 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
         }
     }
 
+
+
 	/*
 	 *
 	 *
@@ -110,10 +113,14 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 	private static function update_urls() {
 		$formdata = array ();
 
-        $options_quform = get_option ( 'bfv_erlaubnisschein_quform' );
+        $options_quform = get_option ( 'bfv_jubilaeumsruten' );
 
-        //$this->options_quform_fruehjahr = get_option('bfv_vorbereitungslehrgang_quform_fruehjahr', []);
-        $options_quform = get_option('bfv_vorbereitungslehrgang_quform_herbst', []);
+        $uploadDir = wp_upload_dir();
+        $folder = $uploadDir['basedir'] . '/bfv_merchandise/';
+
+        // old: rechnung_rute_2025-J-0004.pdf
+        // new: rechnung_merchandise_{$rechnungsnummer}.pdf
+
 
 
 		$repository = Quform::getService ( 'repository' );
@@ -123,22 +130,27 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 				'order_by' => 'created_at',
 				'order' => 'ASC',
 				'limit' => 10000,
-				'search'
 		) );
-
 
         $id_rechnungsnummer = 'element_' . $options_quform ['rechnungsnummer_id'];
        
 		/* wir suchen die Bestellungen mit der richtigen Rechnungsnummer */
 		if (is_array ( $entries )) {
 			foreach ( $entries as $entry ) {
-                
                 $rechnungsnummer = $entry [$id_rechnungsnummer];
-                $url_mahnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('anmeldung_lfvbw', ['nr' => $rechnungsnummer], '+5years');
-                $url_rechnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('rechnung_vorbereitungslehrgang', ['nr' => $rechnungsnummer], '+5years');
+
+                // Datei umbenennen: rechnung_rute_ -> rechnung_merchandise_
+                $old_file = $folder . 'rechnung_rute_' . $rechnungsnummer . '.pdf';
+                $new_file = $folder . 'rechnung_merchandise_' . $rechnungsnummer . '.pdf';
+                if (file_exists($old_file) && !file_exists($new_file)) {
+                    rename($old_file, $new_file);
+                }
+
+                $url_mahnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('mahnung_merchandise', ['nr' => $rechnungsnummer], '+5years');
+                $url_rechnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('rechnung_merchandise', ['nr' => $rechnungsnummer], '+5years');
                 $update_ids = array();
-                $update_ids [(int) $options_quform ['url_lfvbw_id']] = $url_mahnung_new;
-                $update_ids [(int) $options_quform ['url_rechnung_id']] = $url_rechnung_new;
+                $update_ids [(int) $options_quform ['mahnung_id']] = $url_mahnung_new;
+                $update_ids [(int) $options_quform ['rechnung_id']] = $url_rechnung_new;
                 $repository->saveEntryData($entry ['id'], $update_ids);
             }
         }
