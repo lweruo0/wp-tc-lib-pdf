@@ -58,7 +58,7 @@ class PdfRechnungMerchandise extends PdfTemplate {
 		$adressData = get_option ( 'bfv_adressen' );
 		$this->setAddressdata($adressData);
 		$this->createStorageFolder('bfv_merchandise');
-		$this->setFileName("rechnung_$rechnungsnummer.pdf");
+		$this->setFileName("rechnung_merchandise_{$rechnungsnummer}.pdf");
 
 		$formdata = $this->getAllFormdata();
 		if (empty($formdata)) {
@@ -110,7 +110,6 @@ class PdfRechnungMerchandise extends PdfTemplate {
 
 
 		$this->setFormdata($formdata);
-		$this->setFileName("{$name}-{$vorname}-{$rechnungsnummer}_rechnung.pdf");
 
 		}
 
@@ -146,7 +145,7 @@ class PdfMahnungMerchandise extends PdfRechnungMerchandise {
 		parent::loadData();
 
 		$rechnungsnummer = $this->getUrl('nr', '');
-		$this->setFileName("mahnung_$rechnungsnummer.pdf");
+		//$this->setFileName("mahnung_merchandise_{$rechnungsnummer}.pdf");
 
 		$formdata = $this->getAllFormdata();
 		$betrag = number_format ( $formdata ['brutto'], 2, ',', '' );
