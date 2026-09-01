@@ -66,7 +66,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
         self::pdf_link('Huette Rechnung' , 'rechnung_huette', ['nr' => '2026-H-0002'], '2099-12-31');
         self::pdf_link('Merchandise Rechnung' , 'rechnung_merchandise', ['nr' => '2026-J-00001'], '2099-12-31');
         
-        self::update_urls();
+        //self::update_urls();
     }
 
 
