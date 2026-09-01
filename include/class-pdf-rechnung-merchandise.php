@@ -103,7 +103,6 @@ class PdfRechnungMerchandise extends PdfTemplate {
 		
         $text_before = 'für die am ' . $formdata['date']. ' bestellten Merchandise-Artikel berechnen wir Ihnen:';
 		$formdata['texts_before'] = [$text_before];
-		$formdata['rechnungsposten'] = [];
 
 		if (($formdata ['steuersatz']??0) > 0) {
 			$formdata['bezeichnung_steuer'] = 'Umsatzsteuer ' . $formdata ['steuersatz'] . '%';
