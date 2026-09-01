@@ -321,9 +321,11 @@ trait PdfRechnungsdatenTrait {
 		$out = $this->graph->getStartTransform();
 		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Bezeichnung', 'Anzahl', 'Einzelpreis', 'Gesamtpreis', 230);
 
-
 		foreach ($this->getForm('rechnungsposten', []) as $posten) {
-			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, $posten['bezeichnung'], $posten['anzahl'], $posten['einzelpreis'], $posten['gesamtpreis'], 255);
+			$einzelpreis = is_numeric($posten['einzelpreis']) ? number_format((float)$posten['einzelpreis'], 2, ',', '') . ' €' : $posten['einzelpreis'];
+			$gesamtpreis = is_numeric($posten['gesamtpreis']) ? number_format((float)$posten['gesamtpreis'], 2, ',', '') . ' €' : $posten['gesamtpreis'];
+
+			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, $posten['bezeichnung'], $posten['anzahl'], $einzelpreis, $gesamtpreis, 255);
 		}
 
 		if ($this->getForm('preis_versand_netto', 0) > 0) {
