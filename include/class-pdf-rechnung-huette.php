@@ -62,21 +62,14 @@ class PdfRechnungHuette extends PdfTemplate {
 
 		$formdata = $this->getAllFormdata();
 		if (empty($formdata)) {
-			if (function_exists('bfvjubilaeumsruten')) {
-				$instance = bfvjubilaeumsruten();
+			if (function_exists('bfvfischerhuette')) {
+				$instance = bfvfischerhuette();
 				$formdata = $instance->get_formdata_by_rechnungsnummer($rechnungsnummer);
 			} else {
 				$formdata = [];
 			}
 		}
-		if (empty($formdata)) {
-			if (function_exists('bfvmerchandise')) {
-				$instance = bfvmerchandise();
-				$formdata = $instance->get_formdata_by_rechnungsnummer($rechnungsnummer);
-			} else {
-				$formdata = [];
-			}
-		}
+
 
 		$name = $this->getAddress ( 'name_verein',  '' );
 		$addr = $this->getAddress ( 'addr_verein',  '' );
