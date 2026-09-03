@@ -67,7 +67,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 
 
         
-        //self::update_urls();
+        self::update_urls();
     }
 
 
@@ -114,10 +114,10 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 	private static function update_urls() {
 		$formdata = array ();
 
-        $options_quform = get_option ( 'bfv_jubilaeumsruten' );
+        $options = get_option ( 'bfv_fischerhuette' );
 
         $uploadDir = wp_upload_dir();
-        $folder = $uploadDir['basedir'] . '/bfv_merchandise/';
+        $folder = $uploadDir['basedir'] . '/bfv_huette/';
 
         // old: rechnung_rute_2025-J-0004.pdf
         // new: rechnung_merchandise_{$rechnungsnummer}.pdf
@@ -141,14 +141,14 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
                 $rechnungsnummer = $entry [$id_rechnungsnummer];
 
                 // Datei umbenennen: rechnung_rute_ -> rechnung_merchandise_
-                $old_file = $folder . 'rechnung_rute_' . $rechnungsnummer . '.pdf';
-                $new_file = $folder . 'rechnung_merchandise_' . $rechnungsnummer . '.pdf';
+                $old_file = $folder . 'rechnung_fischerhuette_' . $rechnungsnummer . '.pdf';
+                $new_file = $folder . 'rechnung_huette_' . $rechnungsnummer . '.pdf';
                 if (file_exists($old_file) && !file_exists($new_file)) {
                     rename($old_file, $new_file);
                 }
 
-                $url_mahnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('mahnung_merchandise', ['nr' => $rechnungsnummer], '+5years');
-                $url_rechnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('rechnung_merchandise', ['nr' => $rechnungsnummer], '+5years');
+                $url_mahnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('mahnung_huette', ['nr' => $rechnungsnummer], '+5years');
+                $url_rechnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('rechnung_huette', ['nr' => $rechnungsnummer], '+5years');
                 $update_ids = array();
                 $update_ids [(int) $options_quform ['mahnung_id']] = $url_mahnung_new;
                 $update_ids [(int) $options_quform ['rechnung_id']] = $url_rechnung_new;
