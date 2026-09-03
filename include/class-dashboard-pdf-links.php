@@ -114,7 +114,7 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 	private static function update_urls() {
 		$formdata = array ();
 
-        $options = get_option ( 'bfv_fischerhuette' );
+        $options_quform = get_option ( 'bfv_fischerhuette' );
 
         $uploadDir = wp_upload_dir();
         $folder = $uploadDir['basedir'] . '/bfv_huette/';
