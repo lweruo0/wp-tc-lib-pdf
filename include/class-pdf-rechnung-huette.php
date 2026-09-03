@@ -87,24 +87,27 @@ class PdfRechnungHuette extends PdfTemplate {
 		$formdata['date'] = isset($formdata['created_at']) ? date("d.m.Y", strtotime($formdata['created_at'])) : date("d.m.Y");
 		$formdata['zahlungsfrist'] = $formdata['zahlungsfrist_original'] ?? date ( "d.m.Y", strtotime('+7 days') );
 		
-
 		$brutto = number_format ( $formdata ['brutto'], 2, ',', '' );
 		$frist = $formdata['zahlungsfrist'];
 		$text_below = "Der Rechnungsbetrag von {$brutto} € ist spätestens zum {$frist} fällig. ";
 		$text_below .= "\nNach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht innerhalb von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das Rechnungsdatum dem Leistungsdatum.";
 		$formdata['text_below'] = $text_below;
 		
-        $text_before = 'für die am ' . $formdata['date']. ' bestellten Merchandise-Artikel berechnen wir Ihnen:';
+		if (intval($formdata['dauer']??1) == 1) {
+        	$text_before = 'für die Hüttenbuchung am ' .  date("d.m.Y", strtotime($formdata['von'])). ' berechnen wir Ihnen:';
+		} else {
+        	$text_before = 'für die Hüttenbuchung vom ' .  date("d.m.Y", strtotime($formdata['von'])). ' bis ' . date("d.m.Y", strtotime($formdata['bis'])). ' berechnen wir Ihnen:';
+		}
+
 		$formdata['texts_before'] = [$text_before];
 
 		if (($formdata ['steuersatz']??0) > 0) {
 			$formdata['bezeichnung_steuer'] = 'Umsatzsteuer ' . $formdata ['steuersatz'] . '%';
 		}
 
-
 		$this->setFormdata($formdata);
 
-		}
+	}
 
 	/**
 	 * Render the PDF document.
