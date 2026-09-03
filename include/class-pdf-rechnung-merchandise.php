@@ -145,7 +145,7 @@ class PdfMahnungMerchandise extends PdfRechnungMerchandise {
 		parent::loadData();
 
 		$rechnungsnummer = $this->getUrl('nr', '');
-		//$this->setFileName("mahnung_merchandise_{$rechnungsnummer}.pdf");
+		$this->setFileName("mahnung_merchandise_{$rechnungsnummer}.pdf");
 
 		$formdata = $this->getAllFormdata();
 		$betrag = number_format ( $formdata ['brutto'], 2, ',', '' );
