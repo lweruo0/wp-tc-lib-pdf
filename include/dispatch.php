@@ -33,7 +33,7 @@ PdfRegistry::register('mahnung_merchandise', 'PdfMahnungMerchandise', __DIR__ . 
 // https://bfv-ehingen.de/?mahnung_antrag=244&key=45042c927a
 PdfRegistry::register('mahnung_antrag', 'PdfRechnungMitgliedsantrag', __DIR__ . '/class-pdf-rechnung-mitgliedsantrag.php');
 // PdfRegistry::register('mahnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
-PdfRegistry::register('mahnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
+PdfRegistry::register('mahnung_huette', 'PdfMahnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
 
 // https://bfv-ehingen.de/?arbeitsdienstliste=1&dienst=17.01.2026&mgn=282&nonce=45042c927a
 PdfRegistry::register('liste_arbeitsdienst', 'PdfListeArbeitsdienst', __DIR__ . '/class-pdf-liste-arbeitsdienst.php');
