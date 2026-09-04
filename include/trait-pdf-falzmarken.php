@@ -27,7 +27,6 @@ trait PdfFalzmarkenTrait {
 	/**
 	 * Draw DIN letter helper guides on the current page.
 	 *
-	 * This is a tc-lib-pdf port of the old TCPDF helper layout.
 	 *
 	 * @return string Raw PDF stream to be added to the page content.
 	 */

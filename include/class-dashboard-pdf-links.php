@@ -56,10 +56,8 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
         self::pdf_link('✓ vorjahresvergleich', 'vorjahresvergleich');
         self::pdf_link('✓ Uservergleich 2024', 'fangstatistikuservergleich',  ['jahr' => '2024']);
         self::pdf_link('✓ Merchandise Rechnung' , 'rechnung_merchandise', ['nr' => '2026-J-00001'], '2099-12-31');
-        self::pdf_link('Huette Rechnung' , 'rechnung_huette', ['nr' => '2026-H-0002'], '2099-12-31');
-
-        self::pdf_link('Huette Rechnung' , 'rechnung_huette', ['nr' => '2026-H-0003'], '2099-12-31');
-
+        self::pdf_link('✓ Huette Rechnung' , 'rechnung_huette', ['nr' => '2026-H-0002'], '2099-12-31');
+  
         self::pdf_link('Mitgliedsantrag 160' , 'mitgliedsantrag', ['mnr' => '160-233-234-235']);
         self::pdf_link('Mitgliedsantrag Rechnung', 'rechnung_antrag', ['mnr' => '233'], '2099-12-31');
         self::pdf_link('Mitgliedsantrag Mahnung 233', 'mahnung_antrag', ['mnr' => '233'], '2099-12-31');
