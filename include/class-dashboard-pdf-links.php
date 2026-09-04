@@ -112,10 +112,10 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 	private static function update_urls() {
 		$formdata = array ();
 
-        $options_quform = get_option ( 'bfv_fischerhuette' );
+		$options_quform = get_option ( 'bfv_mitgliedsantrag_quform' );
 
-        $uploadDir = wp_upload_dir();
-        $folder = $uploadDir['basedir'] . '/bfv_huette/';
+        //$uploadDir = wp_upload_dir();
+        //$folder = $uploadDir['basedir'] . '/bfv_huette/';
 
         // old: rechnung_rute_2025-J-0004.pdf
         // new: rechnung_merchandise_{$rechnungsnummer}.pdf
@@ -131,25 +131,28 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 				'limit' => 10000,
 		) );
 
-        $id_rechnungsnummer = 'element_' . $options_quform ['rechnungsnummer_id'];
+        //$id_rechnungsnummer = 'element_' . $options_quform ['rechnungsnummer_id'];
+        $id_mitgliedsnummer = 'element_' . $options_quform ['id_mitgliedsnummer'];
        
 		/* wir suchen die Bestellungen mit der richtigen Rechnungsnummer */
 		if (is_array ( $entries )) {
 			foreach ( $entries as $entry ) {
-                $rechnungsnummer = $entry [$id_rechnungsnummer];
+                $mitgliedsnummer = $entry [$id_mitgliedsnummer];
 
-                // Datei umbenennen: rechnung_rute_ -> rechnung_merchandise_
+                /* Datei umbenennen: rechnung_rute_ -> rechnung_merchandise_
                 $old_file = $folder . 'rechnung_fischerhuette_' . $rechnungsnummer . '.pdf';
                 $new_file = $folder . 'rechnung_huette_' . $rechnungsnummer . '.pdf';
                 if (file_exists($old_file) && !file_exists($new_file)) {
                     rename($old_file, $new_file);
-                }
+                } */
 
-                $url_mahnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('mahnung_huette', ['nr' => $rechnungsnummer], '+5years');
-                $url_rechnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('rechnung_huette', ['nr' => $rechnungsnummer], '+5years');
+                $url_antrag_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('mitgliedsantrag', ['mnr' => $mitgliedsnummer], '+2years');
+                $url_rechnung_new = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('rechnung_antrag', ['mnr' => $mitgliedsnummer], '+2years');
+
+   
                 $update_ids = array();
-                $update_ids [(int) $options_quform ['mahnung_id']] = $url_mahnung_new;
-                $update_ids [(int) $options_quform ['rechnung_id']] = $url_rechnung_new;
+                $update_ids [(int) $options_quform ['id_url']] = $url_antrag_new;
+                $update_ids [(int) $options_quform ['id_url2']] = $url_rechnung_new;
                 $repository->saveEntryData($entry ['id'], $update_ids);
             }
         }
