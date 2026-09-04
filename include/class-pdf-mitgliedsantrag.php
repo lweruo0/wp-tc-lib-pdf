@@ -64,12 +64,6 @@ abstract class PdfMitgliedsantragData extends PdfTemplate {
 				foreach ( $mitgliedsnummern as $mitgliedsnummer ) {
 					$formdaten  = $instance->get_formdata_by_mitgliedsnummer ( $mitgliedsnummer );
 					$formdaten['documenttype'] = 'Mitgliedsantrag';
-
-					$year = isset($formdaten['created_at']) ? date("Y", strtotime($formdaten['created_at'])) : date("Y");
-					$nachname = $formdaten['name']?? 'MUSTERMANN';
-					$vorname = $formdaten['vorname']?? 'MAX';
-					$formdaten['filename_single'] = "mitgliedsantrag-{$year}-{$nachname}-{$vorname}.pdf";
-
 					$formdata[] = $formdaten;
 				}
 			} else {
@@ -78,7 +72,11 @@ abstract class PdfMitgliedsantragData extends PdfTemplate {
 		}
 
 		if (count($formdata) === 1) {
-			$this->setFileName($formdata[0]['filename_single']);
+			$year = isset($formdata[0]['created_at']) ? date("Y", strtotime($formdata[0]['created_at'])) : date("Y");
+			$nachname = $formdata[0]['name'] ?? 'MUSTERMANN';
+			$vorname = $formdata[0]['vorname'] ?? 'MAX';
+			$filename = "mitgliedsantrag-{$year}-{$nachname}-{$vorname}.pdf";
+			$this->setFileName($filename);
 		}
 
 		$formdata['documenttype'] = 'Mitgliedsantrag';
