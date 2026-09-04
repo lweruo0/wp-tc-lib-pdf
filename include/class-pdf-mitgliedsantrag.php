@@ -875,8 +875,8 @@ class PdfMitgliedsantrag2 extends PdfMitgliedsantragData {
 			$this->seite_einwilligung_fotos ();
 			$this->seite_antrag ();
 			$this->seite_sepa ();
-			//$this->enableDefaultPageContent(false);
-			//$this->seite_attachments ();
+			$this->enableDefaultPageContent(false);
+			$this->seite_attachments ();
 		}
 	}
 }
