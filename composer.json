@@ -7,8 +7,7 @@
     "php": "^8.2",
     "ext-gd": "*",
     "tecnickcom/tc-lib-pdf": "^8.73",
-    "tecnickcom/tc-lib-barcode": "^2.16",
-    "font/pdfa": "^1.2"
+    "tecnickcom/tc-lib-barcode": "^2.16"
   },
 	"require-dev": {
     "phpstan/phpstan": "^2.0",

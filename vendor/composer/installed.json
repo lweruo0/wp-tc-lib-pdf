@@ -1,53 +1,6 @@
 {
     "packages": [
         {
-            "name": "font/pdfa",
-            "version": "1.2.0",
-            "version_normalized": "1.2.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tecnickcom/tc-font-pdfa.git",
-                "reference": "b8645e06446f6cb462d7ed431a18ab48c0f554aa"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/tc-font-pdfa/zipball/b8645e06446f6cb462d7ed431a18ab48c0f554aa",
-                "reference": "b8645e06446f6cb462d7ed431a18ab48c0f554aa",
-                "shasum": ""
-            },
-            "time": "2026-08-21T11:07:59+00:00",
-            "type": "library",
-            "installation-source": "dist",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "LGPL-3.0"
-            ],
-            "description": "Type1 core fonts for PDFA",
-            "homepage": "https://tcpdf.org",
-            "keywords": [
-                "PDFA",
-                "PFB",
-                "core",
-                "font",
-                "tc-font-pdf"
-            ],
-            "support": {
-                "issues": "https://github.com/tecnickcom/tc-font-pdfa/issues",
-                "source": "https://github.com/tecnickcom/tc-font-pdfa/tree/1.2.0"
-            },
-            "funding": [
-                {
-                    "url": "https://www.paypal.com/donate/?hosted_button_id=NZUEC5XS8MFBJ",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/tecnickcom",
-                    "type": "github"
-                }
-            ],
-            "install-path": "../font/pdfa"
-        },
-        {
             "name": "tecnickcom/tc-lib-barcode",
             "version": "2.16.2",
             "version_normalized": "2.16.2.0",

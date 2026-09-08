@@ -10,15 +10,6 @@
         'dev' => false,
     ),
     'versions' => array(
-        'font/pdfa' => array(
-            'pretty_version' => '1.2.0',
-            'version' => '1.2.0.0',
-            'reference' => 'b8645e06446f6cb462d7ed431a18ab48c0f554aa',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../font/pdfa',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
         'oliver-ruoss/tc-lib-pdf-wp' => array(
             'pretty_version' => '1.0.0',
             'version' => '1.0.0.0',

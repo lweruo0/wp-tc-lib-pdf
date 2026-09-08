@@ -120,7 +120,7 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 			halign: \Com\Tecnick\Pdf\TextHAlign::Left,
 		);
 
-		// "Sicherheitshinweis:" (underlined)
+		// "Sicherheitshinweis:"
 		$fontB = $this->font->insert($this->pon, 'helvetica', 'B', $textSize);
 		$out .= $fontB['out'];
 		$out .= $this->getTextCell(
