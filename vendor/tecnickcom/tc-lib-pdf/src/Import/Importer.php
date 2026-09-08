@@ -20,6 +20,7 @@ namespace Com\Tecnick\Pdf\Import;
 
 use Com\Tecnick\File\Exception as FileException;
 use Com\Tecnick\File\File as ObjFile;
+use Com\Tecnick\Pdf\Encrypt\Encrypt as ObjEncrypt;
 
 /**
  * Com\Tecnick\Pdf\Import\Importer
@@ -70,6 +71,14 @@ class Importer implements ImporterInterface
     private array $templateCache = [];
 
     /**
+     * Flattened page index per source ID: one effective page dictionary per
+     * reachable page, in document order (sources are immutable after parsing).
+     *
+     * @var array<string, array<int, array<string, mixed>>>
+     */
+    private array $pageIndexes = [];
+
+    /**
      * Raw PDF object bytes queued for deferred write, keyed by XObject template ID.
      *
      * @var array<string, string>
@@ -98,19 +107,103 @@ class Importer implements ImporterInterface
     private ObjFile $file;
 
     /**
+     * PDF/A part of the destination document (0 when PDF/A is not active).
+     *
+     * @var int
+     */
+    private int $pdfa;
+
+    /**
+     * Encryption object of the destination document.
+     */
+    private ObjEncrypt $encrypt;
+
+    /**
+     * True when the conformance mode of the destination document requires every
+     * font to be embedded.
+     */
+    private bool $requireEmbeddedFonts;
+
+    /**
+     * Conformance warnings raised while pages were imported.
+     *
+     * @var array<int, string>
+     */
+    private array $warnings = [];
+
+    /**
      * Constructor.
      *
      * @param array<string, mixed> $xobjects Reference to the destination document's xobjects array.
      * @param int                  $pon      Reference to the PDF object number counter.
      * @param ObjFile              $file     Shared file helper instance.
+     * @param int                  $pdfa     PDF/A part of the destination document (0 when not active).
+     * @param ?ObjEncrypt          $encrypt  Encryption object of the destination document; a disabled
+     *                                       one is used when null.
+     * @param bool                 $requireEmbeddedFonts True when the destination document requires
+     *                                       every font to be embedded.
+     *
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
      */
-    public function __construct(array &$xobjects, int &$pon, ObjFile $file)
-    {
+    public function __construct(
+        array &$xobjects,
+        int &$pon,
+        ObjFile $file,
+        int $pdfa = 0,
+        ?ObjEncrypt $encrypt = null,
+        bool $requireEmbeddedFonts = false,
+    ) {
         // Bind by reference so importPage() writes directly into $pdf->xobjects.
 
         $this->xobjects = &$xobjects;
         $this->pon = &$pon;
         $this->file = $file;
+        $this->pdfa = $pdfa;
+        $this->encrypt = $encrypt ?? new ObjEncrypt();
+        $this->requireEmbeddedFonts = $requireEmbeddedFonts;
+    }
+
+    /**
+     * Return the conformance warnings raised while pages were imported.
+     *
+     * @return array<int, string>
+     */
+    public function getWarnings(): array
+    {
+        return $this->warnings;
+    }
+
+    /**
+     * Record a warning for each font of an imported page whose program is not
+     * embedded in the source document.
+     *
+     * The source page is copied into a Form XObject as it stands, so a font the
+     * source does not carry cannot be embedded by the destination document.
+     *
+     * @param array<string, mixed> $resources Resolved page resource dictionary.
+     * @param SourceDocument       $src       Source document.
+     * @param int                  $pageNum   1-based page number of the imported page.
+     */
+    private function checkImportedFonts(array $resources, SourceDocument $src, int $pageNum): void
+    {
+        if (!$this->requireEmbeddedFonts || $resources === []) {
+            return;
+        }
+
+        $inspector = new FontInspector();
+        foreach ($inspector->findNonEmbeddedFonts($resources, $src) as $name) {
+            $message =
+                'The active conformance mode requires embedded fonts: the imported page '
+                . $pageNum
+                . ' uses the font '
+                . $name
+                . ', whose program is not embedded in the source document';
+            if (\in_array($message, $this->warnings, true)) {
+                continue;
+            }
+
+            $this->warnings[] = $message;
+        }
     }
 
     /**
@@ -171,6 +264,10 @@ class Importer implements ImporterInterface
     /**
      * Return the total number of pages in a registered source document.
      *
+     * The count is derived from the page tree reachable through /Kids. The
+     * declared /Count entry is ignored: it is controlled by the source file and
+     * never sizes an allocation or bounds a loop.
+     *
      * @param string $sourceId Source document identifier.
      *
      * @return int Total page count.
@@ -180,27 +277,7 @@ class Importer implements ImporterInterface
      */
     public function getSourcePageCount(string $sourceId): int
     {
-        $src = $this->requireSource($sourceId);
-        $trailer = $src->getTrailer();
-        $rootRef = SourceDocument::refToKey($trailer['root']);
-        $rootObj = $src->getObject($rootRef);
-        $rootDict = $this->parseSimpleDict($rootObj);
-        if (!isset($rootDict['Pages'])) {
-            throw new ImportCorruptedSourceException('PDF /Root is missing /Pages entry.');
-        }
-
-        $pagesRef = SourceDocument::refToKey(\is_string($rootDict['Pages']) ? $rootDict['Pages'] : '');
-        $pagesObj = $src->getObject($pagesRef);
-        $pagesDict = $this->parseSimpleDict($pagesObj);
-        if (isset($pagesDict['Count']) && \is_int($pagesDict['Count'])) {
-            return $pagesDict['Count'];
-        }
-
-        if (isset($pagesDict['Count']) && \is_numeric($pagesDict['Count'])) {
-            return (int) $pagesDict['Count'];
-        }
-
-        return 0;
+        return \count($this->getPageIndex($sourceId));
     }
 
     /**
@@ -217,6 +294,7 @@ class Importer implements ImporterInterface
      * @throws ImportCorruptedSourceException    If the page tree is malformed.
      * @throws ImportException                   If object mapping or cloning fails.
      * @throws ImportUnsupportedFeatureException If an unsupported feature is encountered.
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
      */
     public function importPage(string $sourceId, int $pageNum, array $options = []): PageTemplateInterface
     {
@@ -244,7 +322,9 @@ class Importer implements ImporterInterface
 
         $src = $this->requireSource($sourceId);
         $resolver = new PageResolver();
-        $resolved = $resolver->resolve($src, $pageNum);
+        $resolved = $resolver->resolveFromIndex($src, $this->getPageIndex($sourceId), $pageNum);
+
+        $this->checkImportedFonts($resolved['resources'], $src, $pageNum);
 
         $box = $this->selectBox($resolved, $useBox);
         $rotate = $respectRotation ? $resolved['rotate'] : 0;
@@ -259,8 +339,8 @@ class Importer implements ImporterInterface
         $tid = 'IMP' . $xobjNum;
 
         // Clone resources.
-        $cloner = new ResourceCloner($this->pon);
-        $resDict = $cloner->cloneResources($resolved['resources'], $src, $map);
+        $cloner = new ResourceCloner($this->pon, $this->pdfa, $this->encrypt);
+        $resDict = $cloner->cloneResources($resolved['resources'], $src, $map, $xobjNum);
         $this->pon = $cloner->getPon();
 
         // Extract content stream.
@@ -288,8 +368,8 @@ class Importer implements ImporterInterface
         $matrix = $this->rotationMatrix($rotate, $rawW, $rawH);
         $matrixStr = \implode(' ', $matrix);
 
-        // Serialize the Form XObject.
-        $streamBytes = $contentStream['bytes'];
+        // Serialize the Form XObject: the content is filtered first and encrypted last.
+        $streamBytes = $this->encrypt->encryptString($contentStream['bytes'], $xobjNum);
         $filterEntry = $contentStream['filter'] !== '' ? ' /Filter ' . $contentStream['filter'] : '';
         $groupEntry = $useGroup ? ' /Group << /Type /Group /S /Transparency >>' : '';
 
@@ -335,7 +415,7 @@ class Importer implements ImporterInterface
             'gheight' => 0.0,
         ];
 
-        // Determine user-unit dimensions (points → same unit as pon; leave in pt for now).
+        // Template dimensions stay in points.
         $tpl = new PageTemplate($tid, $bboxW, $bboxH, $rotate, $sourceId, $pageNum, [$xMin, $yMin, $xMax, $yMax]);
 
         if ($useCache) {
@@ -359,28 +439,31 @@ class Importer implements ImporterInterface
      * @throws ImportCorruptedSourceException    If the page tree is malformed.
      * @throws ImportException                   If object mapping or cloning fails.
      * @throws ImportUnsupportedFeatureException If an unsupported feature is encountered.
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
      */
     public function importPages(string $sourceId, ?array $range = null, array $options = []): array
     {
         $total = $this->getSourcePageCount($sourceId);
 
+        $templates = [];
         if ($range === null) {
-            // A missing or non-positive /Count would make \range(1, $total)
-            // produce a descending/invalid sequence (e.g. [1, 0]); there is
-            // simply nothing to import in that case.
-            $range = $total < 1 ? [] : \range(1, $total);
-        } else {
-            foreach ($range as $pageNum) {
-                $num = (int) $pageNum;
-                if ($num < 1 || $num > $total) {
-                    throw new ImportPageOutOfRangeException(
-                        'Page number ' . $num . ' is out of range [1,' . $total . '].',
-                    );
-                }
+            // $total is the verified number of reachable pages, so every page
+            // number in 1..$total is resolvable; no array of page numbers is
+            // materialized up front.
+            for ($pageNum = 1; $pageNum <= $total; ++$pageNum) {
+                $templates[] = $this->importPage($sourceId, $pageNum, $options);
+            }
+
+            return $templates;
+        }
+
+        foreach ($range as $pageNum) {
+            $num = (int) $pageNum;
+            if ($num < 1 || $num > $total) {
+                throw new ImportPageOutOfRangeException('Page number ' . $num . ' is out of range [1,' . $total . '].');
             }
         }
 
-        $templates = [];
         foreach ($range as $pageNum) {
             $templates[] = $this->importPage($sourceId, (int) $pageNum, $options);
         }
@@ -414,6 +497,31 @@ class Importer implements ImporterInterface
         $this->sources = [];
         $this->objectMaps = [];
         $this->rawObjects = [];
+        $this->pageIndexes = [];
+    }
+
+    /**
+     * Return the flattened page index for a registered source, building and
+     * caching it on first use so batch imports walk the page tree only once.
+     *
+     * @param string $sourceId Source document identifier.
+     *
+     * @return array<int, array<string, mixed>> Effective page dictionaries in document order.
+     *
+     * @throws ImportSourceNotFoundException If the source ID is not registered.
+     * @throws ImportCorruptedSourceException If the page tree is malformed.
+     */
+    private function getPageIndex(string $sourceId): array
+    {
+        $index = $this->pageIndexes[$sourceId] ?? null;
+        if ($index === null) {
+            $src = $this->requireSource($sourceId);
+            $resolver = new PageResolver();
+            $index = $resolver->buildPageIndex($src);
+            $this->pageIndexes[$sourceId] = $index;
+        }
+
+        return $index;
     }
 
     /**
@@ -508,80 +616,5 @@ class Importer implements ImporterInterface
             270 => [0.0, 1.0, -1.0, 0.0, $hgt, 0.0],
             default => [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
         };
-    }
-
-    /**
-     * Extract a minimal key->value dict from a raw parsed object (for trailer-level lookups).
-     *
-     * @param array<int, mixed> $objData Raw object data.
-     *
-     * @return array<string, mixed>
-     *
-     * @throws ImportCorruptedSourceException If no dictionary found.
-     */
-    private function parseSimpleDict(array $objData): array
-    {
-        $objItems = \array_values($objData);
-        $objCount = \count($objItems);
-        for ($objIdx = 0; $objIdx < $objCount; ++$objIdx) {
-            $objItemSlice = \array_slice($objItems, $objIdx, 1);
-            if (\count($objItemSlice) !== 1 || !\is_array($objItemSlice[0])) {
-                continue;
-            }
-
-            $objItem = $objItemSlice[0];
-
-            if (($objItem[0] ?? null) !== '<<' || !\is_array($objItem[1] ?? null)) {
-                continue;
-            }
-
-            $dict = [];
-            $raw = \array_values($objItem[1]);
-            $cnt = \count($raw);
-            for ($idx = 0; $idx < ($cnt - 1); $idx += 2) {
-                $pair = \array_slice($raw, $idx, 2);
-                if (\count($pair) < 2) {
-                    continue;
-                }
-
-                if (!\is_array($pair[0] ?? null) || ($pair[0][0] ?? null) !== '/') {
-                    continue;
-                }
-
-                if (!\array_key_exists(1, $pair)) {
-                    continue;
-                }
-
-                if (!\array_key_exists(1, $pair[0])) {
-                    continue;
-                }
-
-                if (!\is_string($pair[0][1])) {
-                    continue;
-                }
-
-                $key = \ltrim($pair[0][1], '/');
-
-                if (\is_array($pair[1])) {
-                    if (!\array_key_exists(1, $pair[1])) {
-                        continue;
-                    }
-
-                    if (!\is_array($pair[1][1]) && \is_scalar($pair[1][1])) {
-                        $dict[$key] = (string) $pair[1][1];
-                    }
-
-                    continue;
-                }
-
-                if (!\is_array($pair[1]) && \is_scalar($pair[1])) {
-                    $dict[$key] = (string) $pair[1];
-                }
-            }
-
-            return $dict;
-        }
-
-        throw new ImportCorruptedSourceException('Expected dictionary object but none found.');
     }
 }

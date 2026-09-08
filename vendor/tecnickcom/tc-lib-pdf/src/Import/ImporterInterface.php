@@ -73,6 +73,9 @@ interface ImporterInterface
     /**
      * Return the total number of pages in a registered source document.
      *
+     * The count reflects the pages actually reachable through the /Kids page
+     * tree; the declared /Count entry of the /Pages dictionary is ignored.
+     *
      * @param string $sourceId Source document identifier returned by setImportSource*.
      *
      * @return int Total page count.
@@ -113,6 +116,13 @@ interface ImporterInterface
      * @throws ImportUnsupportedFeatureException If an unsupported feature is encountered.
      */
     public function importPages(string $sourceId, ?array $range = null, array $options = []): array;
+
+    /**
+     * Return the conformance warnings raised while pages were imported.
+     *
+     * @return array<int, string>
+     */
+    public function getWarnings(): array;
 
     /**
      * Flush all queued raw PDF object bytes to the output stream.
