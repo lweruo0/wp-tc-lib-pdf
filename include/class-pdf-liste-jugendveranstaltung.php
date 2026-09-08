@@ -228,7 +228,14 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 				$nr = 0;
 			}
 			$nr++;
-			$this->add_line_table($y, $nr, $anmeldung['mnr'], $anmeldung['name'], $anmeldung['tel'], $anmeldung['tel_erz']);
+			$this->add_line_table(
+				$y,
+				$nr,
+				(string) ($anmeldung['mnr'] ?? ''),
+				(string) ($anmeldung['name'] ?? ''),
+				(string) ($anmeldung['tel'] ?? ''),
+				(string) ($anmeldung['tel_erz'] ?? ''),
+			);
 			$y += self::ROW_HEIGHT;
 		}
         $Anzahl_leerzeilen = self::ROWS_PER_PAGE - $nr;
