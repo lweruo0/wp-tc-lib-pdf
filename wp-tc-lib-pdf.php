@@ -55,6 +55,7 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 		}
 
 		$font_paths = array(
+			dirname(__FILE__) . '/font/core',
 			dirname(__FILE__) . '/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/core',
 			dirname(__FILE__) . '/vendor/tecnickcom/tc-lib-pdf-font/target/fonts',
 			WP_CONTENT_DIR . '/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/core',
