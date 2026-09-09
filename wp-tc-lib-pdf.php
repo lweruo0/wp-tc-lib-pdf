@@ -3,7 +3,7 @@
  * Plugin Name: TC Lib PDF for WordPress
  * Plugin URI: https://github.com/lweruo0/wp-tc-lib-pdf
  * Description: Bootstrap plugin for tc-lib-pdf via Composer.
- * Version: 2026.08.28
+ * Version: 2026.09.09
  * Author: Oliver Ruoß
  * License: GPL-2.0-or-later
  */
@@ -56,10 +56,6 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 
 		$font_paths = array(
 			dirname(__FILE__) . '/font/core',
-			dirname(__FILE__) . '/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/core',
-			dirname(__FILE__) . '/vendor/tecnickcom/tc-lib-pdf-font/target/fonts',
-			WP_CONTENT_DIR . '/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/core',
-			WP_CONTENT_DIR . '/vendor/tecnickcom/tc-lib-pdf-font/target/fonts',
 		);
 
 		foreach ($font_paths as $path) {
