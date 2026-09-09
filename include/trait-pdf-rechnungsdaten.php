@@ -86,7 +86,6 @@ trait PdfRechnungsdatenTrait {
 	 * @param float                                       $y         Top position in mm.
 	 * @param float                                       $width     Block width in mm.
 	 * @param float                                       $height    Block height in mm.
-	 * @param bool                                        $drawFrame Whether to draw a visible frame.
 	 * @param ?array<int, array{label: string, value: string}> $rows  Optional custom rows.
 	 *
 	 * @return string
@@ -196,7 +195,6 @@ trait PdfRechnungsdatenTrait {
 	 * @param float                                       $y         Top position in mm.
 	 * @param float                                       $width     Block width in mm.
 	 * @param float                                       $height    Block height in mm.
-	 * @param bool                                        $drawFrame Whether to draw a visible frame.
 	 * @param ?array<int, array{label: string, value: string}> $rows  Optional custom rows.
 	 *
 	 * @return float
