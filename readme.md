@@ -10,395 +10,216 @@ Dieses System bietet eine flexible und erweiterbare Architektur zum Rendern vers
    - Abstrakte Basis für alle PDF-Templates
    - Erweitert `\Com\Tecnick\Pdf\Tcpdf`
    - Definiert die `render()` Methode, die von Subklassen implementiert werden muss
-   - Stellt Methoden für Dokumentmetadaten bereit
+# wp-tc-lib-pdf — PDF Template System for WordPress
 
-### 2. **Traits** (Feature-Bundles)
-   - **PdfHeaderFooterTrait**: Bietet Header/Footer-Funktionalität
-   - Können kombiniert werden, um verschiedene Feature-Sets zu erstellen
-   - Erlauben Simulation von Mehrfachvererbung
+Kurz: dieses Plugin bietet ein leicht erweiterbares System zum Erzeugen von PDFs
+mittels tc-lib-pdf (tecnickcom) in WordPress‑Umgebungen. Templates sind PHP‑Klassen
+und können durch Traits modular erweitert werden.
 
-### 3. **Template-Klassen**
-   - **PdfExample**: Einfaches Beispiel-Template mit Header/Footer
-   - **PdfInvoice**: Rechnungs-Template mit Header/Footer und Struktur
-   - **PdfSimple**: Minimales Template ohne Zusatz-Features
-   - Können leicht erweitert oder angepasst werden
+## Anforderungen
+- PHP >= 8.0 (oder kompatibel mit Ihrer tc-lib-pdf Version)
+- Composer (für Installation der Abhängigkeiten)
 
-### 4. **PdfRegistry** (Template-Registry)
-   - Verwaltet Registrierung und Instanziierung von Templates
-   - Ermöglicht dynamisches Laden von Template-Klassen
-   - Validiert Abhängigkeiten und Sicherheit
+## Installation
 
-### 5. **Pdf_Dispatcher** (Router)
-   - Verarbeitet `$_GET['demo_pdf']` Parameter
-   - Verifiziert Nonce-Token für Sicherheit
-   - Lädt und rendert die richtige PDF-Template
-   - Behandelt Fehler und gibt aussagekräftige Meldungen zurück
+1. Abhängigkeiten installieren (Entwicklungsmodus):
 
-## Verwendung
-
-### URL-Format zum PDF-Rendering
-
-```
-https://example.com/?demo_pdf=example&nonce=NONCE_VALUE
+```powershell
+composer install
 ```
 
-Verfügbare Templates:
-- `demo_pdf=example` - Einfaches Beispiel-Template
-- `demo_pdf=invoice` - Rechnungs-Template
-- `demo_pdf=simple` - Minimales Template
+2. Für Release / Produktion (deterministische Installation):
 
-### Nonce generieren
+```powershell
+composer install --no-dev --optimize-autoloader --classmap-authoritative
+```
 
-Im Backend oder Template-Code:
+3. Falls `composer.lock` veraltet ist (z. B. nach Änderung an `composer.json`):
+
+```powershell
+composer update
+```
+
+Hinweis: `install` verwendet `composer.lock` und ist reproduzierbar; `update`
+schreibt eine neue `composer.lock` und lädt die neuesten kompatiblen Versionen.
+
+## Fonts / Core fonts
+
+Dieses Projekt nutzt tc-lib-pdf-font. Die Core‑Font‑Metriken (Helvetica, Times,
+Courier, Symbol, ZapfDingbats) liegen in `font/core` als JSON‑Definitionen.
+
+Wenn du die Core‑Metrics neu erzeugen oder anpassen willst, gibt es zwei Wege:
+
+- Aus offiziellen AFM‑Quellen (empfohlen für PDF/A‑Konformität):
+  - Projekt `tc-font-pdfa` (GitHub) stellt die AFM/Type1‑Assets bereit.
+  - Zum Erzeugen der JSONs wurde das im Repo enthaltene Tool verwendet:
+
+```powershell
+# AFM in den Konverter‑Mirror legen (oder tc-font-pdfa herunterladen)
+php vendor/tecnickcom/tc-lib-pdf-font/util/bulk_convert.php -o font/
+```
+
+- Alternativ können lokale TTF/OTF verwendet werden (weniger "official"), das
+  Tool unterstützt auch TTF‑Quellen.
+
+Wichtiger Hinweis: das Tool erzeugt mehrere Artefakte (z. B. `.z` Dateien). Das
+Repository enthält bereits die erzeugten JSONs; temporäre Artefakte können
+gelöscht werden, wenn du nur die JSON‑Metriken behalten willst.
+
+## Entwicklung: Templates & Traits
+
+- Templates sind Klassen in `include/` und erben von `PdfTemplate`.
+- Wiederverwendbare UI‑Bausteine sind als Traits implementiert (z. B.
+  `trait-pdf-header.php`, `trait-pdf-rechnungsdaten.php`).
+- Templates werden in `include/dispatch.php` bei Bedarf registriert.
+
+Kurzes Beispiel (Registration):
 
 ```php
-$nonce = wp_create_nonce('demo_pdf_render');
-$url = add_query_arg([
-    'demo_pdf' => 'example',
-    'nonce' => $nonce
-], home_url('/'));
-```
-
-### Link in Template einfügen
-
-```php
-<?php
-$nonce = wp_create_nonce('demo_pdf_render');
-$pdf_url = add_query_arg([
-    'demo_pdf' => 'example',
-    'nonce' => $nonce
-], home_url('/'));
-?>
-<a href="<?php echo esc_url($pdf_url); ?>" class="button">PDF downloaden</a>
-```
-
-## Ein neues Template erstellen
-
-### 1. Einfaches Template (ohne Header/Footer)
-
-Datei: `include/class-pdf-report.php`
-
-```php
-<?php
-
-require_once __DIR__ . '/class-pdf-template.php';
-
-class PdfReport extends PdfTemplate {
-    protected string $report_title = 'Report';
-
-    public function __construct() {
-        parent::__construct();
-        $this->title = $this->report_title;
-    }
-
-    public function setReportTitle(string $title): void {
-        $this->report_title = $title;
-    }
-
-    protected function render(): void {
-        $this->addPage();
-
-        // Ihr PDF-Inhalt hier
-        $this->setFontSize(16);
-        $this->color->setPdfColor('#1a3a6b');
-        $out = $this->getTextCell(
-            txt: $this->report_title,
-            posx: 10,
-            posy: 20,
-            width: 190,
-            height: 15,
-            offset: 0,
-            linespace: 0,
-            valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-            halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-        );
-        echo $out; // phpcs:ignore
-    }
-}
-```
-
-### 2. Template mit Header/Footer (nutzt Trait)
-
-Datei: `include/class-pdf-report-with-footer.php`
-
-```php
-<?php
-
-require_once __DIR__ . '/class-pdf-template.php';
-require_once __DIR__ . '/trait-pdf-header-footer.php';
-
-class PdfReportWithFooter extends PdfTemplate {
-    use PdfHeaderFooterTrait;
-
-    public function __construct() {
-        parent::__construct();
-        $this->title = 'Report mit Footer';
-        $this->enableDefaultPageContent(true);
-    }
-
-    protected function render(): void {
-		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
-        $this->addPage();
-
-        // Ihr Inhalt hier
-        $this->setFontSize(14);
-        $this->color->setPdfColor('#555555');
-        $out = $this->getTextCell(
-            txt: 'Bericht mit automatischer Header/Footer',
-            posx: 10,
-            posy: 50,
-            width: 190,
-            height: 20,
-            offset: 0,
-            linespace: 0,
-            valign: \Com\Tecnick\Pdf\TextVAlign::Top,
-            halign: \Com\Tecnick\Pdf\TextHAlign::Center,
-        );
-        echo $out; // phpcs:ignore
-    }
-}
-```
-
-### 3. Template im Dispatcher registrieren
-
-In `include/dispatch.php`:
-
-```php
-// Neue Template-Klasse laden und registrieren
 require_once __DIR__ . '/class-pdf-report.php';
 PdfRegistry::register('report', 'PdfReport', __DIR__ . '/class-pdf-report.php');
-
-require_once __DIR__ . '/class-pdf-report-with-footer.php';
-PdfRegistry::register('report-footer', 'PdfReportWithFooter', __DIR__ . '/class-pdf-report-with-footer.php');
 ```
 
-Jetzt sind neue Templates verfügbar:
-- `demo_pdf=report`
-- `demo_pdf=report-footer`
+## **Available PDFs**
 
-## Eigene Traits erstellen
+Die im Dispatcher registrierten PDF‑Templates sind in `include/dispatch.php` konfiguriert.
+Aktuelle IDs und Klassen (Auswahl):
 
-Erstelle einen neuen Trait für wiederverwendbare Funktionalität:
+- `rechnung_erlaubnis` — `PdfRechnungErlaubnis`
+- `rechnung_merchandise` — `PdfRechnungMerchandise`
+- `rechnung_antrag` — `PdfRechnungMitgliedsantrag`
+- `rechnung_huette` — `PdfRechnungHuette`
+- `rechnung_vorbereitungslehrgang` — `PdfRechnungVorbereitungsLehrgang2`
+- `mahnung_erlaubnis` — `PdfMahnungErlaubnis`
+- `mahnung_merchandise` — `PdfMahnungMerchandise`
+- `mahnung_antrag` — `PdfRechnungMitgliedsantrag`
+- `mahnung_huette` — `PdfMahnungHuette`
+- `liste_arbeitsdienst` — `PdfListeArbeitsdienst`
+- `liste_jugendveranstaltung` — `PdfListeJugendveranstaltung`
+- `erlaubnisschein` — `PdfErlaubnisschein2`
+- `fangstatistik` / `vorjahresvergleich` / `jahresvergleich` — Statistik‑Templates
+- `anmeldung_lfvbw` — `PdfTemplateLFVBW`
+- `mitgliedsantrag` / `mitgliedsantraginfo` — Antrags‑Templates
 
-Datei: `include/trait-pdf-watermark.php`
+Prüfe die vollständige Liste in [include/dispatch.php](include/dispatch.php#L1).
+
+## **Integration — Links aus anderen Plugins erzeugen**
+
+Es gibt zwei gebräuchliche Integrationswege, um von einem anderen Plugin aus auf
+die PDF‑Funktionen zuzugreifen:
+
+- **1) URL‑Helper (einfach / empfohlen)**
+
+  Nutze den globalen Helfer `tc_lib_pdf_wp_create_pdf_url()` (Wrapper für
+  `Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url`). Beispiel:
+
+  ```php
+  // Erzeugt einen langfristig gültigen Link (Signatur + expires)
+  $url = tc_lib_pdf_wp_create_pdf_url('rechnung_merchandise', ['nr' => $nr], '+1 year');
+
+  // Oder mit Nonce (kurzfristig):
+  $url = tc_lib_pdf_wp_create_pdf_url('mahnung_merchandise', ['nr' => $nr]);
+  ```
+
+  Der Helper fügt automatisch entweder `nonce` (Default) oder `key` + `expires`
+  (wenn $expires gesetzt) hinzu und baut die vollständige URL mit `get_pdf`.
+
+- **2) Manuelles Erzeugen / Cachen der PDF (Speichern + Pfad zurückgeben)**
+
+  Wenn ein Plugin die PDF zuerst generieren und auf dem Filesystem ablegen
+  möchte, kann es die Template‑Instanz direkt nutzen:
+
+  ```php
+  $instance = PdfRegistry::create('rechnung_merchandise');
+  $instance->setUrldata(['nr' => $nr]);        // Query‑Parameter für das Template
+  $instance->setFormdata($formdata);           // Ggf. alle benötigten Felder setzen
+  $instance->setFolderName('bfv_merchandise'); // optional: Speicherordner
+
+  if ($instance->save()) {
+      $path = $instance->getFileNameAbs();
+      // z. B. in Form / DB speichern oder als Attachment verwenden
+  }
+  ```
+
+  Diese Methode ruft intern `loadData()` / `render()` auf und schreibt die PDF
+  an den durch `setFolderName()` / `setFileName()` bestimmten Ort.
+
+## **Integration: Daten‑Contract (was Ihr Plugin bereitstellen sollte)**
+
+Templates erwarten Form‑/Adressdaten in einem assoziativen Array. Es gibt zwei
+Möglichkeiten, die Templates mit Daten zu versorgen:
+
+- Direkter Ansatz: Übergib ein bereits vorbereitetes Array via
+  `setFormdata($array)` und optional `setAddressdata($array)` bevor du
+  `save()` oder `stream()` aufrufst.
+
+- Konventioneller Ansatz: Templates versuchen beim Laden (siehe
+  `loadData()` in `include/class-pdf-rechnung-merchandise.php`) automatisch, eine
+  Funktion/Instanz aus dem Host‑Plugin aufzurufen, z. B. `bfvjubilaeumsruten()`
+  oder `bfvmerchandise()` im Beispielprojekt. Diese Instanz muss eine Methode
+  `get_formdata_by_rechnungsnummer(string $nr): array` bereitstellen, die alle
+  benötigten Felder zurückgibt.
+
+Empfohlene Signatur (Beispiel):
 
 ```php
-<?php
+// In Ihrem Plugin
+function myplugin() { return MyPluginSingleton::instance(); }
 
-trait PdfWatermarkTrait {
-    protected string $watermark_text = '';
-
-    public function setWatermark(string $text): void {
-        $this->watermark_text = $text;
-    }
-
-    public function addWatermark(): void {
-        if (empty($this->watermark_text)) {
-            return;
-        }
-
-        // Watermark-Logik hier
-        $this->setFontSize(48);
-        $this->color->setPdfColor('#eeeeee');
-        // ... Watermark rendern
+class MyPluginSingleton {
+    public function get_formdata_by_rechnungsnummer(string $nr): array {
+        // Liefert ein assoziatives Array mit den erwarteten Keys
     }
 }
 ```
 
-Verwende den Trait in mehreren Templates:
+Wichtige, häufig verwendete Keys (nicht vollständig, aber ausreichend für
+die Rechnungs-/Mahnung‑Templates):
+
+- `rechnungsnummer` — string
+- `rechnung_vorname`, `rechnung_name`, `rechnung_strasse`, `rechnung_plz`, `rechnung_ort`, `rechnung_email`
+- `brutto`, `netto`, `steuer`, `steuersatz` — numerische Werte
+- `zahlungsfrist_original` — Datum (string)
+- `created_at` — Erstellungsdatum (string)
+- `rechnungsposten` — array of line items, each item: `bezeichnung`, `anzahl`, `einzelpreis`, `gesamtpreis`, `steuersatz`
+- Optional: `documenttype`, `texts_before`, `text_below`, `sender`, `returnme`
+
+Wenn diese Struktur vorhanden ist, füllt das Template die Felder automatisch;
+ansonsten kannst du die Werte vorher mit `setFormdata()` setzen.
+
+### Beispiel: Integration in ein anderes Plugin (Kurzform)
 
 ```php
-class PdfInvoiceWithWatermark extends PdfTemplate {
-    use PdfHeaderFooterTrait;
-    use PdfWatermarkTrait;
+// 1) Erzeugt einen URL‑Link (empfohlen)
+$url = tc_lib_pdf_wp_create_pdf_url('rechnung_merchandise', ['nr' => $nr], '+1 year');
 
-    protected function render(): void {
-        $this->addWatermark();
-        // ... Rest des Templates
-    }
-}
+// 2) Oder: PDF erzeugen und Pfad speichern
+$inst = PdfRegistry::create('rechnung_merchandise');
+$inst->setUrldata(['nr' => $nr]);
+$inst->setFormdata($mydata);
+if ($inst->save()) { $file = $inst->getFileNameAbs(); }
 ```
 
-## Sicherheit
+Weitere Beispiele für die Produktion von Links und das Caching findet sich in
+dem Beispiel‑Plugin [bfv-jubilaeumsruten](../bfv-jubilaeumsruten/bfv-jubilaeumsruten.php).
 
-- **Nonce-Verifikation**: Alle PDF-Rendering-Anfragen werden durch `wp_verify_nonce()` verifiziert
-- **Sanitization**: GET-Parameter werden durch `sanitize_text_field()` bereinigt
-- **Escaping**: Alle Ausgaben sind korrekt escaped
-- **Fehlerbehandlung**: Fehler werden via `wp_die()` berichtet (nicht öffentlich)
 
-## Error-Handling
-
-Der Dispatcher behandelt folgende Fehler:
-- Ungültiger/fehlender Nonce → Fehlerseite
-- Unbekanntes Template → Fehlerseite
-- Fehlende Template-Datei → Exception
-- Fehlende Template-Klasse → Exception
-- Template erbt nicht von PdfTemplate → Exception
-
-Alle Fehler werden mit aussagekräftigen Meldungen angezeigt.
-
-## Best Practices
-
-1. **Template-Klassen**: Erweitere immer `PdfTemplate`, nicht direkt `\Com\Tecnick\Pdf\Tcpdf`
-2. **Traits verwenden**: Nutze Traits für wiederverwendbare Features
-3. **Dokumentation**: Dokumentiere die Struktur deines Templates mit PHPDoc
-4. **Error-Handling**: Überprüfe auf null/false Rückgabewerte
-5. **Security**: Nutze immer Nonces für PDF-Anfragen
-6. **Performance**: Cache komplexe Berechnungen, wenn möglich
-
-## Beispiel: Erweiterte Template-Klasse
-
-```php
-<?php
-
-require_once __DIR__ . '/class-pdf-template.php';
-require_once __DIR__ . '/trait-pdf-header-footer.php';
-
-class PdfCustomReport extends PdfTemplate {
-    use PdfHeaderFooterTrait;
-
-    protected string $report_date = '';
-    protected array $data = [];
-
-    public function __construct() {
-        parent::__construct();
-        $this->title = 'Custom Report';
-        $this->report_date = date('Y-m-d');
-        $this->enableDefaultPageContent(true);
-    }
-
-    public function setData(array $data): void {
-        $this->data = $data;
-    }
-
-    protected function render(): void {
-		$this->setHeaderText('Bezirksfischerei-Verein e.V. Ehingen/Donau', 'https://bfv-ehingen.de', 'https://bfv-ehingen.de');
-        $this->addPage();
-
-        // Render data
-        foreach ($this->data as $row) {
-            $this->renderRow($row);
-        }
-    }
-
-    private function renderRow(array $row): void {
-        // Deine Rendering-Logik
-    }
-}
-```
+## Code‑Qualität
+- PHPDoc und statische Analyse (z. B. PHPStan) sollten mit den Signaturen
+  übereinstimmen; beim Refactoring wurden einige PHPDoc‑Tags bereits angepasst.
 
 ## Troubleshooting
+- Wenn `composer install` fehlschlägt: prüfe zuerst Fehlermeldungen, speziell
+  ob `composer.lock` und `composer.json` synchron sind. Falls nötig: `composer update`.
+- Font‑Probleme: `K_PATH_FONTS` prüfen oder die Font‑JSONs in `font/core`.
 
-**Problem**: PDF wird nicht angezeigt
-- Überprüfe die Nonce-Validierung
-- Prüfe, ob das Template registriert ist
-- Überprüfe PHP-Fehler-Logs
+## Was wurde zuletzt gemacht (Repo‑Hinweis)
+- Core‑Font‑JSONs (Helvetica/Times/Courier + Varianten) wurden aus offiziellen
+  AFM/Type1 Quellen generiert und in `font/core` geschrieben.
 
-**Problem**: Header/Footer nicht sichtbar
-- Stelle sicher, dass `enableDefaultPageContent(true)` aufgerufen wird
-- Überprüfe, dass die Trait verwendet wird
-- Prüfe Margins und Positioning
+## Mithelfen / Kontakt
+- Issues und Pull Requests bitte über das GitHub‑Repository eröffnen.
 
-**Problem**: Fehlerhafte Fonts
-- Stelle sicher, dass `K_PATH_FONTS` korrekt definiert ist
-- Überprüfe die Composer-Installation: `composer install`
-
-## Support
-
-Für Fragen oder Issues, konsultiere die tc-lib-pdf Dokumentation:
-https://github.com/tecnickcom/tc-lib-pdf
-
-
-
-
-
-
-# PDF Template System - Architektur Übersicht
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     WordPress HTTP Request                       │
-│                  ?demo_pdf=example&nonce=XXX                    │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  wp-tc-lib-pdf.php (Plugin)                      │
-│              ┌─ plugins_loaded Hook                              │
-│              └─ Loads dispatch.php                               │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  dispatch.php (Router)                           │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  1. Verifiziert Nonce                                    │   │
-│  │  2. Sanitiert $_GET['demo_pdf']                          │   │
-│  │  3. Ruft PdfRegistry auf                                 │   │
-│  │  4. Error-Handling                                       │   │
-│  └──────────────────────────────────────────────────────────┘   │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  PdfRegistry (Singleton)                         │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  • register(id, class, file)                             │   │
-│  │  • exists(id)                                            │   │
-│  │  • create(id) → PdfTemplate instance                     │   │
-│  │  • getAll()                                              │   │
-│  └──────────────────────────────────────────────────────────┘   │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  PdfTemplate (Abstract Base)                     │
-│           ┌─ extends \Com\Tecnick\Pdf\Tcpdf                     │
-│           ├─ abstract render()                                  │
-│           ├─ setDocTitle()                                      │
-│           ├─ setDocAuthor()                                     │
-│           └─ setDocSubject()                                    │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-            ┌────────────┼────────────┐
-            │            │            │
-            ▼            ▼            ▼
-     ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-     │ PdfExample   │ │ PdfInvoice   │ │ PdfSimple    │
-     ├──────────────┤ ├──────────────┤ ├──────────────┤
-     │ + Trait:     │ │ + Trait:     │ │ (Keine Traits│
-     │   Header     │ │   Header     │ │              │
-     │   Footer     │ │   Footer     │ │              │
-     │              │ │              │ │              │
-     │ render()     │ │ render()     │ │ render()     │
-     └──────────────┘ └──────────────┘ └──────────────┘
-```
-
-## Workflow
-
-1. **User klickt auf PDF-Link**
-   ```
-   URL: ?demo_pdf=example&nonce=ABC123
-   ```
-
-2. **Dispatcher empfängt Request**
-   - Verifiziert Nonce via `wp_verify_nonce()`
-   - Sanitiert `$_GET['demo_pdf']`
-
-3. **Registry lädt Template**
-   - Ruft `PdfRegistry::create('example')` auf
-   - Lädt `class-pdf-example.php`
-   - Instantiiert `new PdfExample()`
-
-4. **Template rendert**
-   - Ruft `render()` auf
-   - Fügt Inhalt zum PDF hinzu
-   - Ruft `output()` auf
-
-5. **PDF wird zum Browser gesendet**
-   ```
-   Header: Content-Type: application/pdf
-   Content: PDF binary data
    ```
 
 ## Class Hierarchy
