@@ -395,9 +395,25 @@ trait PdfDataTrait {
 		if ($path === '') {
 			return false;
 		}
-		if (is_dir($path)) {
-			return true;
+
+		if (! is_dir ( $path ) && ! wp_mkdir_p ( $path )) {
+			return false;
 		}
-		return wp_mkdir_p($path);
+
+		/*
+		 * "Require all denied" ist Apache 2.4; der IfModule-Zweig fängt 2.2 ab.
+		 * Ohne diese Doppelung gäbe es auf der jeweils anderen Version einen 500er.
+		 */
+		$htaccess = $path . '/.htaccess';
+		if (! file_exists ( $htaccess )) {
+			file_put_contents ( $htaccess, "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n" );
+		}
+
+		/* Verhindert das Auflisten des Verzeichnisses, falls Indexes aktiv sind. */
+		$index = $path . '/index.php';
+		if (! file_exists ( $index )) {
+			file_put_contents ( $index, "<?php\n// Silence is golden.\n" );
+		}
+		return true;
 	}
 }
