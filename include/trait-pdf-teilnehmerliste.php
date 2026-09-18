@@ -107,7 +107,7 @@ trait PdfTeilnehmerlisteTrait {
 				continue;
 			}
 
-			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'S', ['all' => ['lineWidth' => 0.5]	]);
+			$out .= $this->graph->getRect($cursorX, $y, $cellW, $h, 'S', ['all' => ['lineWidth' => 0.1]	]);
 			$cursorX += $cellW;
 		}
 
