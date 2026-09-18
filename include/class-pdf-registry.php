@@ -99,6 +99,13 @@ class PdfRegistry {
 		$file = $template['file'];
 		$class = $template['class'];
 
+		// Load the Composer autoloader and the font path on demand. The
+		// template classes extend \Com\Tecnick\Pdf\Tcpdf and cannot even be
+		// declared without it.
+		if (class_exists('Tc_Lib_Pdf_Wp_Bootstrap') && !Tc_Lib_Pdf_Wp_Bootstrap::boot()) {
+			throw new Exception('tc-lib-pdf is not available (run composer install)');
+		}
+
 		if (!file_exists($file)) {
 			throw new Exception("Template file not found: {$file}");
 		}

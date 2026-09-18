@@ -3,7 +3,7 @@
  * Plugin Name: TC Lib PDF for WordPress
  * Plugin URI: https://github.com/lweruo0/wp-tc-lib-pdf
  * Description: Bootstrap plugin for tc-lib-pdf via Composer.
- * Version: 2026.09.09
+ * Version: 2026.09.18
  * Author: Oliver Ruoß
  * License: GPL-2.0-or-later
  */
@@ -13,6 +13,14 @@ defined('ABSPATH') || exit;
 final class Tc_Lib_Pdf_Wp_Bootstrap {
 	private static $initialized = false;
 
+	/** Whether the Composer autoloader and the font path have been loaded. */
+	private static $booted = false;
+
+	/**
+	 * Cheap per-request initialisation: only checks the PHP version and
+	 * registers hooks. The Composer autoloader and the font path are loaded
+	 * lazily via boot() the first time a PDF is actually created.
+	 */
 	public static function init() {
 		if (self::$initialized) {
 			return;
@@ -25,9 +33,36 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 			return;
 		}
 
+		// In the backend boot early so that the "missing dependency" notice
+		// stays visible. Frontend requests boot on demand only.
+		if (is_admin()) {
+			add_action('admin_init', array(__CLASS__, 'boot'));
+		}
+	}
+
+	/**
+	 * Load the Composer autoloader and define the font path.
+	 *
+	 * Idempotent. Call this before touching any \Com\Tecnick\Pdf class.
+	 * PdfRegistry::create() and create_pdf() call it automatically.
+	 *
+	 * @return bool True when tc-lib-pdf is available.
+	 */
+	public static function boot() {
+		if (self::$booted) {
+			return class_exists('\Com\Tecnick\Pdf\Tcpdf');
+		}
+
+		self::$booted = true;
+
+		if (version_compare(PHP_VERSION, '8.2.0', '<')) {
+			return false;
+		}
+
 		self::load_autoloader();
 		self::define_font_path();
 
+		return class_exists('\Com\Tecnick\Pdf\Tcpdf');
 	}
 
 	public static function load_autoloader() {
@@ -69,12 +104,9 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 	}
 
 	private static function has_font_definitions($path) {
-		if (!is_dir($path)) {
-			return false;
-		}
-
-		$matches = glob(rtrim($path, '/\\') . DIRECTORY_SEPARATOR . '*.json');
-		return is_array($matches) && !empty($matches);
+		// A single stat() instead of a directory scan. Helvetica is the base
+		// font of every template, so its metrics file must be present.
+		return is_file(rtrim($path, '/\\') . DIRECTORY_SEPARATOR . 'helvetica.json');
 	}
 
 	public static function render_missing_dependency_notice() {
@@ -98,18 +130,18 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 	}
 
 	public static function create_pdf() {
-		self::init();
-
-		if (!class_exists('\Com\Tecnick\Pdf\Tcpdf')) {
+		if (!self::boot()) {
 			return null;
 		}
 
 		return new \Com\Tecnick\Pdf\Tcpdf();
 	}
 
+	/**
+	 * Build a signed PDF URL. Uses WordPress functions only, so it does not
+	 * load tc-lib-pdf.
+	 */
 	public static function build_pdf_url($template_id, array $query_args = array(), $expires = null) {
-		self::init();
-
 		if (!is_string($template_id) || $template_id === '') {
 			return '';
 		}
@@ -195,9 +227,7 @@ if (!function_exists('tc_lib_pdf_wp_create_pdf')) {
 }
 
 
-if (file_exists(__DIR__ . '/include/class-dashboard-pdf-links.php')) {
+// Dashboard widget: backend only. The class file registers its own hooks.
+if (is_admin() && file_exists(__DIR__ . '/include/class-dashboard-pdf-links.php')) {
 	require_once __DIR__ . '/include/class-dashboard-pdf-links.php';
-	if (is_admin()) {
-		Tc_Lib_Pdf_Dashboard_Pdf_Links::init();
-	}
 }

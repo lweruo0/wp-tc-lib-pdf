@@ -144,6 +144,13 @@ die PDF‑Funktionen zuzugreifen:
   Diese Methode ruft intern `loadData()` / `render()` auf und schreibt die PDF
   an den durch `setFolderName()` / `setFileName()` bestimmten Ort.
 
+  Hinweis zum Laden der Bibliothek: Der Composer‑Autoloader und `K_PATH_FONTS`
+  werden aus Performance‑Gründen erst bei Bedarf geladen, nicht auf jedem
+  WordPress‑Request. `PdfRegistry::create()` und `tc_lib_pdf_wp_create_pdf()`
+  erledigen das automatisch. Wer `\Com\Tecnick\Pdf\Tcpdf` direkt anspricht,
+  ruft vorher `Tc_Lib_Pdf_Wp_Bootstrap::boot()` auf. Der URL‑Helper
+  `tc_lib_pdf_wp_create_pdf_url()` benötigt die Bibliothek nicht.
+
 ## **Integration: Daten‑Contract (was Ihr Plugin bereitstellen sollte)**
 
 Templates erwarten Form‑/Adressdaten in einem assoziativen Array. Es gibt zwei
@@ -200,8 +207,8 @@ $inst->setFormdata($mydata);
 if ($inst->save()) { $file = $inst->getFileNameAbs(); }
 ```
 
-Weitere Beispiele für die Produktion von Links und das Caching findet sich in
-dem Beispiel‑Plugin [bfv-jubilaeumsruten](../bfv-jubilaeumsruten/bfv-jubilaeumsruten.php).
+Weitere Beispiele für Linkerstellung und Caching befinden sich im Quellcode,
+siehe insbesondere `include/class-dashboard-pdf-links.php` und die Dispatcher/Registry‑Implementationen.
 
 
 ## Code‑Qualität
