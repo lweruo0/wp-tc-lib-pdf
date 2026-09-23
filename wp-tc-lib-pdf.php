@@ -36,7 +36,9 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 		// In the backend boot early so that the "missing dependency" notice
 		// stays visible. Frontend requests boot on demand only.
 		if (is_admin()) {
-			add_action('admin_init', array(__CLASS__, 'boot'));
+			add_action('admin_init', static function (): void {
+				self::boot();
+			});
 		}
 	}
 
