@@ -45,6 +45,15 @@ use Com\Tecnick\Pdf\Encrypt\Encrypt as ObjEncrypt;
  *     cache?:         bool,
  * }
  *
+ * @phpstan-type ParserOptions array{
+ *     ignore_filter_errors?: bool,
+ *     decode_streams?:       bool,
+ *     strict_limits?:        bool,
+ *     max_stream_size?:      int,
+ *     max_resolution_depth?: int,
+ *     max_nesting_depth?:    int,
+ * }
+ *
  * @SuppressWarnings("CouplingBetweenObjects")
  */
 class Importer implements ImporterInterface
@@ -204,24 +213,76 @@ class Importer implements ImporterInterface
 
             $this->warnings[] = $message;
         }
+
+        if ($inspector->walkWasTruncated()) {
+            $this->addWarning(
+                'The embedded font check of the imported page '
+                . $pageNum
+                . ' stopped after '
+                . FontInspector::MAX_RESOURCE_NODES
+                . ' resource dictionaries: the source may use further non-embedded fonts',
+            );
+        }
+    }
+
+    /**
+     * Record a warning when a page declares /Contents but no content stream could be located.
+     *
+     * A stream that is present but empty is legal and is not reported. The page
+     * is imported as an empty Form XObject either way, so the condition is
+     * reported instead of thrown.
+     *
+     * @param array<string, mixed> $pageDict Effective page dictionary.
+     * @param bool                 $found    True when at least one content stream was located.
+     * @param int                  $pageNum  1-based page number of the imported page.
+     */
+    private function checkImportedContent(array $pageDict, bool $found, int $pageNum): void
+    {
+        if ($found || !isset($pageDict['Contents'])) {
+            return;
+        }
+
+        $this->addWarning(
+            'The imported page '
+            . $pageNum
+            . ' has a /Contents entry but no content stream could be extracted: the page will be blank',
+        );
+    }
+
+    /**
+     * Record a warning, ignoring duplicates.
+     */
+    private function addWarning(string $message): void
+    {
+        if (\in_array($message, $this->warnings, true)) {
+            return;
+        }
+
+        $this->warnings[] = $message;
     }
 
     /**
      * Register a source PDF file.
      *
-     * @param string               $path File path to a readable PDF.
+     * @param string               $path File path to a readable PDF inside allowedPaths.
      * @param array<string, mixed> $cfg  Optional parser configuration.
+     *
+     * @phpstan-param ParserOptions|array<string, mixed> $cfg
      *
      * @return string Source document identifier.
      *
      * @throws ImportSourceNotFoundException   If the file cannot be read.
      * @throws ImportCorruptedSourceException  If the file cannot be parsed.
+     * @throws ImportResourceLimitException    If the nesting depth limit is exceeded, or
+     *                                         any limit is reached with 'strict_limits'.
      * @throws ImportUnsupportedFeatureException If the source is encrypted.
      */
     public function setImportSourceFile(string $path, array $cfg = []): string
     {
+        // A path outside the allowlist is reported as not found, so the error
+        // does not reveal whether it exists.
         $realPath = \realpath($path);
-        if ($realPath === false || !\is_readable($realPath)) {
+        if ($realPath === false || !$this->file->isAllowedFile($realPath) || !\is_readable($realPath)) {
             throw new ImportSourceNotFoundException('Source PDF file not found or not readable: ' . $path);
         }
 
@@ -244,9 +305,13 @@ class Importer implements ImporterInterface
      * @param string              $data Raw PDF binary data.
      * @param array<string, mixed> $cfg  Optional parser configuration.
      *
+     * @phpstan-param ParserOptions|array<string, mixed> $cfg
+     *
      * @return string Source document identifier (SHA-256 of the data).
      *
      * @throws ImportCorruptedSourceException    If the data cannot be parsed.
+     * @throws ImportResourceLimitException      If the nesting depth limit is exceeded, or
+     *                                         any limit is reached with 'strict_limits'.
      * @throws ImportUnsupportedFeatureException If the source is encrypted.
      */
     public function setImportSourceData(string $data, array $cfg = []): string
@@ -256,9 +321,27 @@ class Importer implements ImporterInterface
         if (!isset($this->sources[$srcId])) {
             $this->sources[$srcId] = $doc;
             $this->objectMaps[$srcId] = new ObjectMap();
+            $this->collectParserWarnings($doc);
         }
 
         return $srcId;
+    }
+
+    /**
+     * Record a warning for each parsing limit reached while a source was parsed.
+     *
+     * @param SourceDocument $doc Registered source document.
+     */
+    private function collectParserWarnings(SourceDocument $doc): void
+    {
+        foreach ($doc->getParserWarnings() as $warning) {
+            $this->addWarning(
+                'The source document '
+                . \substr($doc->getId(), 0, 8)
+                . ' was not fully resolved while parsing: '
+                . $warning,
+            );
+        }
     }
 
     /**
@@ -346,6 +429,7 @@ class Importer implements ImporterInterface
         // Extract content stream.
         $contentStream = $cloner->getContentStream($resolved['dict'], $src);
         $this->pon = $cloner->getPon();
+        $this->checkImportedContent($resolved['dict'], $contentStream['found'], $pageNum);
 
         // Flush cloned auxiliary objects.
         $rawAuxObjects = $map->flush();
@@ -399,7 +483,9 @@ class Importer implements ImporterInterface
         $this->xobjects[$tid] = [
             'spot_colors' => [],
             'extgstate' => [],
+            'gsnames' => [],
             'gradient' => [],
+            'pattern' => [],
             'font' => [],
             'image' => [],
             'xobject' => [],

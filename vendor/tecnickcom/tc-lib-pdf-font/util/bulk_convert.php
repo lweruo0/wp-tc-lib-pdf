@@ -95,7 +95,7 @@ if (!is_dir($options['outpath']) || !\is_writable($options['outpath'])) {
 
 $ttfdir = __DIR__.'/vendor/tecnickcom/tc-font-mirror/';
 if (!is_dir($ttfdir)) {
-    \fwrite(STDERR, 'ERROR: The '.$ttfdir.' directory is empty, please execute \'make build\' before this command.'."\n\n");
+    \fwrite(STDERR, 'ERROR: The '.$ttfdir.' directory is missing, please execute \'php util/build_fonts.php\' before this command.'."\n\n");
     exit(3);
 }
 
@@ -109,12 +109,12 @@ $convert_success = 0;
 $autoloadFound = false;
 foreach (
     array(
-        \dirname(__DIR__) . '/vendor/autoload.php',    // standalone repository checkout
-        \dirname(__DIR__, 4) . '/vendor/autoload.php', // installed under <project>/vendor/tecnickcom/tc-lib-pdf-font
-    ) as $autoloadFile
+        \dirname(__DIR__) . '/vendor', // standalone repository checkout
+        \dirname(__DIR__, 3),          // installed under <vendor-dir>/tecnickcom/tc-lib-pdf-font
+    ) as $vendorDir
 ) {
-    if (\is_file($autoloadFile)) {
-        require_once $autoloadFile;
+    if (\is_file($vendorDir . '/autoload.php') && \is_file($vendorDir . '/composer/installed.json')) {
+        require_once $vendorDir . '/autoload.php';
         $autoloadFound = true;
         break;
     }
@@ -137,7 +137,7 @@ $fontdir = \array_diff($entries, array('.', '..', '.git'));
 // URL of websites containing the font sources
 $font_url = array(
     'cid0'     => 'http://unifoundry.com/unifont.html',
-    'core'     => 'https://partners.adobe.com/public/developer/en/pdf/Core14_AFMs.zip',
+    'core'     => 'https://github.com/tecnickcom/tc-font-core14-afms',
     'dejavu'   => 'http://sourceforge.net/projects/dejavu/files/dejavu/2.35/dejavu-fonts-ttf-2.35.zip',
     'freefont' => 'https://ftp.gnu.org/gnu/freefont/freefont-ttf-20120503.zip',
     'pdfa'     => 'https://github.com/tecnickcom/tc-font-pdfa',

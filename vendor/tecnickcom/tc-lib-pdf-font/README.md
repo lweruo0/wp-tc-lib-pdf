@@ -43,6 +43,7 @@ It handles font metrics, encodings, and font program references, turning static 
 - Glyph width/bounding-box helpers
 - Character replacement and fallback handling
 - Glyph index encoding of composite fonts, with support for the supplementary planes
+- Unicode Variation Sequences (cmap format 14), including Ideographic Variation Sequences
 
 ---
 
@@ -83,7 +84,7 @@ For larger examples, refer to `test/OutputTest.php` and the conversion tooling i
 
 A `TrueTypeUnicode` font is emitted as a composite (Type0) font with the `Identity-H` encoding, so every character code in a content stream is 2 bytes wide.
 
-The character code is the glyph index of the font (`CID == GID`): the font dictionary declares `/CIDToGIDMap /Identity`, the `/W` array is keyed by glyph index, and a `/ToUnicode` CMap is generated for the glyphs used by the document so that the text stays searchable and extractable.
+The character code is the glyph index of the font (`CID == GID`): the font dictionary declares `/CIDToGIDMap /Identity`, the `/W` array is keyed by glyph index, and a `/ToUnicode` CMap is generated for the glyphs used by the document so that the text stays searchable and extractable. The alias codes of the variation sequences are the exception (see below).
 
 ### Encoding a string
 
@@ -110,6 +111,28 @@ Relevant methods:
 - `Stack::ordArrToGidStr(array $uniarr)`: encodes codepoints as 2-byte glyph indices and records them.
 - `Stack::getGidForOrd(int $ord)`: glyph index of a codepoint, `0` when the font has no glyph for it.
 - `Buffer::addUsedGid(string $key, int $gid, int $ord)`: records a glyph and the codepoint it was encoded from.
+- `Buffer::addUsedGlyph(string $key, int $gid, array $text)`: records a glyph and the codepoints it was selected for, and returns its character code.
+- `Buffer::setSubsetMode(bool $subset)`: sets the subset mode of the fonts loaded afterwards without an explicit mode.
+
+### Variation sequences
+
+A base character followed by a variation selector (U+180B..U+180D, U+180F, U+FE00..U+FE0F, U+E0100..U+E01EF) is shown with the glyph the font maps the sequence to in its cmap format 14 subtable, as used by the Ideographic Variation Sequences of CJK fonts:
+
+```php
+// U+908A followed by VARIATION SELECTOR-18
+$codes = $stack->ordArrToGidStr([0x908A, 0xE0101]);
+```
+
+- The selector shows no glyph of its own and takes no space.
+- A sequence the font does not map is shown with the glyph of the base character.
+- The `/ToUnicode` CMap maps the code to the whole sequence, so copied text keeps the selector.
+- A glyph used both for a sequence and for another text gets an alias code above the glyph count of the font, so each text is extracted correctly. A font with alias codes writes a `/CIDToGIDMap` stream instead of `/Identity`.
+
+Relevant methods:
+
+- `Stack::isVariationSelector(int $ord)`: true for a variation selector.
+- `Stack::getVariationGid(int $base, int $selector)`: glyph index of a sequence, `0` when the font does not map it.
+- `Stack::getOrdArrCharWidths(array $uniarr)`: width of each codepoint, with the variant glyph widths.
 
 ### Font definition files
 
@@ -122,6 +145,14 @@ Codepoints above U+FFFF do not fit that table and are stored in the definition f
 ```
 
 That key is only written when the font is converted with `--encoding_id=10`, which selects the format 12 cmap subtable.
+
+A font with a cmap format 14 subtable also stores its glyph count, its variation sequences (base, then selector, then glyph index) and the widths of their glyphs (keyed by glyph index):
+
+```json
+"numGlyphs": 8, "uvs": {"37002": {"917760": 6, "917761": 7}}, "gw": {"6": 1000, "7": 900}
+```
+
+A font converted with an earlier version has no such keys and must be converted again to use its variation sequences.
 
 ---
 
@@ -143,7 +174,7 @@ interface FontSubsetCacheInterface
 }
 ```
 
-Pass it as the last constructor argument:
+Pass it as the fifth constructor argument:
 
 ```php
 $output = new \Com\Tecnick\Pdf\Font\Output(
@@ -203,6 +234,25 @@ this library if you share it with other consumers.
 
 ---
 
+## PDF/A-1 CIDSet
+
+ISO 19005-1 requires a `/CIDSet` stream in the font descriptor of every subset
+CIDFont. Set the `cidset` argument of `Output` to add it to each subset
+TrueTypeUnicode font:
+
+```php
+$output = new \Com\Tecnick\Pdf\Font\Output(
+    $fonts,
+    $objectNumber,
+    $encrypt,
+    cidset: true,
+);
+```
+
+The stream lists CID 0 and the CIDs the document references. It is omitted by
+default, as PDF/A-2 and later require a CIDSet, when present, to list every
+glyph of the embedded program.
+
 ## Converting Existing Fonts
 
 Use the CLI utilities in `util/` to convert existing font files into the JSON/Z format consumed by this library.
@@ -238,19 +288,33 @@ php util/convert.php --help
 
 ### Bulk Conversion
 
-For batch generation from the mirrored font set:
+For batch generation from the mirrored font set, run from a clone of this repository:
 
 ```bash
-cd util
-make build
+php util/build_fonts.php
 ```
 
-This installs `util` dependencies and runs `bulk_convert.php`, which scans the mirror package and writes converted fonts under `target/fonts/`.
+The script:
+
+1. Installs the library dependencies with `composer install --no-dev` when no Composer autoloader is found.
+2. Installs the `util` dependencies, which download the font sources from GitHub.
+3. Clears `target/fonts/`.
+4. Runs `bulk_convert.php`, which scans the mirror package and writes converted fonts under `target/fonts/`.
+
+It requires PHP, Composer and network access. It does not need make or a POSIX shell, so it also runs on Windows. In a repository clone the same step is available as `composer fonts` and `make fonts`.
+
+When the package is installed as a dependency, run the script from its location in the vendor directory, for example from the project root:
+
+```bash
+php vendor/tecnickcom/tc-lib-pdf-font/util/build_fonts.php
+```
+
+The fonts are written to `vendor/tecnickcom/tc-lib-pdf-font/target/fonts/`. Composer replaces the package directory on update or reinstall, which removes them, so run the script again afterwards.
 
 Notes:
 
-- `bulk_convert.php` also attempts OTF conversion via FontForge (`fontforge -script otf2ttf.ff ...`) before import.
-- If you run bulk conversion directly, customize destination with `php util/bulk_convert.php --outpath=/your/path/`.
+- `build_fonts.php` takes no options. To write the fonts to another directory, run `php util/bulk_convert.php --outpath=/your/path/` after `build_fonts.php` has installed the `util` dependencies at least once.
+- `bulk_convert.php` also attempts OTF conversion via FontForge (`fontforge -script otf2ttf.ff ...`) before import. Without FontForge, OTF files are reported and skipped. The mirrored font set contains no OTF files.
 
 ---
 
@@ -276,11 +340,12 @@ Unchanged:
 
 ```bash
 make deps
+make fonts
 make help
 make qa
 ```
 
-Font generation helpers are also available through Make targets such as `fonts`.
+`make fonts` runs the [Bulk Conversion](#bulk-conversion). The unit tests require the generated fonts.
 
 ---
 

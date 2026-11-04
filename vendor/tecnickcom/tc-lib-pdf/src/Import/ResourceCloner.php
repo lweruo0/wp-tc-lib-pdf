@@ -75,6 +75,11 @@ class ResourceCloner
     private ObjEncrypt $encrypt;
 
     /**
+     * Raw parser object converter.
+     */
+    private DictParser $dict;
+
+    /**
      * Constructor.
      *
      * @param int         $pon     Current PDF object number (passed by value; read the updated counter back
@@ -90,6 +95,7 @@ class ResourceCloner
         $this->pon = $pon;
         $this->pdfa = $pdfa;
         $this->encrypt = $encrypt ?? new ObjEncrypt();
+        $this->dict = new DictParser();
     }
 
     /**
@@ -105,45 +111,86 @@ class ResourceCloner
     /**
      * Extract the raw bytes of the merged content stream for a page.
      *
-     * Handles a single /Contents reference as well as an array of references,
-     * which are decoded and concatenated into one stream.
+     * Handles a single /Contents reference, an array of references, and a
+     * reference to an array of references. Multiple streams are decoded and
+     * concatenated into one stream.
      *
      * @param array<string, mixed> $pageDict Effective page dictionary.
      * @param SourceDocument       $src      Source document.
      *
-     * @return array{bytes: string, filter: string, length: int}
+     * @return array{bytes: string, filter: string, length: int, found: bool} The 'found' flag is false when
+     *         no content stream object could be located, which is distinct from an empty but valid stream.
      *
      * @throws ImportCorruptedSourceException If the content stream cannot be extracted.
-     * @throws ImportUnsupportedFeatureException If /Contents is missing.
+     * @throws ImportUnsupportedFeatureException If a filter forbidden by the destination mode survives.
      */
     public function getContentStream(array $pageDict, SourceDocument $src): array
     {
         if (!isset($pageDict['Contents'])) {
             // Page has no content: return an empty stream.
-            return ['bytes' => '', 'filter' => '', 'length' => 0];
+            return ['bytes' => '', 'filter' => '', 'length' => 0, 'found' => false];
         }
 
         // Single reference (string like "5 0 R" or "5_0").
         if (\is_string($pageDict['Contents'])) {
-            return $this->extractSingleStream(SourceDocument::refToKey($pageDict['Contents']), $src);
+            $key = SourceDocument::refToKey($pageDict['Contents']);
+            // The reference can point to an array of stream references instead of a stream.
+            $refs = $this->resolveContentsArray($key, $src);
+            return $refs === null ? $this->extractSingleStream($key, $src) : $this->extractStreamList($refs, $src);
         }
 
-        // Array of references: a single element is extracted directly.
         if (\is_array($pageDict['Contents'])) {
-            $contents = \array_values($pageDict['Contents']);
-            if (\count($contents) === 1) {
-                if (!\is_string($contents[0])) {
-                    throw new ImportCorruptedSourceException('Invalid /Contents reference type.');
-                }
-
-                return $this->extractSingleStream(SourceDocument::refToKey($contents[0]), $src);
-            }
-
-            // Multiple streams: decode and concatenate.
-            return $this->concatenateStreams($contents, $src);
+            return $this->extractStreamList(\array_values($pageDict['Contents']), $src);
         }
 
         throw new ImportCorruptedSourceException('Unexpected /Contents value type.');
+    }
+
+    /**
+     * Resolve an indirect /Contents reference that points to an array of stream references.
+     *
+     * @param string         $objRef Object reference key of the /Contents value.
+     * @param SourceDocument $src    Source document.
+     *
+     * @return array<int, mixed>|null Parsed array elements, or null when the object is not an array.
+     */
+    private function resolveContentsArray(string $objRef, SourceDocument $src): ?array
+    {
+        $objData = $src->findObject($objRef);
+        return $objData === null ? null : $this->dict->objectToArray($objData);
+    }
+
+    /**
+     * Extract the content of a /Contents array: a single element is extracted
+     * directly, several elements are decoded and concatenated.
+     *
+     * @param array<int, mixed> $entries Array elements, each an object reference.
+     * @param SourceDocument    $src     Source document.
+     *
+     * @return array{bytes: string, filter: string, length: int, found: bool} An empty array is a legal
+     *         empty content, so the 'found' flag is true and nothing is reported as missing.
+     *
+     * @throws ImportCorruptedSourceException If the only element is not a reference string, or if any
+     *         element is a malformed reference.
+     * @throws ImportUnsupportedFeatureException If a filter forbidden by the destination mode survives.
+     */
+    private function extractStreamList(array $entries, SourceDocument $src): array
+    {
+        $contents = \array_values($entries);
+        if ($contents === []) {
+            return ['bytes' => '', 'filter' => '', 'length' => 0, 'found' => true];
+        }
+
+        if (\count($contents) === 1) {
+            if (!\is_string($contents[0])) {
+                throw new ImportCorruptedSourceException('Invalid /Contents reference type.');
+            }
+
+            return $this->extractSingleStream(SourceDocument::refToKey($contents[0]), $src);
+        }
+
+        // Multiple streams: decode and concatenate.
+        return $this->concatenateStreams($contents, $src);
     }
 
     /**
@@ -156,7 +203,8 @@ class ResourceCloner
      * @param int                  $ownerNum  Number of the object the dictionary is written into,
      *                                        used as encryption key for the strings it contains.
      *
-     * @return string Serialized PDF resource dictionary, e.g. "<< /Font << /F1 7 0 R >> >>".
+     * @return string Serialized PDF resource dictionary, e.g. "<< /Font << /F1 7 0 R >> >>",
+     *                or "<< >>" for an empty one.
      *
      * @throws ImportCorruptedSourceException
      * @throws ImportException
@@ -165,7 +213,7 @@ class ResourceCloner
     public function cloneResources(array $resources, SourceDocument $src, ObjectMap $map, int $ownerNum = 0): string
     {
         if ($resources === []) {
-            return '';
+            return '<< >>';
         }
 
         $out = '<<';
@@ -176,7 +224,7 @@ class ResourceCloner
                 continue; // already emitted above
             }
 
-            $out .= ' /' . $resType . ' ';
+            $out .= ' ' . PdfName::token($resType) . ' ';
             $out .= $this->cloneResourceEntry($resources[$resType] ?? null, $src, $map, $ownerNum);
         }
 
@@ -201,32 +249,12 @@ class ResourceCloner
     private function cloneResourceEntry(mixed $resVal, SourceDocument $src, ObjectMap $map, int $ownerNum): string
     {
         // Resource subdicts (Font, XObject, ExtGState, ColorSpace, Pattern, Shading) are dicts of name->ref.
-        if (\is_array($resVal)) {
-            $out = '<< ';
-            foreach (\array_keys($resVal) as $name) {
-                if (!\array_key_exists($name, $resVal)) {
-                    continue;
-                }
-
-                $out .=
-                    '/'
-                    . (string) $name
-                    . ' '
-                    . $this->serializeResourceValue($resVal[$name] ?? null, $src, $map, $ownerNum)
-                    . ' ';
-            }
-
-            $out .= '>>';
-            return $out;
+        if ($resVal === []) {
+            return '<< >>';
         }
 
-        if (\is_string($resVal)) {
-            if ($this->isIndirectRef($resVal)) {
-                $destNum = $this->enqueueObject(SourceDocument::refToKey($resVal), $src, $map);
-                return $destNum . ' 0 R';
-            }
-
-            return $this->reencryptStringToken($resVal, $ownerNum);
+        if (\is_array($resVal) || \is_string($resVal)) {
+            return $this->serializeResourceValue($resVal, $src, $map, $ownerNum);
         }
 
         return 'null';
@@ -249,12 +277,7 @@ class ResourceCloner
     private function serializeResourceValue(mixed $value, SourceDocument $src, ObjectMap $map, int $ownerNum): string
     {
         if (\is_string($value)) {
-            if ($this->isIndirectRef($value)) {
-                $destNum = $this->enqueueObject(SourceDocument::refToKey($value), $src, $map);
-                return $destNum . ' 0 R';
-            }
-
-            return $this->reencryptStringToken($value, $ownerNum);
+            return $this->serializeStringValue($value, $src, $map, $ownerNum);
         }
 
         if (\is_array($value)) {
@@ -281,8 +304,7 @@ class ResourceCloner
                 }
 
                 $out .=
-                    '/'
-                    . (string) $key
+                    PdfName::token($key)
                     . ' '
                     . $this->serializeResourceValue($value[$key] ?? null, $src, $map, $ownerNum)
                     . ' ';
@@ -300,6 +322,36 @@ class ResourceCloner
         }
 
         return 'null';
+    }
+
+    /**
+     * Serialize a string value produced by DictParser::parseValue().
+     *
+     * Indirect references are remapped, names are escaped and strings are re-encrypted.
+     *
+     * @param string         $value    String value.
+     * @param SourceDocument $src      Source document.
+     * @param ObjectMap      $map      Object map.
+     * @param int            $ownerNum Number of the object the value is written into.
+     *
+     * @return string PDF token string.
+     *
+     * @throws ImportCorruptedSourceException
+     * @throws ImportException
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    private function serializeStringValue(string $value, SourceDocument $src, ObjectMap $map, int $ownerNum): string
+    {
+        if ($this->isIndirectRef($value)) {
+            $destNum = $this->enqueueObject(SourceDocument::refToKey($value), $src, $map);
+            return $destNum . ' 0 R';
+        }
+
+        if (\str_starts_with($value, '/')) {
+            return PdfName::token(\substr($value, 1));
+        }
+
+        return $this->reencryptStringToken($value, $ownerNum);
     }
 
     /**
@@ -457,7 +509,7 @@ class ResourceCloner
                 continue;
             }
 
-            $key = \ltrim($pair[0][1], '/');
+            $key = $pair[0][1];
             if ($key === 'Length') {
                 continue;
             }
@@ -469,7 +521,7 @@ class ResourceCloner
                 continue;
             }
 
-            $out .= ' /' . $key . ' ' . $serializedVal;
+            $out .= ' ' . PdfName::token($key) . ' ' . $serializedVal;
             $streamDict[$key] = $serializedVal;
         }
 
@@ -507,7 +559,9 @@ class ResourceCloner
                 $map,
                 $ownerNum,
             ),
-            \is_string($raw[0] ?? null) && $raw[0] === '/' => '/' . (\is_string($raw[1] ?? null) ? $raw[1] : ''),
+            \is_string($raw[0] ?? null) && $raw[0] === '/' => PdfName::token(
+                \is_string($raw[1] ?? null) ? $raw[1] : '',
+            ),
             // Parser literal-string token `(` already carries PDF string escapes.
             \is_string($raw[0] ?? null) && $raw[0] === '(' => $this->serializeEscapedLiteralString(
                 \is_string($raw[1] ?? null) ? $raw[1] : '',
@@ -828,7 +882,8 @@ class ResourceCloner
      * @param string         $objRef Object reference key.
      * @param SourceDocument $src    Source document.
      *
-     * @return array{bytes: string, filter: string, length: int}
+     * @return array{bytes: string, filter: string, length: int, found: bool} The 'found' flag is false when the
+     *         object holds no stream.
      *
      * @throws ImportCorruptedSourceException
      * @throws ImportUnsupportedFeatureException If a filter forbidden by the destination mode survives.
@@ -862,7 +917,7 @@ class ResourceCloner
 
                 $vArr = \is_array($valEl) ? $valEl : [];
 
-                $key = \ltrim($keyEl[1], '/');
+                $key = $keyEl[1];
                 if ($key === 'Filter') {
                     $filter = $this->extractFilterToken($vArr);
                     continue;
@@ -888,10 +943,11 @@ class ResourceCloner
                 'bytes' => $normalized['bytes'],
                 'filter' => $normalized['filter'],
                 'length' => \strlen($normalized['bytes']),
+                'found' => true,
             ];
         }
 
-        return ['bytes' => '', 'filter' => '', 'length' => 0];
+        return ['bytes' => '', 'filter' => '', 'length' => 0, 'found' => false];
     }
 
     /**
@@ -912,7 +968,7 @@ class ResourceCloner
         $type = $token[0];
 
         if ($type === '/' && \array_key_exists(1, $token) && \is_string($token[1])) {
-            return '/' . $token[1];
+            return PdfName::token($token[1]);
         }
 
         if ($type !== '[' || !\array_key_exists(1, $token) || !\is_array($token[1])) {
@@ -933,7 +989,7 @@ class ResourceCloner
                 continue;
             }
 
-            $names[] = '/' . $item[1];
+            $names[] = PdfName::token($item[1]);
         }
 
         if ($names === []) {
@@ -948,12 +1004,14 @@ class ResourceCloner
     }
 
     /**
-     * Decode and concatenate multiple content streams.
+     * Decode and concatenate multiple content streams. An element that is not a reference
+     * string is skipped, as the other elements still carry content.
      *
      * @param array<int, mixed> $refs Array of reference values.
      * @param SourceDocument    $src  Source document.
      *
-     * @return array{bytes: string, filter: string, length: int}
+     * @return array{bytes: string, filter: string, length: int, found: bool} The 'found' flag is true when at
+     *         least one element holds a stream.
      *
      * @throws ImportCorruptedSourceException
      * @throws ImportUnsupportedFeatureException If a filter forbidden by the destination mode survives.
@@ -961,21 +1019,25 @@ class ResourceCloner
     private function concatenateStreams(array $refs, SourceDocument $src): array
     {
         $combined = '';
+        $found = false;
         $values = \array_values($refs);
         $count = \count($values);
         for ($idx = 0; $idx < $count; ++$idx) {
             $refSlice = \array_slice($values, $idx, 1);
             if (\count($refSlice) !== 1 || !\is_string($refSlice[0])) {
+                // Not a reference string: the other elements still carry content.
                 continue;
             }
 
             $stream = $this->extractSingleStream(SourceDocument::refToKey($refSlice[0]), $src);
+            $found = $found || $stream['found'];
             // When /Contents is an array, each stream can carry its own filter.
             // Concatenate decoded bytes so the resulting Form stream is valid plain content.
             $combined .= $this->decodeMultiContentStream($stream['bytes'], $stream['filter']) . ' ';
         }
 
-        return ['bytes' => \rtrim($combined), 'filter' => '', 'length' => \strlen(\rtrim($combined))];
+        $bytes = \rtrim($combined);
+        return ['bytes' => $bytes, 'filter' => '', 'length' => \strlen($bytes), 'found' => $found];
     }
 
     /**
@@ -1097,7 +1159,7 @@ class ResourceCloner
                 continue;
             }
 
-            if (($pair[0][0] ?? '') !== '/' || \ltrim((string) ($pair[0][1] ?? ''), '/') !== 'EarlyChange') {
+            if (($pair[0][0] ?? '') !== '/' || ($pair[0][1] ?? '') !== 'EarlyChange') {
                 continue;
             }
 
