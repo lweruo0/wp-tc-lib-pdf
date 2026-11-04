@@ -192,7 +192,8 @@ abstract class PdfRechnungBase extends PdfTemplate {
 	/**
 	 * Aus einer bereits aufbereiteten Rechnung eine Mahnung ableiten.
 	 *
-	 * Setzt documenttype, Zahlungsfrist, Zahlungserinnerungs-Überschrift,
+	 * Setzt documenttype, Briefdatum (heute), neue Zahlungsfrist (heute +
+	 * ZAHLUNGSZIEL), Zahlungserinnerungs-Überschrift,
 	 * Mahngebühr (einfach oder doppelt bei zweiter Mahnung, aus Option
 	 * 'mahngebuehr'), erhöht brutto entsprechend und ersetzt texts_before
 	 * und text_below.
@@ -221,8 +222,12 @@ abstract class PdfRechnungBase extends PdfTemplate {
 		$ohneMahngebuehr ??= ($this->getUrl('ohnemahngebuehr', '') !== '');
 
 		$formdata['documenttype']  = $documenttype;
-		$formdata['zahlungsfrist'] = $formdata['zahlungsfrist_original']
-			?? date('d.m.Y', strtotime(static::ZAHLUNGSZIEL));
+
+		// Die Mahnung ist ein neues Schreiben: Briefdatum heute, neue Frist ab
+		// heute. Die ursprüngliche Fälligkeit bleibt in zahlungsfrist_original
+		// und erscheint im Anschreiben ("war am … fällig").
+		$formdata['date']          = date('d.m.Y');
+		$formdata['zahlungsfrist'] = date('d.m.Y', strtotime(static::ZAHLUNGSZIEL));
 
 		$formdata['text_zahlungserinnerung'] = $zweiteMahnung ? '2. Zahlungserinnerung' : 'Zahlungserinnerung';
 
