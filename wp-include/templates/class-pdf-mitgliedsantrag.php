@@ -15,12 +15,14 @@ if (!defined('ABSPATH')) {
 require_once TC_LIB_PDF_DIR . '/include/class-pdf-template.php';
 require_once TC_LIB_PDF_DIR . '/include/trait-pdf-header.php';
 require_once TC_LIB_PDF_DIR . '/include/trait-pdf-falzmarken.php';
+require_once __DIR__ . '/trait-pdf-mitgliedsantrag-kosten.php';
 
 /**
  * Example PDF Template with header and footer.
  */
 abstract class PdfMitgliedsantragData extends PdfTemplate {
 	use PdfHeaderTrait;
+	use PdfMitgliedsantragKostenTrait;
 	protected const FONT_SIZE_TEXT = 11;
 	protected const FONT_SIZE_TEXT_LETTER = 12;
 
@@ -58,8 +60,8 @@ abstract class PdfMitgliedsantragData extends PdfTemplate {
 
 		$formdata = $this->getAllFormdata();
 		if (empty($formdata)) {
-			if (function_exists('bfvmitgliedsantrag')) {
-				$instance = bfvmitgliedsantrag();
+			if (function_exists('bfvmitgliedschaft') && is_object(bfvmitgliedschaft()->mitgliedsantrag)) {
+				$instance = bfvmitgliedschaft()->mitgliedsantrag;
 				$mitgliedsnummern = preg_split("/[,-]/", $this->getUrl('mnr', ''), -1, PREG_SPLIT_NO_EMPTY);
 				foreach ( $mitgliedsnummern as $mitgliedsnummer ) {
 					$formdaten  = $instance->get_formdata_by_mitgliedsnummer ( $mitgliedsnummer );
@@ -765,46 +767,12 @@ class PdfMitgliedsantrag2 extends PdfMitgliedsantragData {
 		$x1 = $x;
 		$x2 = $x1 + $w1;
 
-		$summe = 0.0;
-		$bearbeitungsgebuehr = (float) $this->getOption('betrag_bearbeitungsgebuehr', 0);
-		$erstbesatz = (float) $this->getOption('betrag_erstbesatz', 0);
-		$betrag_boot = (float) $this->getOption('betrag_boot', 0);
-		$betrag_2angel = (float) $this->getOption('betrag_2angel', 0);
-		$betrag_aktiv = (float) $this->getOption('betrag_aktiv', 0);
-		$betrag_jugend = (float) $this->getOption('betrag_jugend', 0);
-		$betrag_passiv = (float) $this->getOption('betrag_passiv', 0);
-		$beitrag_foerder = (float) $this->getForm('beitrag_foerder', 0);
-
+		// Berechnung gemeinsam mit der Rechnung (PdfMitgliedsantragKostenTrait)
 		$kostenzeilen = [];
-		if ($aktive_mitgliedschaft || $passive_mitgliedschaft || $jugendliche_mitgliedschaft) {
-			$summe += $bearbeitungsgebuehr;
-			$kostenzeilen[] = ['Bearbeitungsgebühr:', $bearbeitungsgebuehr];
-		}
-		if ($aktive_mitgliedschaft) {
-			$summe += $erstbesatz;
-			$kostenzeilen[] = ['Erstbesatz:', $erstbesatz];
-			$summe += $betrag_aktiv;
-			$kostenzeilen[] = ['jährlicher Mitgliedsbeitrag:', $betrag_aktiv];
-			if ($option_boot) {
-				$summe += $betrag_boot;
-				$kostenzeilen[] = ['Option Boot:', $betrag_boot];
-			}
-		}
-		if ($jugendliche_mitgliedschaft) {
-			$summe += $betrag_jugend;
-			$kostenzeilen[] = ['jährlicher Mitgliedsbeitrag:', $betrag_jugend];
-			if ($option_2angel) {
-				$summe += $betrag_2angel;
-				$kostenzeilen[] = ['Option 2.Angel:', $betrag_2angel];
-			}
-		}
-		if ($passive_mitgliedschaft) {
-			$summe += $betrag_passiv;
-			$kostenzeilen[] = ['jährlicher Mitgliedsbeitrag:', $betrag_passiv];
-		}
-		if ($foerder_mitgliedschaft) {
-			$summe += $beitrag_foerder;
-			$kostenzeilen[] = ['jährlicher Mitgliedsbeitrag:', $beitrag_foerder];
+		$summe = 0.0;
+		foreach ($this->mitgliedsantragKosten($this->getAllFormdata()) as [$kostenlabel, $betrag]) {
+			$kostenzeilen[] = [$kostenlabel . ':', $betrag];
+			$summe += $betrag;
 		}
 		$anz_zeilen = count($kostenzeilen);
 		$out .= $this->getBox($x, $y, $row_height * $anz_zeilen + $row_height, $width, $row_height, 'Kosten bei Vereinseintritt');
