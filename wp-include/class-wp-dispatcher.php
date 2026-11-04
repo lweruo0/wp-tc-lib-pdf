@@ -1,75 +1,17 @@
 <?php
 /**
- * PDF Dispatcher.
+ * WordPress PDF Dispatcher.
  *
- * Manages the rendering of PDF templates based on GET parameters.
- * Handles bootstrap, security verification, and template routing.
+ * Hängt sich an die WordPress-Hooks, prüft die Autorisierung (Nonce oder
+ * signierter Langzeit-Link) und rendert das angeforderte Template. Die
+ * Template-Registrierung liegt in templates.php.
  *
- * @package WordPress Plugin Template/Includes
+ * @package WordPress Plugin Template/WP
  */
 
-if (!defined('ABSPATH')) {
-	exit;
-}
+defined('ABSPATH') || exit;
 
-require_once __DIR__ . '/class-pdf-registry.php';
-// Register available PDF templates
-
-// https://bfv-ehingen.de/?rechnung=2026-P-0148&key=31e86617aad37a3a3902a560e69c7e79
-PdfRegistry::register('rechnung_erlaubnis', 'PdfRechnungErlaubnis', __DIR__ . '/class-pdf-rechnung-erlaubnis.php');
-// https://bfv-ehingen.de/?rechnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e
-PdfRegistry::register('rechnung_merchandise', 'PdfRechnungMerchandise', __DIR__ . '/class-pdf-rechnung-merchandise.php');
-// https://bfv-ehingen.de/?rechnungantrag=244&key=45042c927a
-PdfRegistry::register('rechnung_antrag', 'PdfRechnungMitgliedsantrag', __DIR__ . '/class-pdf-rechnung-mitgliedsantrag.php');
-// PdfRegistry::register('rechnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
-PdfRegistry::register('rechnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
-// PdfRegistry::register('rechnung_vorbereitungslehrgang', 'PdfRechnungVorbereitungslehrgang', __DIR__ . '/class-pdf-rechnung-vorbereitungslehrgang.php');
-PdfRegistry::register('rechnung_vorbereitungslehrgang', 'PdfRechnungVorbereitungsLehrgang2', __DIR__ . '/class-pdf-rechnung-vorbereitungslehrgang.php');
-
-// https://bfv-ehingen.de/?mahnung=2026-P-0147&key=68115147e855ecdcd7c9395b5bbe8ff9
-PdfRegistry::register('mahnung_erlaubnis', 'PdfMahnungErlaubnis', __DIR__ . '/class-pdf-rechnung-erlaubnis.php');
-// https://bfv-ehingen.de/?mahnung_merchandise=2026-J-00001&key=eae261c669d3563987d2d449fe8a4b5e
-PdfRegistry::register('mahnung_merchandise', 'PdfMahnungMerchandise', __DIR__ . '/class-pdf-rechnung-merchandise.php');
-// https://bfv-ehingen.de/?mahnung_antrag=244&key=45042c927a
-PdfRegistry::register('mahnung_antrag', 'PdfRechnungMitgliedsantrag', __DIR__ . '/class-pdf-rechnung-mitgliedsantrag.php');
-// PdfRegistry::register('mahnung_huette', 'PdfRechnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
-PdfRegistry::register('mahnung_huette', 'PdfMahnungHuette', __DIR__ . '/class-pdf-rechnung-huette.php');
-
-// https://bfv-ehingen.de/?arbeitsdienstliste=1&dienst=17.01.2026&mgn=282&nonce=45042c927a
-PdfRegistry::register('liste_arbeitsdienst', 'PdfListeArbeitsdienst', __DIR__ . '/class-pdf-liste-arbeitsdienst.php');
-// https://bfv-ehingen.de/?jugendteilnehmerliste=1&veranstaltung=12.09.2026&mgn=282&nonce=45042c927a
-PdfRegistry::register('liste_jugendveranstaltung', 'PdfListeJugendveranstaltung', __DIR__ . '/class-pdf-liste-jugendveranstaltung.php');
-
-//https://bfv-ehingen.de/?erlaubnis=2026-P-0148&key=31e86617aad37a3a3902a560e69c7e79
-PdfRegistry::register('erlaubnisschein', 'PdfErlaubnisschein2', __DIR__ . '/class-pdf-erlaubnisschein.php');
-
-//https://bfv-ehingen.de/?fpdf=1&yy=2025
-PdfRegistry::register('fangstatistik', 'PdfFangstatistikJahr', __DIR__ . '/class-pdf-fangstatistik.php');
-//https://bfv-ehingen.de/?fpdfDiagramm=1&yy=2024
-PdfRegistry::register('vorjahresvergleich', 'PdfFangstatistikVorJahresvergleich', __DIR__ . '/class-pdf-fangstatistik.php');
-//https://bfv-ehingen.de/?JahresDiagramm=1&yy=2024
-PdfRegistry::register('jahresvergleich', 'PdfFangstatistikMehrjahresvergleich', __DIR__ . '/class-pdf-fangstatistik.php');
-//https://bfv-ehingen.de/?pdf_make_JahresDiagramm=1&yy=2024
-PdfRegistry::register('fangstatistikuservergleich', 'PdfFangstatistikUser', __DIR__ . '/class-pdf-fangstatistik.php');
-//https://bfv-ehingen.de/?fpdfUser=1&yy=2024
-// PdfRegistry::register('fangstatistik_demo', 'PdfFangstatistik', __DIR__ . '/class-pdf-fangstatistik.php');
-
-// https://bfv-ehingen.de/?get_pdf=anmeldung_lfvbw&nr=123&nn=Mustermann&vn=Max&key=...
-PdfRegistry::register('anmeldung_lfvbw', 'PdfTemplateLFVBW', __DIR__ . '/class-pdf-anmeldunglfvwb.php');
-
-
-
-// https://bfv-ehingen.de/?mitgliedsantrag=1&mn=244&vn=Alexander&n=Lammert&y=2026&key=cc11bdd3e4e5c1263e0a76c5745d23d2
-PdfRegistry::register('mitgliedsantrag', 'PdfMitgliedsantrag2', __DIR__ . '/class-pdf-mitgliedsantrag.php');
-// https://bfv-ehingen.de/?infoblatt-antrag=1&mn=244
-PdfRegistry::register('mitgliedsantraginfo', 'PdfMitgliedsantragInfoBlatt', __DIR__ . '/class-pdf-mitgliedsantrag.php');
-
-
-// Add more templates here as needed:
-// require_once __DIR__ . '/class-pdf-custom.php';
-// PdfRegistry::register('custom', 'PdfCustom', __DIR__ . '/class-pdf-custom.php');
-
-
+require_once TC_LIB_PDF_DIR . '/include/class-pdf-registry.php';
 
 /**
  * PDF Dispatcher class.
@@ -153,22 +95,20 @@ class Pdf_Dispatcher {
 				exit;
 			}
 
-            $download = $_GET['filedownload']??false;
+			$download = $_GET['filedownload'] ?? false;
 
-            if ($download) {
-                $pdf->output();
-            } else {
-                $pdf->stream();
-            }
-            exit;
+			if ($download) {
+				$pdf->output();
+			} else {
+				$pdf->stream();
+			}
+			exit;
 
 		} catch (Exception $e) {
 			$this->render_error('PDF Generation Error: ' . $e->getMessage());
 			exit;
 		}
 	}
-
-
 
 	/**
 	 * Verify the long-term authorisation for security.
@@ -201,7 +141,6 @@ class Pdf_Dispatcher {
 		$expected_hash = wp_hash($template_id . $expires->format('Y-m-d') . $nr, 'auth');
 		return hash_equals($expected_hash, $hash_from_url);
 	}
-
 
 	/**
 	 * Verify the nonce for security.
@@ -243,8 +182,3 @@ class Pdf_Dispatcher {
 		return self::$_instance;
 	}
 }
-
-
-
-// Initialize dispatcher
-Pdf_Dispatcher::get_instance();

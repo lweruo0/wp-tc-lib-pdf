@@ -8,7 +8,7 @@
  * @package WordPress Plugin Template/Includes
  */
 
-if (!defined('ABSPATH')) {
+if (!defined('TC_LIB_PDF_BOOTSTRAPPED')) {
 	exit;
 }
 

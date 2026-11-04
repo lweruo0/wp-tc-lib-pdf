@@ -1,23 +1,15 @@
-# TC Lib PDF for WordPress - PDF Template System
-
-## Übersicht
-
-Dieses System bietet eine flexible und erweiterbare Architektur zum Rendern verschiedener PDF-Templates basierend auf GET-Parametern. Mit Traits wird eine "Mehrfachvererbung" simuliert, um verschiedene Features zu kombinieren.
-
-## Architektur
-
-### 1. **PdfTemplate** (Basis-Klasse)
-   - Abstrakte Basis für alle PDF-Templates
-   - Erweitert `\Com\Tecnick\Pdf\Tcpdf`
-   - Definiert die `render()` Methode, die von Subklassen implementiert werden muss
 # wp-tc-lib-pdf — PDF Template System for WordPress
 
 Kurz: dieses Plugin bietet ein leicht erweiterbares System zum Erzeugen von PDFs
 mittels tc-lib-pdf (tecnickcom) in WordPress‑Umgebungen. Templates sind PHP‑Klassen
 und können durch Traits modular erweitert werden.
 
+Weitere Dokumentation:
+- [ARCHITECTURE.md](ARCHITECTURE.md) — Aufbau, Klassenhierarchie, Traits, Security Flow
+- [KONZEPT-PLATTFORM.md](KONZEPT-PLATTFORM.md) — geplante Trennung in WordPress- und Admidio-Adapter
+
 ## Anforderungen
-- PHP >= 8.0 (oder kompatibel mit Ihrer tc-lib-pdf Version)
+- PHP >= 8.2 (wird vom Plugin beim Aktivieren geprüft)
 - Composer (für Installation der Abhängigkeiten)
 
 ## Installation
@@ -68,10 +60,11 @@ gelöscht werden, wenn du nur die JSON‑Metriken behalten willst.
 
 ## Entwicklung: Templates & Traits
 
-- Templates sind Klassen in `include/` und erben von `PdfTemplate`.
+- Templates sind Klassen in `wp-include/templates/` und erben von `PdfTemplate`
+  bzw. `PdfRechnungBase` aus der Engine in `include/`.
 - Wiederverwendbare UI‑Bausteine sind als Traits implementiert (z. B.
   `trait-pdf-header.php`, `trait-pdf-rechnungsdaten.php`).
-- Templates werden in `include/dispatch.php` bei Bedarf registriert.
+- Templates werden in `wp-include/templates.php` registriert und bei Bedarf geladen.
 
 Kurzes Beispiel (Registration):
 
@@ -82,7 +75,7 @@ PdfRegistry::register('report', 'PdfReport', __DIR__ . '/class-pdf-report.php');
 
 ## **Available PDFs**
 
-Die im Dispatcher registrierten PDF‑Templates sind in `include/dispatch.php` konfiguriert.
+Die registrierten PDF‑Templates sind in `wp-include/templates.php` konfiguriert.
 Aktuelle IDs und Klassen (Auswahl):
 
 - `rechnung_erlaubnis` — `PdfRechnungErlaubnis`
@@ -92,7 +85,7 @@ Aktuelle IDs und Klassen (Auswahl):
 - `rechnung_vorbereitungslehrgang` — `PdfRechnungVorbereitungsLehrgang2`
 - `mahnung_erlaubnis` — `PdfMahnungErlaubnis`
 - `mahnung_merchandise` — `PdfMahnungMerchandise`
-- `mahnung_antrag` — `PdfRechnungMitgliedsantrag`
+- `mahnung_antrag` — `PdfMahnungMitgliedsantrag`
 - `mahnung_huette` — `PdfMahnungHuette`
 - `liste_arbeitsdienst` — `PdfListeArbeitsdienst`
 - `liste_jugendveranstaltung` — `PdfListeJugendveranstaltung`
@@ -101,7 +94,7 @@ Aktuelle IDs und Klassen (Auswahl):
 - `anmeldung_lfvbw` — `PdfTemplateLFVBW`
 - `mitgliedsantrag` / `mitgliedsantraginfo` — Antrags‑Templates
 
-Prüfe die vollständige Liste in [include/dispatch.php](include/dispatch.php#L1).
+Prüfe die vollständige Liste in [wp-include/templates.php](wp-include/templates.php).
 
 ## **Integration — Links aus anderen Plugins erzeugen**
 
@@ -161,7 +154,7 @@ Möglichkeiten, die Templates mit Daten zu versorgen:
   `save()` oder `stream()` aufrufst.
 
 - Konventioneller Ansatz: Templates versuchen beim Laden (siehe
-  `loadData()` in `include/class-pdf-rechnung-merchandise.php`) automatisch, eine
+  `loadData()` in `wp-include/templates/class-pdf-rechnung-merchandise.php`) automatisch, eine
   Funktion/Instanz aus dem Host‑Plugin aufzurufen, z. B. `bfvjubilaeumsruten()`
   oder `bfvmerchandise()` im Beispielprojekt. Diese Instanz muss eine Methode
   `get_formdata_by_rechnungsnummer(string $nr): array` bereitstellen, die alle
@@ -208,7 +201,7 @@ if ($inst->save()) { $file = $inst->getFileNameAbs(); }
 ```
 
 Weitere Beispiele für Linkerstellung und Caching befinden sich im Quellcode,
-siehe insbesondere `include/class-dashboard-pdf-links.php` und die Dispatcher/Registry‑Implementationen.
+siehe insbesondere `wp-include/class-dashboard-pdf-links.php` und die Dispatcher/Registry‑Implementationen.
 
 
 ## Code‑Qualität
@@ -227,129 +220,9 @@ siehe insbesondere `include/class-dashboard-pdf-links.php` und die Dispatcher/Re
 ## Mithelfen / Kontakt
 - Issues und Pull Requests bitte über das GitHub‑Repository eröffnen.
 
-   ```
+## Weiterführend
 
-## Class Hierarchy
-
-```
-\Com\Tecnick\Pdf\Tcpdf (tc-lib-pdf)
-    │
-    └─→ PdfTemplate (Basis)
-            │
-            ├─→ PdfExample (+ PdfHeaderFooterTrait)
-            │
-            ├─→ PdfInvoice (+ PdfHeaderFooterTrait)
-            │
-            └─→ PdfSimple (keine Traits)
-```
-
-## Traits System (Mehrfachvererbung-Simulation)
-
-```php
-// Einfach
-class PdfExample extends PdfTemplate {
-    use PdfHeaderFooterTrait;
-}
-
-// Mehrere Traits kombinieren
-class PdfCustom extends PdfTemplate {
-    use PdfHeaderFooterTrait;
-    use PdfWatermarkTrait;
-    use PdfSignatureTrait;
-}
-```
-
-## Security Flow
-
-```
-Request
-   │
-   ▼
-Nonce Check (wp_verify_nonce)
-   │
-   ├─ Valid ─→ Continue
-   │
-   └─ Invalid ─→ wp_die() Error Page
-
-   │
-   ▼
-Template Exists Check
-   │
-   ├─ Exists ─→ Instantiate
-   │
-   └─ Not Found ─→ Error Page
-
-   │
-   ▼
-Type Check (instanceof PdfTemplate)
-   │
-   ├─ Valid ─→ Render
-   │
-   └─ Invalid ─→ Exception
-```
-
-## File Structure
-
-```
-wp-tc-lib-pdf/
-├── wp-tc-lib-pdf.php                    # Plugin main file
-├── include/
-│   ├── dispatch.php                     # Router / Entry point
-│   ├── class-pdf-template.php           # Base class
-│   ├── class-pdf-registry.php           # Template registry
-│   ├── trait-pdf-header-footer.php      # Header/Footer trait
-│   ├── class-pdf-example.php            # Example template
-│   ├── class-pdf-invoice.php            # Invoice template
-│   ├── class-pdf-simple.php             # Simple template
-│   └── pdf-template-examples.php        # Usage examples
-├── PDF_TEMPLATES_README.md              # Documentation
-└── ARCHITECTURE.md                      # This file
-```
-
-## Extension Points
-
-### Neue Traits hinzufügen
-```php
-// include/trait-pdf-custom-feature.php
-trait PdfCustomFeatureTrait {
-    public function customMethod() { }
-}
-
-// Dann in Template verwenden
-class MyTemplate extends PdfTemplate {
-    use PdfHeaderFooterTrait;
-    use PdfCustomFeatureTrait;
-}
-```
-
-### Neue Templates hinzufügen
-```php
-// 1. Erstelle Klasse
-// include/class-pdf-mycustom.php
-class PdfMyCustom extends PdfTemplate { }
-
-// 2. Registriere im Dispatcher
-// include/dispatch.php
-require_once __DIR__ . '/class-pdf-mycustom.php';
-PdfRegistry::register('mycustom', 'PdfMyCustom', __DIR__ . '/class-pdf-mycustom.php');
-
-// 3. Nutze URL
-// ?demo_pdf=mycustom&nonce=XXX
-```
-
-## Performance-Tipps
-
-1. **Lazy-Loading**: Templates werden nur geladen, wenn nötig
-2. **Singleton Pattern**: PdfRegistry ist eine Singleton-Klasse
-3. **Static Methods**: PdfRegistry nutzt statische Methoden (schneller)
-4. **Error Handling**: Try-Catch verhindert Fatal Errors
-
-## Debugging
-
-```php
-// In dispatch.php hinzufügen für Debug-Ausgabe
-if ( WP_DEBUG ) {
-    error_log( 'PDF Template: ' . $template_id );
-    error_log( 'Template Config: ' . print_r( PdfRegistry::get( $template_id ), true ) );
-}
-```
+Klassenhierarchie, Traits, Security Flow, Dateistruktur, Extension Points und
+Debugging sind in [ARCHITECTURE.md](ARCHITECTURE.md) beschrieben. Die geplante
+Nutzung der Templates in Admidio ist in [KONZEPT-PLATTFORM.md](KONZEPT-PLATTFORM.md)
+dokumentiert.

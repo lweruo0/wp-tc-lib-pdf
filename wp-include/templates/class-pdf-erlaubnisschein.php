@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-require_once __DIR__ . '/class-pdf-template.php';
+require_once TC_LIB_PDF_DIR . '/include/class-pdf-template.php';
 
 /**
  * Example PDF Template with header and footer.

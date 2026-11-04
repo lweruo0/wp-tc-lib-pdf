@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "PowerShell(php \"C:\\\\Users\\\\lweruo0\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\f--lweruo0-workspace-sonstiges-wp-tc-lib-pdf\\\\4d11c8bb-8d03-4ad4-9f39-f90208726399\\\\scratchpad\\\\smoke-rechnung-base.php\" \"F:\\\\lweruo0\\\\workspace_sonstiges\\\\wp-tc-lib-pdf\" \"C:\\\\Users\\\\lweruo0\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\f--lweruo0-workspace-sonstiges-wp-tc-lib-pdf\\\\4d11c8bb-8d03-4ad4-9f39-f90208726399\\\\scratchpad\")"
+    ]
+  }
+}

@@ -12,8 +12,8 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-require_once __DIR__ . '/trait-pdf-data.php';
-require_once __DIR__ . '/interface-pdf-output.php';
+require_once TC_LIB_PDF_DIR . '/include/trait-pdf-data.php';
+require_once TC_LIB_PDF_DIR . '/include/interface-pdf-output.php';
 
 /**
  * PDF Anmeldung LFVBW class.
@@ -77,7 +77,7 @@ class PdfTemplateLFVBW implements PdfOutputInterface {
 	 * @return string The raw PDF content.
 	 */
 	private function generateRawPdf(): string {
-		$template = file_get_contents(plugin_dir_path(__FILE__) . '/images/in.pdf');
+		$template = file_get_contents(__DIR__ . '/in.pdf');
 		$formdata = $this->getAllFormdata();
 		$substitutions = $formdata['substitutions'] ?? [];
 

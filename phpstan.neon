@@ -6,6 +6,7 @@ parameters:
         - index.php
         - uninstall.php
         - include/
+        - wp-include/
     scanDirectories:
         - vendor/
     scanFiles:
