@@ -554,7 +554,12 @@ Entschieden (2026-11-02):
   `TC_LIB_PDF_BOOTSTRAPPED`; `in.pdf` liegt beim LFVBW-Template. Verifiziert
   per CLI: alle 19 registrierten Templates laden, Rechnungen rendern
   unverändert. In `include/` verbleiben `wp_upload_dir`, `wp_mkdir_p` und
-  `get_option('timezone_string')` für Phase 2.
+  `get_option('timezone_string')` für Phase 2. Nachtrag: Erlaubnisschein und
+  Fangstatistik luden Bilder über `__DIR__ . '/images/'`, was nach dem Umzug
+  ins Leere zeigte; korrigiert auf `TC_LIB_PDF_DIR . '/include/images/'`.
+  Regel für Templates in `wp-include/templates/`: Engine-Dateien und Bilder
+  immer über `TC_LIB_PDF_DIR`, `__DIR__` nur für Dateien im Template-Ordner
+  selbst (`in.pdf`).
 
 - **Ein Dokument enthält genau eine Rechnung.** Sammeldokumente mit mehreren
   Rechnungen sind nicht vorgesehen (entschieden 2026-11-03).

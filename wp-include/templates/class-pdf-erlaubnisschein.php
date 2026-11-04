@@ -287,7 +287,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 
 
 		// x=255.0, 64.0, 30.0, 0.0
-		$imageFile = __DIR__ . '/images/unterschrift.jpg';
+		$imageFile = TC_LIB_PDF_DIR . '/include/images/unterschrift.jpg';
 		if (is_file($imageFile)) {
 			if ($this->unterschriftImageId === null) {
 				$this->unterschriftImageId = $this->image->add($imageFile);
@@ -359,7 +359,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		);
 
 		// x= 226.0, 58.0, 30.0, 30.0
-		$imageFile = __DIR__ . '/images/st_rund_blau300px.png';
+		$imageFile = TC_LIB_PDF_DIR . '/include/images/st_rund_blau300px.png';
 		if (is_file($imageFile)) {
 			if ($this->stempelImageId === null) {
 				$this->stempelImageId = $this->image->add($imageFile);
@@ -379,7 +379,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 
 
 		// x=259.0, y=23.0, w=20.0, h=0.0
-		$imageFile = __DIR__ . '/images/logo_bfv2.png';
+		$imageFile = TC_LIB_PDF_DIR . '/include/images/logo_bfv2.png';
 		if (is_file($imageFile)) {
 			if ($this->headerLogoImageId === null) {
 				$this->headerLogoImageId = $this->image->add($imageFile);
@@ -423,7 +423,7 @@ class PdfErlaubnisschein2 extends PdfTemplate {
 		$out = "";
 
 		// 5.0, 12.0, self::PAGE_W * 0.5 - 10.0,
-		$imageFile = __DIR__ . '/images/gewaesser.jpg';
+		$imageFile = TC_LIB_PDF_DIR . '/include/images/gewaesser.jpg';
 		if (is_file($imageFile)) {
 			if ($this->gewaesserImageId === null) {
 				$this->gewaesserImageId = $this->image->add($imageFile);

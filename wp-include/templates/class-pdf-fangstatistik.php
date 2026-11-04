@@ -106,7 +106,7 @@ class PdfFangstatistik extends PdfTemplate {
 
 
 		$this->setHeaderText('Fangstatistik', $year > 0 ? (string) $year : '');
-		$this->setHeaderLogoImage($this->print_layout ? __DIR__ . '/images/logo_bfv2_print.png' : __DIR__ . '/images/logo_bfv2.png');
+		$this->setHeaderLogoImage($this->print_layout ? TC_LIB_PDF_DIR . '/include/images/logo_bfv2_print.png' : TC_LIB_PDF_DIR . '/include/images/logo_bfv2.png');
 		$this->setFileName("fangstatistik_{$year}.pdf");
 		$this->createStorageFolder('statistik');
 	}
@@ -130,14 +130,14 @@ class PdfFangstatistik extends PdfTemplate {
 			$this->fillcolorheader = '#444444';
 			$this->fillcolorbar1 = '#cab70e';
 			$this->fillcolorbar2 = '#fff6ab';	
-			$this->setHeaderLogoImage(__DIR__ . '/images/logo_bfv2.png');
+			$this->setHeaderLogoImage(TC_LIB_PDF_DIR . '/include/images/logo_bfv2.png');
 
 		} else {
 			$this->textcolorheader = '#000000';
 			$this->fillcolorheader = '#eeeeee';
 			$this->fillcolorbar1 = '#909090';
 			$this->fillcolorbar2 = '#eeeeee';
-			$this->setHeaderLogoImage(__DIR__ . '/images/logo_bfv2.png_print');
+			$this->setHeaderLogoImage(TC_LIB_PDF_DIR . '/include/images/logo_bfv2_print.png');
 		}
 	}
 
