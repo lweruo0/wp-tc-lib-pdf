@@ -9,7 +9,7 @@ Weitere Dokumentation:
 - [KONZEPT-PLATTFORM.md](KONZEPT-PLATTFORM.md) — geplante Trennung in WordPress- und Admidio-Adapter
 
 ## Anforderungen
-- PHP >= 8.2 (wird vom Plugin beim Aktivieren geprüft)
+- PHP >= 8.5 (vom versionierten vendor/ verlangt, wird vom Plugin beim Aktivieren geprüft)
 - Composer (für Installation der Abhängigkeiten)
 
 ## Installation

@@ -416,7 +416,7 @@ Admidio:    adm_plugins/wp-tc-lib-pdf/            ← identischer Repo-Inhalt
 - Admidio-Updates liefern `adm_plugins/` neu aus; eigene Plugins müssen erhalten bleiben.
 - Pro Host bleibt `adm-include/config.php` außerhalb der Versionierung
   (gitignored), `config_sample.php` liegt im Repo.
-- PHP 8.2 ist auf beiden Seiten Mindestvoraussetzung.
+- PHP 8.5 ist auf beiden Seiten Mindestvoraussetzung (composer.json `"php": "^8.5"`, Prüfung in `vendor/composer/platform_check.php`). WordPress und Admidio laufen auf 8.5 (Stand 2026-11-05).
 
 ## 3. Nummernkreise
 

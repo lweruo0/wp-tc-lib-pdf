@@ -51,6 +51,9 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
 
         self::render_update_urls_notice();
 
+        require_once TC_LIB_PDF_DIR . '/include/class-pdf-image-normalizer.php';
+        echo '<p><em>Fotos im Mitgliedsantrag: ' . esc_html(PdfImageNormalizer::status()) . '</em></p>';
+
         // Listen und Statistiken: nur Nonce (an die Admin-Sitzung gebunden),
         // keine Langzeit-Links.
         self::pdf_link('✓ Arbeitsdienst Liste 12.09.2026', 'liste_arbeitsdienst', ['dienst' => '12.09.2026']);
@@ -138,8 +141,8 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
     }
 
     /**
-     * Signierte Links für Mitgliedsantrag und Antragsrechnung in allen
-     * Quform-Einträgen des Antragsformulars neu erzeugen.
+     * Signierte Links für Mitgliedsantrag, Antragsrechnung und Infoblatt in
+     * allen Quform-Einträgen des Antragsformulars neu erzeugen.
      *
      * Notwendig nach jeder Änderung an der Signatur (build_pdf_url()), weil
      * die Links in den Einträgen gespeichert sind und von dort verschickt
@@ -199,6 +202,14 @@ final class Tc_Lib_Pdf_Dashboard_Pdf_Links {
             $update_ids = array();
             $update_ids[(int) $options_quform['id_url']] = $url_antrag;
             $update_ids[(int) $options_quform['id_url2']] = $url_rechnung;
+
+            // Infoblatt-Link (Feld "Quform ID Url3"), nur wenn konfiguriert.
+            if (!empty($options_quform['id_url3'])) {
+                $url_info = Tc_Lib_Pdf_Wp_Bootstrap::build_pdf_url('mitgliedsantraginfo', ['mnr' => $mitgliedsnummer], self::ANTRAG_LINK_EXPIRES);
+                if ($url_info !== '') {
+                    $update_ids[(int) $options_quform['id_url3']] = $url_info;
+                }
+            }
             $repository->saveEntryData($entry['id'], $update_ids);
             ++$updated;
         }

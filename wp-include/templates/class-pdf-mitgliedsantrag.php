@@ -15,6 +15,7 @@ if (!defined('ABSPATH')) {
 require_once TC_LIB_PDF_DIR . '/include/class-pdf-template.php';
 require_once TC_LIB_PDF_DIR . '/include/trait-pdf-header.php';
 require_once TC_LIB_PDF_DIR . '/include/trait-pdf-falzmarken.php';
+require_once TC_LIB_PDF_DIR . '/include/class-pdf-image-normalizer.php';
 require_once __DIR__ . '/trait-pdf-mitgliedsantrag-kosten.php';
 
 /**
@@ -116,6 +117,9 @@ abstract class PdfMitgliedsantragData extends PdfTemplate {
 			if ($imageData === false || $imageData === '') {
 				continue;
 			}
+			// Fotos nach EXIF drehen und verkleinern, falls gd verfügbar ist;
+			// sonst werden die Originaldaten eingebettet.
+			$imageData = PdfImageNormalizer::normalize($imageData);
 			$imageSource = '@' . $imageData;
 			$imageId = $this->image->add($imageSource);
 			$key = $this->image->getKey($imageSource);
