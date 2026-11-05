@@ -148,7 +148,8 @@ abstract class PdfRechnungBase extends PdfTemplate {
 		$name = (string) $this->getAddress('name_verein', '');
 		$addr = (string) $this->getAddress('addr_verein', '');
 		$city = (string) $this->getAddress('ort_verein', '');
-		$formdata['sender'] = $this->getAddress('sender', "$name, $addr, $city");
+		// leere Teile weglassen (z. B. Verein ohne Postanschrift in den Einstellungen)
+		$formdata['sender'] = $this->getAddress('sender', implode(', ', array_filter([$name, $addr, $city], static fn (string $part): bool => trim($part) !== '')));
 
 		$created = $this->localDateTime($formdata['created_at'] ?? null);
 		$formdata['date'] = ($created ?? $this->now())->format('d.m.Y');

@@ -42,6 +42,33 @@ Stand `a693cb1` (2026-11-02, Version 6.4).
 | Mahnungen nur für Positionen im Status `offen`, nicht für laufende SEPA-Einzüge (`exportiert`) | sonst Mahnung für bereits eingezogene Beträge | 6 |
 | Druckstapel wird nicht abgelegt; Download setzt „gedruckt“ | Druckstapel ist keine Rechnung | 5.3 |
 
+## Stand der Umsetzung (05.11.2026)
+
+Das Plugin Mitgliedsbeitrag hat ein eigenes, abgestimmtes Konzept: `docs/konzept-rechnungen-pdf.md` im Plugin
+(Version 6.5.0). Es weicht in diesen Punkten von diesem Dokument ab:
+
+- Ordner des Plugins aus `adm_my_files/plugins/wp-tc-lib-pdf/config.php` (Rückfall `adm-include/config.php`) (`membershipfee_dir`, auf dem Server `MembershipFee`).
+- Die Templates lesen ihre Daten über `\Plugins\MembershipFee\classes\Invoices\InvoicePdfData::load($nr)`
+  statt direkt über `BookingStore` und Profilfelder.
+- Abgelegte PDFs für die Zugriffsrolle liefert das Plugin selbst aus (`system/invoice_file.php`); `pdf.php`
+  bleibt für signierte Links und Administratoren.
+- Dateinamen-Muster `\d{4}-(B|AD)-\d{4,}` (das Muster in 5.3 passte nicht auf `AD`).
+- Status wird berechnet, nicht gespeichert; zusätzlicher Status `im_einzug`.
+- Rechnungen entstehen vor der Vorabinformation (nur offene Positionen).
+- „Erneut einziehen“ beim Storno und die Rücklastschriftgebühr behalten die Rechnungsnummer.
+- Lastschrift-Rechnungen ohne Zahlungsziel, ohne Überweisungsblock und QR-Code; Text „Eine Überweisung ist nicht notwendig.“
+- Einmalige Rollen: organisatorisch (01.01. bis 31.12.) mit Prüfung im Plugin, keine Änderung am Planer.
+
+Umgesetzt in diesem Repo:
+
+- **Schritt 3 `adm-include/`:** `bootstrap.php` (auch im laufenden Request eines anderen Plugins),
+  `class-adm-platform.php`, `class-adm-dispatcher.php`, `pdf.php`, `templates.php`, `config_sample.php`
+  (`config.php` ist gitignored). Hilfsfunktionen `tc_lib_pdf_adm_save()`, `tc_lib_pdf_adm_create_pdf_url()`,
+  `tc_lib_pdf_adm_unavailable_reason()`.
+- **Schritt 6:** `adm-include/templates/class-pdf-adm-rechnung.php` mit `adm_rechnung_beitrag` und
+  `adm_rechnung_arbeitsdienst` (Storno-Fassung `_storniert`), Test `tests/render-adm-rechnungen.php`.
+- Engine: neutrale Begrüßung „Guten Tag Vorname Name,“, wenn keine Anrede Herr/Frau übergeben wird.
+
 ## 0. Zielsetzung
 
 - Admidio erzeugt Rechnungen und Mahnungen als PDF für **Mitgliedsbeiträge**
@@ -272,7 +299,7 @@ Erweiterung:
 
 - `#invoice_link#` = `tc_lib_pdf_adm_create_pdf_url('adm_rechnung_beitrag', ['nr' => $nr], '+1 year')`.
 - Funktioniert ohne Admidio-Konto (Prüfung `PdfDispatcherCore::verifyLongTermKey()`
-  mit Secret aus `adm-include/config.php`, siehe KONZEPT-PLATTFORM.md 2.3).
+  mit Secret aus `adm_my_files/plugins/wp-tc-lib-pdf/config.php` (Rückfall `adm-include/config.php`), siehe KONZEPT-PLATTFORM.md 2.3).
 - Signiert wird mit derselben Logik wie in WordPress (alle Auswahlparameter,
   `signature_payload()` aus dem Dispatcher-Kern). Da die Rechnung allein über
   `nr` ausgewählt wird, kann ein Empfänger mit seinem Link keine fremde
@@ -448,7 +475,7 @@ und Zusatzblock.
 4. Empfänger aus `DEBTOR*`, sonst `FIRST_NAME`, `LAST_NAME`, `STREET`,
    `POSTCODE`, `CITY`, `EMAIL` (Regel wie `bill_export.php`), auf die neutralen
    Keys der Rechnungsbasis.
-5. Vereinsdaten aus `adm-include/config.php`, Bankverbindung und Gläubiger-ID
+5. Vereinsdaten aus `adm_my_files/plugins/wp-tc-lib-pdf/config.php` (Rückfall `adm-include/config.php`), Bankverbindung und Gläubiger-ID
    aus `ConfigTable` → `Kontodaten` (`inhaber`, `iban`, `bic`, `bank`, `ci`).
 6. `prepareRechnung()`, dann `created_at` = `mfi_invoice_date`,
    `zahlungsfrist_original` = `mfi_due_date`, Posten aus den Positionen

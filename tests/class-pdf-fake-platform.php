@@ -87,4 +87,25 @@ final class PdfFakePlatform implements PdfPlatformInterface {
 		}
 		return class_exists('\Com\Tecnick\Pdf\Tcpdf');
 	}
+
+	/** @var array<string, mixed> Vereinsdaten wie Tc_Lib_Pdf_Adm_Platform::getAddressData() */
+	private array $addressData = [];
+
+	/**
+	 * Vereinsdaten für Admidio-Templates setzen.
+	 *
+	 * @param array<string, mixed> $data
+	 */
+	public function setAddressData(array $data): void {
+		$this->addressData = $data;
+	}
+
+	/**
+	 * Vereinsdaten (wie Tc_Lib_Pdf_Adm_Platform).
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function getAddressData(): array {
+		return $this->addressData;
+	}
 }

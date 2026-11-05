@@ -53,3 +53,6 @@ bootstrap/cache/
 
 # Testausgabe (tests/render-rechnungen.php)
 tests/out/
+
+# Admidio: Konfiguration mit Secret (Vorlage config_sample.php)
+adm-include/config.php

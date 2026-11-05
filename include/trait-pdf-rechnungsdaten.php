@@ -278,9 +278,12 @@ trait PdfRechnungsdatenTrait {
 		$out .= $font['out'];
 
 		$y += self::ROW_HEIGHT*2;
-		$greetingText = ($rechnung_anrede == 'Frau') 
-			? "Sehr geehrte Frau " . $rechnung_name . ','
-			: "Sehr geehrter Herr " . $rechnung_name . ',';
+		// Ohne Anrede (z. B. Admidio-Profil ohne Geschlecht): neutrale Begrüßung mit vollem Namen
+		$greetingText = match ($rechnung_anrede) {
+			'Frau'  => 'Sehr geehrte Frau ' . $rechnung_name . ',',
+			'Herr'  => 'Sehr geehrter Herr ' . $rechnung_name . ',',
+			default => 'Guten Tag ' . trim($rechnung_vorname . ' ' . $rechnung_name) . ',',
+		};
 
 		$out .= $this->getTextCell(
 			txt: $greetingText,
