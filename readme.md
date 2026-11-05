@@ -6,11 +6,15 @@ und können durch Traits modular erweitert werden.
 
 Weitere Dokumentation:
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Aufbau, Klassenhierarchie, Traits, Security Flow
-- [KONZEPT-PLATTFORM.md](KONZEPT-PLATTFORM.md) — geplante Trennung in WordPress- und Admidio-Adapter
+- [KONZEPT-PLATTFORM.md](KONZEPT-PLATTFORM.md) — Trennung in WordPress- und Admidio-Adapter, Phasenplan, To-dos
+- [KONZEPT-ADMIDIO-RECHNUNGEN.md](KONZEPT-ADMIDIO-RECHNUNGEN.md) — Rechnungserstellung in Admidio, TODOs für den Mitgliedsbeitrag-Fork
 
 ## Anforderungen
 - PHP >= 8.5 (vom versionierten vendor/ verlangt, wird vom Plugin beim Aktivieren geprüft)
 - Composer (für Installation der Abhängigkeiten)
+- Optional: PHP-Erweiterungen `gd` und `exif`. Damit werden Fotos in
+  Anhängen (Mitgliedsantrag) gedreht und verkleinert; ohne sie werden sie
+  unverändert eingebettet. Der Status steht im Dashboard-Widget „PDF Links“.
 
 ## Installation
 
@@ -214,6 +218,11 @@ siehe insbesondere `wp-include/class-dashboard-pdf-links.php` und die Dispatcher
 - Font‑Probleme: `K_PATH_FONTS` prüfen oder die Font‑JSONs in `font/core`.
 
 ## Was wurde zuletzt gemacht (Repo‑Hinweis)
+- 2026-11-05: Signierte Links decken alle Auswahlparameter ab
+  (`Tc_Lib_Pdf_Wp_Bootstrap::SIGNED_PARAMS`); Links aus anderen Plugins müssen
+  alle diese Parameter an `tc_lib_pdf_wp_create_pdf_url()` übergeben, nicht
+  nachträglich an die URL hängen. Fotos in Anhängen werden aufbereitet
+  (`PdfImageNormalizer`). Details in ARCHITECTURE.md und KONZEPT-PLATTFORM.md.
 - Core‑Font‑JSONs (Helvetica/Times/Courier + Varianten) wurden aus offiziellen
   AFM/Type1 Quellen generiert und in `font/core` geschrieben.
 

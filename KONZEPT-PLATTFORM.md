@@ -1,6 +1,6 @@
 # Konzept: Gemeinsame PDF-Engine für WordPress und Admidio
 
-Stand: 2026-11-02
+Stand: 2026-11-05
 
 ## 0. Zielsetzung
 
@@ -303,6 +303,21 @@ Link ohne Token (funktioniert nur für eingeloggte Administratoren), mit
 
 ### 2.7 Erste Admidio-Dokumente: Beitrags- und Arbeitsdienstrechnung
 
+> Ausgearbeitet in [KONZEPT-ADMIDIO-RECHNUNGEN.md](KONZEPT-ADMIDIO-RECHNUNGEN.md)
+> (Rechnungskopf, Versandwege, Mahnung, Umsetzungsreihenfolge). Bei
+> Abweichungen gilt jenes Dokument. Wichtigste Abweichungen von diesem
+> Abschnitt (Stand 2026-11-05):
+>
+> - Aufnahmerechnung ist eine Beitragsrechnung über einmalige Beitragsrollen;
+>   die WordPress-Rechnung zum Mitgliedsantrag zieht dorthin um.
+> - Rechnungskopf als eigene Tabelle im Fork (Annahme); `mfb_invoice_date`
+>   entfällt, an den Positionen bleibt nur `mfb_invoice_no`.
+> - Zahlungsziel aus den Einstellungen des Fork statt fest 14 Tage.
+> - Nur eine Mahnstufe; die Mahngebühr wird manuell als Position angelegt.
+> - Keine Gutschriften; Storno ganzer Rechnungen als Vermerk im PDF.
+> - Änderungen am Fork werden nur als TODO gesammelt
+>   (KONZEPT-ADMIDIO-RECHNUNGEN.md, Abschnitt 10).
+
 Entschieden: In Admidio entstehen zuerst **Beitragsrechnungen** und
 **Arbeitsdienstrechnungen**, jeweils mit Mahnung. Vorlage ist das
 Vorbereitungslehrgang-Template, bevorzugt über die Rechnungsbasis aus 2.4.
@@ -542,9 +557,10 @@ Entschieden (2026-11-02):
 - **Rechnungsbasis `PdfRechnungBase`** ist angelegt (2026-11-03,
   `include/class-pdf-rechnung-base.php`). Alle fünf WordPress-
   Rechnungstemplates sind darauf umgestellt (Stand 2026-11-04).
-- **Nummernvergabe** erfolgt im Mitgliedsbeitrag-Fork wie in 2.7 beschrieben:
-  Spalten `mfb_invoice_no` / `mfb_invoice_date`, Schritt „Rechnungen
-  erstellen“, `MAX + 1` je Jahr und Kreis. Das PDF-Plugin liest nur.
+- **Nummernvergabe** erfolgt im Mitgliedsbeitrag-Fork: Schritt „Rechnungen
+  erstellen“, `MAX + 1` je Beitragsjahr und Kreis. Das PDF-Plugin liest nur.
+  Datenmodell (Rechnungskopf + `mfb_invoice_no`) seit 2026-11-05 in
+  KONZEPT-ADMIDIO-RECHNUNGEN.md, Abschnitt 3.
 - **Arbeitsdienstrechnung** enthält die Liste der Arbeitseinsätze des Jahres
   (`WorkHoursStore::getByYear($year, $usrId)`: Datum, Tätigkeit, Stunden) als
   Nachweis unter dem Rechnungsblock, dazu Soll, Ist und Fehlstunden.
@@ -564,37 +580,62 @@ Entschieden (2026-11-02):
 - **Ein Dokument enthält genau eine Rechnung.** Sammeldokumente mit mehreren
   Rechnungen sind nicht vorgesehen (entschieden 2026-11-03).
 
+Entschieden (2026-11-05):
+
+- **PHP 8.5** auf WordPress und Admidio (Abschnitt 2.8).
+- **Rechnung/Mahnung zum Mitgliedsantrag** (`rechnung_antrag`,
+  `mahnung_antrag`) werden in WordPress nicht mehr verbessert; sie ziehen als
+  Beitragsrechnung nach Admidio um. Bekannte Mängel bleiben bis dahin
+  („war am  fällig“, keine Mahngebühr, Frist ab heute).
+- **Rechnungserstellung in Admidio**: Entscheidungen und Annahmen in
+  KONZEPT-ADMIDIO-RECHNUNGEN.md.
+- **Mitgliedsbeitrag-Fork** wird nicht aus diesem Repo heraus geändert;
+  nötige Änderungen stehen als TODO in KONZEPT-ADMIDIO-RECHNUNGEN.md,
+  Abschnitt 10.
+- **Druckstapel** nur aus bereits erzeugten PDFs; das Zusammenfügen ist eine
+  abstrakte Engine-Funktion (`PdfJoiner`), keine Rechnung. Die Regel „ein
+  Dokument enthält genau eine Rechnung“ bleibt.
+- **Fotos in Anhängen** werden vor dem Einbetten gedreht und verkleinert,
+  wenn gd verfügbar ist (`include/class-pdf-image-normalizer.php`).
+
 To-do, in dieser Reihenfolge:
 
-1. **Funktionsprüfung im WordPress-Backend** (Oliver): alle 19 Templates nach
-   Phase 1 und der Rechnungsbasis einmal aufrufen, Dashboard-Widget, Links aus
-   den bfv-Plugins. Bis dahin keine weiteren Umbauten.
-2. **Sicherheitsbehebung signierte Links** (siehe Hinweis unten). **Umgesetzt
-   2026-11-05, noch nicht auf dem Server.** Signiert werden alle Parameter aus
-   `Tc_Lib_Pdf_Wp_Bootstrap::SIGNED_PARAMS`, zusätzlich zur ursprünglichen
-   Liste auch `zweitemahnung` und `ohnemahngebuehr` (sonst könnte ein Empfänger
-   die Mahngebühr entfernen). Alte Langzeit-Links, die nur über `nr` auswählen,
-   bleiben gültig, solange kein weiterer signierter Parameter im Request steht
-   (`verify_legacy_long_term_key()`, abschaltbar mit
-   `define('TC_LIB_PDF_LEGACY_KEYS', false)`). `update_urls()` ist über den
-   Button „Antragslinks neu erzeugen“ im Dashboard-Widget auslösbar.
-   Ursprünglicher Plan:
-   - `build_pdf_url()` in `wp-include/bootstrap.php` und
-     `verify_long_term_authorisation()` / `verify_nonce()` in
-     `wp-include/class-wp-dispatcher.php` hashen alle Auswahlparameter in
-     fester Reihenfolge mit Trenner: `nr`, `mnr`, `jahr`, `dienst`,
-     `veranstaltung`, `Mitgliedsnummer`, `verein`.
-   - Dashboard-Widget: für `liste_arbeitsdienst`, `liste_jugendveranstaltung`
-     und die Fangstatistik-Templates keine Langzeit-Links mehr erzeugen, nur
-     Nonce.
-   - `update_urls()` im Widget einmal ausführen, damit die in Quform
-     gespeicherten Links für `mitgliedsantrag` und `rechnung_antrag` neu
-     entstehen. Alte Langzeit-Links werden ungültig; das ist gewollt.
-   - Smoke-Test: Link mit verändertem `mnr` muss abgewiesen werden.
-3. **Phase 2** (Plattform-Schnittstelle, Dispatcher-Kern). Die Signatur-
-   Funktion aus Punkt 2 wandert dabei in den Dispatcher-Kern.
+1. ~~**Funktionsprüfung im WordPress-Backend**~~ – **erledigt 2026-11-05.**
+   Alle Widget-Links auf bfv-ehingen.de frisch erzeugt (`&new=1`), alle
+   liefern ein PDF. Befunde:
+   - Vorbereitungslehrgang: Zahlungsfrist wird ab heute statt ab
+     Rechnungsdatum berechnet (offen, siehe unten).
+   - Rechnungsdatum in UTC statt Ortszeit (Phase 3).
+   - Mitgliedsantrag-Rechnung/-Mahnung: Mängel bleiben, Umzug nach Admidio.
+   - Mitgliedsantrag: Fotos in voller Auflösung und falsch gedreht
+     (behoben 2026-11-05, 10,6 MB → 0,94 MB bei mnr 268).
+2. ~~**Sicherheitsbehebung signierte Links**~~ – **erledigt und auf dem
+   Server 2026-11-05.** Signiert werden alle Parameter aus
+   `Tc_Lib_Pdf_Wp_Bootstrap::SIGNED_PARAMS` (`nr`, `mnr`, `jahr`, `dienst`,
+   `veranstaltung`, `Mitgliedsnummer`, `verein`, `zweitemahnung`,
+   `ohnemahngebuehr`), in Langzeit-Link und Nonce. Rohwerte müssen
+   `sanitize_text_field()`-stabil sein. Alte Langzeit-Links, die nur über `nr`
+   auswählen, bleiben gültig, solange kein weiterer signierter Parameter im
+   Request steht (`verify_legacy_long_term_key()`, abschaltbar mit
+   `define('TC_LIB_PDF_LEGACY_KEYS', false)`). Dashboard-Widget: Listen nur
+   Nonce; Button „Antragslinks neu erzeugen“ ruft `update_urls()` und schreibt
+   die Quform-Felder Antrag, Rechnung und Infoblatt (`id_url`, `id_url2`,
+   `id_url3`) neu. Geprüft auf dem Server: manipulierte `mnr`/`dienst`/
+   `ohnemahngebuehr` abgewiesen, alter Link mit `mnr` abgewiesen, alte
+   `nr`-Links gültig, neue Quform-Links liefern PDFs.
+3. **Phase 2** (Plattform-Schnittstelle, Dispatcher-Kern). `signature_payload()`
+   und `SIGNED_PARAMS` wandern dabei in den Dispatcher-Kern.
+4. **Phase 3** (Zeitzone über die Plattform, Vereinstexte). Vorher prüfen, ob
+   `created_at` der Quform-Einträge in UTC gespeichert ist.
+5. **Phase 5 / Admidio** nach KONZEPT-ADMIDIO-RECHNUNGEN.md, Abschnitt 8.
+   Unabhängig davon jederzeit möglich: `PdfJoiner` (dort Schritt 9a).
 
-Sicherheitshinweis (gefunden 2026-11-03): Der signierte Langzeit-Link deckt
+Klein, jederzeit:
+
+- Vorbereitungslehrgang: Zahlungsfrist ab Rechnungsdatum statt ab heute
+  (`prepareRechnung()` ohne `zahlungsfrist_original`).
+
+Sicherheitshinweis (gefunden 2026-11-03, **behoben 2026-11-05**, siehe To-do 2): Der signierte Langzeit-Link deckt
 nur `nr` ab (`build_pdf_url()` in [wp-include/bootstrap.php](wp-include/bootstrap.php),
 `verify_long_term_authorisation()` in [wp-include/class-wp-dispatcher.php](wp-include/class-wp-dispatcher.php)), nicht `mnr`. Langzeit-Links
 für `mitgliedsantrag`, `mitgliedsantraginfo`, `rechnung_antrag` und
@@ -605,7 +646,7 @@ Auswahlparameter (`nr`, `mnr`, `jahr`) in fester Reihenfolge mit Trenner,
 anschließend `update_urls()` im Dashboard-Widget einmal ausführen, damit die
 in Quform gespeicherten Links neu erzeugt werden. Bestehende Links werden
 dadurch ungültig, was hier gewollt ist. Gehört in den Dispatcher-Kern
-(Abschnitt 2.3), Umsetzung als To-do 2 oben.
+(Abschnitt 2.3), umgesetzt als To-do 2 oben.
 
 Betroffene Templates (Auswahl über einen nicht signierten Parameter):
 

@@ -1,9 +1,11 @@
 # PDF Template System - Architektur Übersicht
 
-Stand: 2026-11-04. Beschreibt den aktuellen Code. Die Trennung in Engine
-(`include/`), WordPress-Adapter (`wp-include/`) und den geplanten
+Stand: 2026-11-05. Beschreibt den aktuellen Code (PHP 8.5). Die Trennung in
+Engine (`include/`), WordPress-Adapter (`wp-include/`) und den geplanten
 Admidio-Adapter (`adm-include/`) ist in [KONZEPT-PLATTFORM.md](KONZEPT-PLATTFORM.md)
-beschrieben; Phase 1 (Umzug) ist umgesetzt.
+beschrieben; Phase 1 (Umzug) und die Sicherheitsbehebung der signierten Links
+sind umgesetzt. Die Rechnungserstellung in Admidio ist in
+[KONZEPT-ADMIDIO-RECHNUNGEN.md](KONZEPT-ADMIDIO-RECHNUNGEN.md) geplant.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -287,6 +289,7 @@ wp-tc-lib-pdf/
 │   ├── class-pdf-registry.php           PdfRegistry
 │   ├── class-pdf-template.php           PdfTemplateBase, PdfTemplate
 │   ├── class-pdf-rechnung-base.php      PdfRechnungBase (Rechnung/Mahnung)
+│   ├── class-pdf-image-normalizer.php   PdfImageNormalizer (Fotos drehen/verkleinern, siehe unten)
 │   ├── interface-pdf-output.php         PdfOutputInterface
 │   ├── trait-pdf-*.php                  8 Traits (siehe oben)
 │   └── images/                          Logos, Unterschrift (vereinsweit)
@@ -295,7 +298,8 @@ wp-tc-lib-pdf/
 │   ├── bootstrap.php                    Tc_Lib_Pdf_Wp_Bootstrap, Hooks, URL-Builder, Hilfsfunktionen
 │   ├── class-wp-dispatcher.php          Pdf_Dispatcher (Nonce, Langzeit-Link, template_redirect)
 │   ├── templates.php                    PdfRegistry::register(…) für alle WP-Templates
-│   ├── class-dashboard-pdf-links.php    Dashboard-Widget mit Beispiel-Links (nur Admin)
+│   ├── class-dashboard-pdf-links.php    Dashboard-Widget (nur Admin): Beispiel-Links, gd/exif-Status,
+│   │                                    Button „Antragslinks neu erzeugen“ (update_urls())
 │   └── templates/
 │       ├── class-pdf-*.php              Templates (siehe oben); laden Engine-Dateien über TC_LIB_PDF_DIR
 │       └── in.pdf                       LFVBW-Vorlage für PdfTemplateLFVBW
@@ -306,7 +310,8 @@ wp-tc-lib-pdf/
 ├── phpstan.neon                         prüft include/ und wp-include/
 ├── readme.md                            Installation, Integration, Daten-Contract
 ├── ARCHITECTURE.md                      diese Datei
-└── KONZEPT-PLATTFORM.md                 WP/Admidio-Trennung, Phasenplan
+├── KONZEPT-PLATTFORM.md                 WP/Admidio-Trennung, Phasenplan
+└── KONZEPT-ADMIDIO-RECHNUNGEN.md        Rechnungserstellung in Admidio, TODOs für den Mitgliedsbeitrag-Fork
 ```
 
 Konstanten, die der Host vor dem Laden der Engine definiert:
@@ -316,6 +321,26 @@ Konstanten, die der Host vor dem Laden der Engine definiert:
 | `TC_LIB_PDF_DIR` | Plugin-Root; Templates laden Engine-Dateien über `TC_LIB_PDF_DIR . '/include/…'` |
 | `TC_LIB_PDF_BOOTSTRAPPED` | Lade-Guard der Engine-Dateien (ersetzt `ABSPATH` dort) |
 | `TC_LIB_PDF_WP_FILE` | Pfad der Plugin-Hauptdatei für `register_activation_hook()` (nur WordPress) |
+
+## Bildaufbereitung (PdfImageNormalizer)
+
+`include/class-pdf-image-normalizer.php`, plattformneutral. Wird von
+`seite_attachments()` im Mitgliedsantrag vor dem Einbetten von Fotos
+aufgerufen.
+
+| Methode | Zweck |
+|---|---|
+| `isGdAvailable()` / `isExifAvailable()` / `status()` | Prüfung der PHP-Erweiterungen; `status()` erscheint im Dashboard-Widget |
+| `normalize(string $data): string` | JPEG nach EXIF-Ausrichtung drehen/spiegeln, auf höchstens `MAX_PX` (2000 px) verkleinern, mit `JPEG_QUALITY` (80) neu kodieren |
+
+Ohne gd, bei anderen Formaten als JPEG, bei zu knappem `memory_limit` oder
+bei einem Fehler werden die Originaldaten zurückgegeben; das PDF entsteht in
+jedem Fall. Bilder, die weder gedreht noch verkleinert werden müssen, bleiben
+unverändert.
+
+Geplant (KONZEPT-ADMIDIO-RECHNUNGEN.md, 5.3): `PdfJoiner` in `include/` zum
+Zusammenfügen vorhandener PDF-Dateien (Druckstapel), ebenfalls
+plattformneutral.
 
 ## Extension Points
 
