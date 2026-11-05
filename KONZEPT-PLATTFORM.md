@@ -310,7 +310,7 @@ Link ohne Token (funktioniert nur für eingeloggte Administratoren), mit
 >
 > - Aufnahmerechnung ist eine Beitragsrechnung über einmalige Beitragsrollen;
 >   die WordPress-Rechnung zum Mitgliedsantrag zieht dorthin um.
-> - Rechnungskopf als eigene Tabelle im Fork (Annahme); `mfb_invoice_date`
+> - Rechnungskopf als eigene Tabelle im Fork (entschieden); `mfb_invoice_date`
 >   entfällt, an den Positionen bleibt nur `mfb_invoice_no`.
 > - Zahlungsziel aus den Einstellungen des Fork statt fest 14 Tage.
 > - Nur eine Mahnstufe; die Mahngebühr wird manuell als Position angelegt.
@@ -625,6 +625,14 @@ To-do, in dieser Reihenfolge:
    `nr`-Links gültig, neue Quform-Links liefern PDFs.
 3. **Phase 2** (Plattform-Schnittstelle, Dispatcher-Kern). `signature_payload()`
    und `SIGNED_PARAMS` wandern dabei in den Dispatcher-Kern.
+   - **2a Plattform-Schnittstelle: umgesetzt 2026-11-05, noch nicht auf dem
+     Server.** `include/platform/` (`PdfPlatformInterface`, `PdfRuntime`),
+     `wp-include/class-wp-platform.php`. Storage, URL-Parameter, `save()` und
+     das Laden von tc-lib-pdf laufen über die Plattform. Verhaltensänderung:
+     Templates erhalten URL-Parameter ohne WordPress-Escape-Schrägstriche
+     (`wp_unslash`). Lokal geprüft: alle 19 Templates laden, Rechnung wird
+     gespeichert, Ordnerschutz entsteht.
+   - 2b Dispatcher-Kern: offen.
 4. **Phase 3** (Zeitzone über die Plattform, Vereinstexte). Vorher prüfen, ob
    `created_at` der Quform-Einträge in UTC gespeichert ist.
 5. **Phase 5 / Admidio** nach KONZEPT-ADMIDIO-RECHNUNGEN.md, Abschnitt 8.

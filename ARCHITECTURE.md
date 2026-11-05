@@ -219,7 +219,7 @@ Klasse → Datei (alle in `wp-include/templates/`):
 ## Datenfluss in loadData()
 
 ```
-URL-Parameter ($_GET)           → urldata      getUrl('nr')
+URL-Parameter (Plattform)       → urldata      getUrl('nr')
 WP-Options (get_option)         → options      getOption('mahngebuehr')
 WP-Option bfv_adressen          → addressdata  getAddress('name_verein')
 bfv*()->get_formdata_by_…()     → formdata     getForm('brutto')
@@ -271,10 +271,29 @@ sind nur Darstellungs-Schalter (`new`, `filedownload`, `layout`, `page`,
 Ohne gültige Autorisierung wird kein Fehler ausgegeben. Der Request läuft als
 normaler WordPress-Request weiter.
 
+## Plattform (seit Phase 2a)
+
+Die Engine ruft Host-Funktionen nur über `PdfRuntime::platform()` auf. Der
+Host setzt seine Implementierung einmal im Bootstrap
+(`wp-include/bootstrap.php`: `PdfRuntime::setPlatform(new Tc_Lib_Pdf_Wp_Platform())`).
+
+| Methode | WordPress |
+|---|---|
+| `getStorageBaseDir()` | `wp_upload_dir()['basedir']` |
+| `createDirectory()` / `protectDirectory()` | `wp_mkdir_p()` / `.htaccess` + `index.php` |
+| `getQueryParams()` | `wp_unslash($_GET)` |
+| `getTimezone()` | `wp_timezone()` (Nutzung ab Phase 3) |
+| `getSecret()` | `wp_salt('auth')` (Nutzung ab Phase 2b) |
+| `fail()` | `wp_die()` |
+| `loadLibrary()` | `Tc_Lib_Pdf_Wp_Bootstrap::boot()` |
+
+Einzige verbliebene WordPress-Aufrufe in `include/`: `get_option('timezone_string')`
+in `trait-pdf-header.php` (Phase 3).
+
 ## Storage
 
-- Basis: `wp_upload_dir()['basedir']` + Ordnername aus `createStorageFolder('bfv_…')`
-- Beim Anlegen werden `.htaccess` (Require all denied) und `index.php` geschrieben
+- Basis: `PdfRuntime::platform()->getStorageBaseDir()` + Ordnername aus `createStorageFolder('bfv_…')`
+- Beim Anlegen schützt die Plattform den Ordner (WordPress: `.htaccess` mit Require all denied und `index.php`)
 - `stream()`/`output()` liefern eine vorhandene Datei direkt aus, außer `?new=1`
 - `save()` erzeugt die Datei ohne HTTP-Ausgabe (für Aufrufe aus anderen Plugins)
 
@@ -286,6 +305,9 @@ wp-tc-lib-pdf/
 ├── uninstall.php                        leer
 │
 ├── include/                             ENGINE – plattformneutral, prüft nur TC_LIB_PDF_BOOTSTRAPPED
+│   ├── platform/
+│   │   ├── interface-pdf-platform.php   PdfPlatformInterface (Storage, URL-Parameter, Zeitzone, Secret, fail, Library)
+│   │   └── class-pdf-runtime.php        PdfRuntime::setPlatform() / ::platform()
 │   ├── class-pdf-registry.php           PdfRegistry
 │   ├── class-pdf-template.php           PdfTemplateBase, PdfTemplate
 │   ├── class-pdf-rechnung-base.php      PdfRechnungBase (Rechnung/Mahnung)
@@ -296,6 +318,7 @@ wp-tc-lib-pdf/
 │
 ├── wp-include/                          HOST WordPress, prüft ABSPATH
 │   ├── bootstrap.php                    Tc_Lib_Pdf_Wp_Bootstrap, Hooks, URL-Builder, Hilfsfunktionen
+│   ├── class-wp-platform.php            Tc_Lib_Pdf_Wp_Platform (PdfPlatformInterface für WordPress)
 │   ├── class-wp-dispatcher.php          Pdf_Dispatcher (Nonce, Langzeit-Link, template_redirect)
 │   ├── templates.php                    PdfRegistry::register(…) für alle WP-Templates
 │   ├── class-dashboard-pdf-links.php    Dashboard-Widget (nur Admin): Beispiel-Links, gd/exif-Status,

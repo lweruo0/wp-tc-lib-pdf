@@ -180,7 +180,7 @@ abstract class PdfTemplateBase extends \Com\Tecnick\Pdf\Tcpdf implements PdfOutp
 		// Create directory if it doesn't exist
 		$dir = dirname($filename);
 		if (!is_dir($dir)) {
-			if (!wp_mkdir_p($dir)) {
+			if (!PdfRuntime::platform()->createDirectory($dir)) {
 				return false;
 			}
 		}

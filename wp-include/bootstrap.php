@@ -11,6 +11,10 @@
 
 defined('ABSPATH') || exit;
 
+// Plattform für die Engine (Speicherort, URL-Parameter, Zeitzone, Secret).
+require_once __DIR__ . '/class-wp-platform.php';
+PdfRuntime::setPlatform(new Tc_Lib_Pdf_Wp_Platform());
+
 final class Tc_Lib_Pdf_Wp_Bootstrap {
 	private static $initialized = false;
 
@@ -29,7 +33,7 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 
 		self::$initialized = true;
 
-		if (version_compare(PHP_VERSION, '8.2.0', '<')) {
+		if (version_compare(PHP_VERSION, '8.5.0', '<')) {
 			add_action('admin_notices', array(__CLASS__, 'render_php_notice'));
 			return;
 		}
@@ -58,7 +62,7 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 
 		self::$booted = true;
 
-		if (version_compare(PHP_VERSION, '8.2.0', '<')) {
+		if (version_compare(PHP_VERSION, '8.5.0', '<')) {
 			return false;
 		}
 
@@ -128,7 +132,7 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 		}
 
 		echo '<div class="notice notice-error"><p>';
-		echo esc_html__('TC Lib PDF for WordPress requires PHP 8.2 or newer.', 'tc-lib-pdf-wp');
+		echo esc_html__('TC Lib PDF for WordPress requires PHP 8.5 or newer.', 'tc-lib-pdf-wp');
 		echo '</p></div>';
 	}
 
@@ -266,8 +270,8 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 	}
 
 	public static function activate() {
-		if (version_compare(PHP_VERSION, '8.2.0', '<')) {
-			wp_die(__('TC Lib PDF for WordPress requires PHP 8.2 or newer.', 'tc-lib-pdf-wp'));
+		if (version_compare(PHP_VERSION, '8.5.0', '<')) {
+			wp_die(__('TC Lib PDF for WordPress requires PHP 8.5 or newer.', 'tc-lib-pdf-wp'));
 		}
 	}
 

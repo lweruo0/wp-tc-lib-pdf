@@ -1,6 +1,6 @@
 # Konzept: Rechnungserstellung in Admidio
 
-Stand: 2026-11-05 · Entwurf, Fragen aus Abschnitt 9 beantwortet
+Stand: 2026-11-05 · alle Fragen aus Abschnitt 9 beantwortet
 
 Baut auf [KONZEPT-PLATTFORM.md](KONZEPT-PLATTFORM.md) auf (Engine, Admidio-Host,
 Abschnitt 2.7 und 3) und beschreibt den vollständigen Weg von der
@@ -27,12 +27,12 @@ Stand `a693cb1` (2026-11-02, Version 6.4).
 | Gutschriften | gibt es nicht | 4 |
 | Storno ganzer Rechnung | Vermerk im PDF und Status `storniert`, kein eigenes Dokument | 5.4, 7 |
 | Zahlungsziel | aus den Einstellungen des Mitgliedsbeitrag-Plugins | 4, 6 |
+| Datenmodell | Rechnungskopf als eigene Tabelle `…_invoices` im Fork; Positionen tragen nur `mfb_invoice_no`; `mfb_invoice_date` aus KONZEPT-PLATTFORM.md 2.7 entfällt | 3.2 |
 
 **Annahmen** (gelten, bis sie widerrufen werden):
 
 | Annahme | Begründung | Abschnitt |
 |---|---|---|
-| Rechnungskopf als eigene Tabelle `…_invoices` im Fork; Positionen tragen nur `mfb_invoice_no`; `mfb_invoice_date` aus KONZEPT-PLATTFORM.md 2.7 entfällt | Versandprotokoll, Mahnung und PDF-Datei gehören zur Rechnung, nicht zur Position | 3.2 |
 | „Manuell“ heißt: Der Kassierer legt die Gebühr vor dem Erstellen der Mahnung über „Position hinzufügen“ mit der Positionsvorlage „Mahngebühr“ an; beim Erstellen der Mahnung wird sie der gemahnten Rechnung zugeordnet | Gebühr steht in der Buchungshistorie und wird mit eingezogen; Mahnung ohne Gebühr bleibt möglich | 6 |
 | Das Zahlungsziel ist eine neue Einstellung in Tagen im Fork und gilt auch für die Mahnfrist | eine Stelle für beide Fristen | 4, 6, 10 |
 | Fälligkeit der Rechnung: `mfb_due_date` → Profilfeld-Fälligkeit → Rechnungsdatum + Zahlungsziel | übernimmt die vorhandenen Fälligkeiten des Forks | 4 |
@@ -126,12 +126,12 @@ nicht markiert sind.
 Index auf (`mfb_org_id`, `mfb_invoice_no`). `BookingStore::search()` bekommt
 den Filter `invoice_no`.
 
-### 3.2 Neue Tabelle für den Rechnungskopf (Annahme)
+### 3.2 Neue Tabelle für den Rechnungskopf (entschieden 2026-11-05)
 
 KONZEPT-PLATTFORM.md sah nur Spalten an den Positionen vor
 (`mfb_invoice_no`, `mfb_invoice_date`). Für vier Versandwege und die Mahnung
 braucht jede Rechnung aber eigenen Zustand, der nicht zu einer einzelnen
-Position gehört. Vorschlag: eine schmale Kopftabelle im Fork, angelegt wie die
+Position gehört. Deshalb eine schmale Kopftabelle im Fork, angelegt wie die
 übrigen über `BookingStore::ensureTables()`.
 
 `<prefix>_plugin_membershipfee_invoices`
@@ -471,9 +471,9 @@ In diesem Repo entstehen nur die Schritte 1, 2, 3, 6 und 9a (PDF-Join).
 
 ## 9. Fragen und Antworten
 
-1. **Kopftabelle** (3.2) statt nur Spalten an den Positionen – **Annahme:
-   ja** (siehe „Entscheidungen und Annahmen“). Ersetzt `mfb_invoice_date` aus
-   KONZEPT-PLATTFORM.md 2.7. Noch ausdrücklich zu bestätigen.
+1. ~~**Kopftabelle**~~ – **entschieden 2026-11-05: ja**, eigene Tabelle
+   `…_invoices` im Fork (3.2); ersetzt `mfb_invoice_date` aus
+   KONZEPT-PLATTFORM.md 2.7.
 2. ~~**Jahr in der Rechnungsnummer**~~ – **entschieden 2026-11-05:
    Beitragsjahr** (`mfb_year`), siehe 3.4.
 3. ~~**Rechnung auch für SEPA-Zahler?**~~ – **entschieden 2026-11-05: ja**,
@@ -510,7 +510,7 @@ Gesammelt, nicht umgesetzt. Nummern in Klammern verweisen auf Abschnitt 8.
 - [ ] **Tabelle `…_plugin_membershipfee_invoices`** (5) nach 3.2 in
       `BookingStore::ensureTables()`, Unique-Index auf (`mfi_org_id`,
       `mfi_invoice_no`), Entfernen in `removeDataOfCurrentOrganization()` und
-      `uninstall.php`. (Annahme 9.1)
+      `uninstall.php`. (entschieden 9.1)
 - [ ] **Spalte `mfb_invoice_no`** an den Positionen (5), Index auf
       (`mfb_org_id`, `mfb_invoice_no`), in `BOOKING_COLUMNS` aufnehmen.
 - [ ] **`BookingStore::search()`** um Filter `invoice_no` erweitern (5).

@@ -13,6 +13,7 @@ if (!defined('TC_LIB_PDF_BOOTSTRAPPED')) {
 }
 
 require_once __DIR__ . '/interface-pdf-output.php';
+require_once __DIR__ . '/platform/class-pdf-runtime.php';
 
 /**
  * PDF Template Registry class.
@@ -28,7 +29,7 @@ class PdfRegistry {
 	/**
 	 * Register a PDF template.
 	 *
-	 * @param string $id         Template identifier (used in $_GET['demo_pdf']).
+	 * @param string $id         Template identifier (URL parameter get_pdf).
 	 * @param string $class_name Full class name (e.g., 'PdfExample').
 	 * @param string $file_path  Path to the file containing the class.
 	 *
@@ -102,7 +103,7 @@ class PdfRegistry {
 		// Load the Composer autoloader and the font path on demand. The
 		// template classes extend \Com\Tecnick\Pdf\Tcpdf and cannot even be
 		// declared without it.
-		if (class_exists('Tc_Lib_Pdf_Wp_Bootstrap') && !Tc_Lib_Pdf_Wp_Bootstrap::boot()) {
+		if (!PdfRuntime::platform()->loadLibrary()) {
 			throw new Exception('tc-lib-pdf is not available (run composer install)');
 		}
 

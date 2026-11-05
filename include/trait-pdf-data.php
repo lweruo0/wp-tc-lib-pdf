@@ -16,6 +16,8 @@ if (!defined('TC_LIB_PDF_BOOTSTRAPPED')) {
 	exit;
 }
 
+require_once __DIR__ . '/platform/class-pdf-runtime.php';
+
 /**
  * Trait PdfDataTrait.
  *
@@ -87,7 +89,7 @@ trait PdfDataTrait {
 	private array $urldata = [];
 
 	/**
-	 * PDF storage folder name (appended to wp_upload_dir()['basedir']).
+	 * PDF storage folder name (appended to the platform storage base dir).
 	 * Each template must set this via setFolderName().
 	 *
 	 * @var string
@@ -153,7 +155,7 @@ trait PdfDataTrait {
 	/**
 	 * Set the PDF storage folder name.
 	 *
-	 * @param string $folderName The folder name (appended to wp_upload_dir()['basedir']).
+	 * @param string $folderName The folder name (appended to the platform storage base dir).
 	 *
 	 * @return void
 	 */
@@ -349,16 +351,17 @@ trait PdfDataTrait {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Initialize URL data from $_GET or $_POST.
+	 * Initialize URL data from the current request.
 	 *
 	 * Call this in your class constructor or during initialization.
 	 *
-	 * @param array<string, mixed>|null $source Data source (defaults to $_GET)
+	 * @param array<string, mixed>|null $source Data source (defaults to the
+	 *                                          query parameters of the platform)
 	 *
 	 * @return void
 	 */
 	public function initializeUrlData(?array $source = null): void {
-		$source = $source ?? $_GET;
+		$source = $source ?? PdfRuntime::platform()->getQueryParams();
 		$this->setUrldata($source);
 	}
 
@@ -375,8 +378,7 @@ trait PdfDataTrait {
 		if ($this->folderName === '') {
 			return '';
 		}
-		$uploadDir = wp_upload_dir();
-		return $uploadDir['basedir'] . '/' . $this->folderName;
+		return PdfRuntime::platform()->getStorageBaseDir() . '/' . $this->folderName;
 	}
 
 	/**
@@ -396,24 +398,11 @@ trait PdfDataTrait {
 			return false;
 		}
 
-		if (! is_dir ( $path ) && ! wp_mkdir_p ( $path )) {
+		$platform = PdfRuntime::platform();
+		if (!$platform->createDirectory($path)) {
 			return false;
 		}
-
-		/*
-		 * "Require all denied" ist Apache 2.4; der IfModule-Zweig fängt 2.2 ab.
-		 * Ohne diese Doppelung gäbe es auf der jeweils anderen Version einen 500er.
-		 */
-		$htaccess = $path . '/.htaccess';
-		if (! file_exists ( $htaccess )) {
-			file_put_contents ( $htaccess, "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n" );
-		}
-
-		/* Verhindert das Auflisten des Verzeichnisses, falls Indexes aktiv sind. */
-		$index = $path . '/index.php';
-		if (! file_exists ( $index )) {
-			file_put_contents ( $index, "<?php\n// Silence is golden.\n" );
-		}
+		$platform->protectDirectory($path);
 		return true;
 	}
 }
