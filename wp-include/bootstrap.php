@@ -141,8 +141,64 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 	}
 
 	/**
+	 * URL-Parameter, die ein Template auswählen oder den Inhalt fachlich
+	 * verändern. Sie werden in fester Reihenfolge signiert (Langzeit-Link)
+	 * bzw. in die Nonce-Aktion aufgenommen. Wer einen dieser Parameter in
+	 * einem Link verändert, ergänzt oder entfernt, macht den Link ungültig.
+	 *
+	 * Nicht signiert sind nur Darstellungs-Schalter (new, filedownload,
+	 * layout, page, SortByGew) sowie key, nonce und expires selbst.
+	 *
+	 * Reihenfolge nie ändern, nur hinten ergänzen: jede Änderung macht alle
+	 * bestehenden Links ungültig.
+	 */
+	public const SIGNED_PARAMS = array(
+		'nr',
+		'mnr',
+		'jahr',
+		'dienst',
+		'veranstaltung',
+		'Mitgliedsnummer',
+		'verein',
+		'zweitemahnung',
+		'ohnemahngebuehr',
+	);
+
+	/**
+	 * Zu signierende Zeichenkette aus Template-ID, Ablaufdatum und allen
+	 * SIGNED_PARAMS bilden.
+	 *
+	 * Werte werden wie im Dispatcher mit sanitize_text_field() normalisiert
+	 * und rawurlencode()-kodiert, damit der Trenner '|' nie aus einem Wert
+	 * stammen kann ("nr=1|mnr=2" ist eindeutig). Fehlende Parameter gehen als
+	 * leerer Wert ein, damit auch das Hinzufügen eines Parameters auffällt.
+	 *
+	 * @param string               $template_id Template-ID (get_pdf).
+	 * @param array<string, mixed> $params      Query-Parameter.
+	 * @param string               $expires     Ablaufdatum Y-m-d, '' bei Nonce.
+	 *
+	 * @return string|null null, wenn ein signierter Parameter kein Skalar ist.
+	 */
+	public static function signature_payload($template_id, array $params, $expires = '') {
+		$parts = array('v2', (string) $template_id, (string) $expires);
+		foreach (self::SIGNED_PARAMS as $name) {
+			$value = $params[$name] ?? '';
+			if (!is_scalar($value)) {
+				return null;
+			}
+			$value = sanitize_text_field((string) $value);
+			$parts[] = $name . '=' . rawurlencode($value);
+		}
+		return implode('|', $parts);
+	}
+
+	/**
 	 * Build a signed PDF URL. Uses WordPress functions only, so it does not
 	 * load tc-lib-pdf.
+	 *
+	 * Alle Parameter aus SIGNED_PARAMS, die der Link tragen soll, müssen hier
+	 * in $query_args übergeben werden. Nachträglich an die fertige URL
+	 * angehängte Parameter aus dieser Liste machen den Link ungültig.
 	 */
 	public static function build_pdf_url($template_id, array $query_args = array(), $expires = null) {
 		if (!is_string($template_id) || $template_id === '') {
@@ -154,9 +210,17 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 			return '';
 		}
 
+		// Werte so in die URL schreiben, wie sie signiert werden.
+		foreach (self::SIGNED_PARAMS as $name) {
+			if (array_key_exists($name, $query_args)) {
+				if (!is_scalar($query_args[$name])) {
+					return '';
+				}
+				$query_args[$name] = sanitize_text_field((string) $query_args[$name]);
+			}
+		}
+
 		$query_args['get_pdf'] = $template_id;
-		$nr = (string) ($query_args['nr'] ?? '');
-		$jahr = (string) ($query_args['jahr'] ?? '');
 
 		if ($expires !== null && $expires !== '') {
 			$expires_date = self::normalize_long_term_expiry($expires);
@@ -164,13 +228,22 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 				return '';
 			}
 
-			$query_args['key'] = wp_hash($template_id . $expires_date . $nr, 'auth');
+			$payload = self::signature_payload($template_id, $query_args, $expires_date);
+			if ($payload === null) {
+				return '';
+			}
+			$query_args['key'] = wp_hash($payload, 'auth');
 			$query_args['expires'] = $expires_date;
 		} else {
-			$query_args['nonce'] = wp_create_nonce($template_id . $nr . $jahr);
+			$payload = self::signature_payload($template_id, $query_args, '');
+			if ($payload === null) {
+				return '';
+			}
+			$query_args['nonce'] = wp_create_nonce($payload);
 		}
 
-		return add_query_arg($query_args, home_url('/'));
+		// add_query_arg() kodiert die Werte nicht selbst.
+		return add_query_arg(rawurlencode_deep($query_args), home_url('/'));
 	}
 
 	private static function normalize_long_term_expiry($expires) {

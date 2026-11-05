@@ -569,9 +569,16 @@ To-do, in dieser Reihenfolge:
 1. **Funktionsprüfung im WordPress-Backend** (Oliver): alle 19 Templates nach
    Phase 1 und der Rechnungsbasis einmal aufrufen, Dashboard-Widget, Links aus
    den bfv-Plugins. Bis dahin keine weiteren Umbauten.
-2. **Sicherheitsbehebung signierte Links** (siehe Hinweis unten), erst nach
-   abgeschlossener Funktionsprüfung, damit alte Links für den Vergleich noch
-   gültig sind:
+2. **Sicherheitsbehebung signierte Links** (siehe Hinweis unten). **Umgesetzt
+   2026-11-05, noch nicht auf dem Server.** Signiert werden alle Parameter aus
+   `Tc_Lib_Pdf_Wp_Bootstrap::SIGNED_PARAMS`, zusätzlich zur ursprünglichen
+   Liste auch `zweitemahnung` und `ohnemahngebuehr` (sonst könnte ein Empfänger
+   die Mahngebühr entfernen). Alte Langzeit-Links, die nur über `nr` auswählen,
+   bleiben gültig, solange kein weiterer signierter Parameter im Request steht
+   (`verify_legacy_long_term_key()`, abschaltbar mit
+   `define('TC_LIB_PDF_LEGACY_KEYS', false)`). `update_urls()` ist über den
+   Button „Antragslinks neu erzeugen“ im Dashboard-Widget auslösbar.
+   Ursprünglicher Plan:
    - `build_pdf_url()` in `wp-include/bootstrap.php` und
      `verify_long_term_authorisation()` / `verify_nonce()` in
      `wp-include/class-wp-dispatcher.php` hashen alle Auswahlparameter in

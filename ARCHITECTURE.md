@@ -240,12 +240,14 @@ PdfRegistry::exists(id) ─── nein ─→ kein Hook, WordPress läuft normal
    ▼
 key + expires vorhanden?
    ├─ ja → expires nicht abgelaufen (wp_timezone)
-   │        && hash_equals(wp_hash(id.expires.nr, 'auth'), key)
+   │        && hash_equals(wp_hash(signature_payload(id, params, expires), 'auth'), key)
    │           ├─ gültig ─→ dispatch()
+   │           ├─ altes Format (nur id.expires.nr, kein weiterer signierter
+   │           │  Parameter im Request, TC_LIB_PDF_LEGACY_KEYS ≠ false) ─→ dispatch()
    │           └─ ungültig ─→ weiter mit nonce
    ▼
 nonce vorhanden?
-   ├─ ja → wp_verify_nonce(nonce, id.nr.jahr)
+   ├─ ja → wp_verify_nonce(nonce, signature_payload(id, params, ''))
    │           ├─ gültig ─→ dispatch()
    │           └─ ungültig ─→ kein Hook
    └─ nein ─→ kein Hook
@@ -254,6 +256,15 @@ dispatch()
    ├─ PdfRegistry::create() wirft Exception ─→ wp_die(…, 500)
    └─ stream() / output() ─→ exit
 ```
+
+`signature_payload()` (in `Tc_Lib_Pdf_Wp_Bootstrap`) verbindet Template-ID,
+Ablaufdatum und alle Parameter aus `Tc_Lib_Pdf_Wp_Bootstrap::SIGNED_PARAMS`
+(`nr`, `mnr`, `jahr`, `dienst`, `veranstaltung`, `Mitgliedsnummer`, `verein`,
+`zweitemahnung`, `ohnemahngebuehr`) in fester Reihenfolge, URL-kodiert und mit
+`|` getrennt. Fehlende Parameter gehen leer ein. Ein Request, dessen Rohwert
+sich durch `sanitize_text_field()` ändern würde, wird abgewiesen. Nicht signiert
+sind nur Darstellungs-Schalter (`new`, `filedownload`, `layout`, `page`,
+`SortByGew`).
 
 Ohne gültige Autorisierung wird kein Fehler ausgegeben. Der Request läuft als
 normaler WordPress-Request weiter.
