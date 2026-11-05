@@ -221,6 +221,8 @@ siehe insbesondere `wp-include/class-dashboard-pdf-links.php` und die Dispatcher
   Nach einer gewollten Änderung: `--update`, dann die Snapshot-Änderung im
   Diff prüfen und mit committen. Datumswerte relativ zu heute erscheinen als
   `<HEUTE>`, `<HEUTE+7>`.
+- `php tests/test-datum.php` prüft die Umrechnung von Zeitstempeln
+  (`created_at` aus Quform ist UTC) in die Vereinszeitzone.
 
 ## Troubleshooting
 - Wenn `composer install` fehlschlägt: prüfe zuerst Fehlermeldungen, speziell

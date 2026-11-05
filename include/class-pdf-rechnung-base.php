@@ -22,6 +22,7 @@ if (!defined('TC_LIB_PDF_BOOTSTRAPPED')) {
 }
 
 require_once __DIR__ . '/class-pdf-template.php';
+require_once __DIR__ . '/platform/class-pdf-runtime.php';
 require_once __DIR__ . '/trait-pdf-header-footer.php';
 require_once __DIR__ . '/trait-pdf-adress.php';
 require_once __DIR__ . '/trait-pdf-falzmarken.php';
@@ -150,12 +151,11 @@ abstract class PdfRechnungBase extends PdfTemplate {
 		$city = (string) $this->getAddress('ort_verein', '');
 		$formdata['sender'] = $this->getAddress('sender', "$name, $addr, $city");
 
-		$formdata['date'] = isset($formdata['created_at'])
-			? date('d.m.Y', strtotime((string) $formdata['created_at']))
-			: date('d.m.Y');
+		$created = $this->localDateTime($formdata['created_at'] ?? null);
+		$formdata['date'] = ($created ?? $this->now())->format('d.m.Y');
 
 		$formdata['zahlungsfrist'] = $formdata['zahlungsfrist_original']
-			?? date('d.m.Y', strtotime(static::ZAHLUNGSZIEL));
+			?? $this->now()->modify(static::ZAHLUNGSZIEL)->format('d.m.Y');
 
 		if (($formdata['steuersatz'] ?? 0) > 0) {
 			$formdata['bezeichnung_steuer'] = 'Umsatzsteuer ' . $formdata['steuersatz'] . '%';
@@ -192,7 +192,7 @@ abstract class PdfRechnungBase extends PdfTemplate {
 	/**
 	 * Aus einer bereits aufbereiteten Rechnung eine Mahnung ableiten.
 	 *
-	 * Setzt documenttype, Briefdatum (heute), neue Zahlungsfrist (heute +
+	 * Setzt documenttype, Briefdatum (heute, Vereinszeitzone), neue Zahlungsfrist (heute +
 	 * ZAHLUNGSZIEL), Zahlungserinnerungs-Überschrift,
 	 * Mahngebühr (einfach oder doppelt bei zweiter Mahnung, aus Option
 	 * 'mahngebuehr'), erhöht brutto entsprechend und ersetzt texts_before
@@ -226,8 +226,8 @@ abstract class PdfRechnungBase extends PdfTemplate {
 		// Die Mahnung ist ein neues Schreiben: Briefdatum heute, neue Frist ab
 		// heute. Die ursprüngliche Fälligkeit bleibt in zahlungsfrist_original
 		// und erscheint im Anschreiben ("war am … fällig").
-		$formdata['date']          = date('d.m.Y');
-		$formdata['zahlungsfrist'] = date('d.m.Y', strtotime(static::ZAHLUNGSZIEL));
+		$formdata['date']          = $this->now()->format('d.m.Y');
+		$formdata['zahlungsfrist'] = $this->now()->modify(static::ZAHLUNGSZIEL)->format('d.m.Y');
 
 		$formdata['text_zahlungserinnerung'] = $zweiteMahnung ? '2. Zahlungserinnerung' : 'Zahlungserinnerung';
 
@@ -295,6 +295,50 @@ abstract class PdfRechnungBase extends PdfTemplate {
 	// -----------------------------------------------------------------------
 	// Hilfsfunktionen
 	// -----------------------------------------------------------------------
+
+	/**
+	 * Jetzt, in der Zeitzone des Vereins (Plattform).
+	 *
+	 * PHP läuft unter WordPress immer in UTC; date('d.m.Y') ergibt dort
+	 * zwischen Mitternacht und 1 Uhr (Sommer: 2 Uhr) den Vortag.
+	 *
+	 * @return DateTimeImmutable
+	 */
+	protected function now(): DateTimeImmutable {
+		return new DateTimeImmutable('now', PdfRuntime::platform()->getTimezone());
+	}
+
+	/**
+	 * Zeitstempel aus den Rohdaten in die Zeitzone des Vereins umrechnen.
+	 *
+	 * Werte ohne Zeitzonenangabe (z. B. Quform-created_at '2026-10-02
+	 * 22:01:00') sind UTC: Quform speichert created_at in UTC (geprüft
+	 * 2026-11-05 an nächtlichen Einträgen aller Formulare). Werte mit
+	 * Zeitzonenangabe ('2026-05-01T14:00:00+02:00', '…Z') behalten ihre
+	 * Angabe und werden nur umgerechnet.
+	 *
+	 * @param mixed $value
+	 *
+	 * @return DateTimeImmutable|null null bei leerem oder ungültigem Wert.
+	 */
+	protected function localDateTime(mixed $value): ?DateTimeImmutable {
+		if (!is_string($value) || trim($value) === '') {
+			return null;
+		}
+		$value  = trim($value);
+		$parsed = date_parse($value);
+		if ($parsed['error_count'] > 0 || $parsed['year'] === false) {
+			return null;
+		}
+		try {
+			$date = !empty($parsed['is_localtime'])
+				? new DateTimeImmutable($value)
+				: new DateTimeImmutable($value, new DateTimeZone('UTC'));
+		} catch (Exception $e) {
+			return null;
+		}
+		return $date->setTimezone(PdfRuntime::platform()->getTimezone());
+	}
 
 	/**
 	 * Betrag im deutschen Format mit Währungszeichen, z. B. "12,50 €".

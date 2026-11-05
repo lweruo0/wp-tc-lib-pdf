@@ -70,7 +70,9 @@ return [
 			['nr' => '2026-P-9001'],
 			$empfaenger + [
 				'rechnungsnummer'        => '2026-P-9001',
-				'created_at'             => '2026-07-01 10:00:00',
+				// Quform speichert UTC: 30.06. 22:30 UTC = 01.07. 00:30 Ortszeit.
+				// Die Rechnung muss den 01.07.2026 zeigen.
+				'created_at'             => '2026-06-30 22:30:00',
 				'zahlungsfrist_original' => '08.07.2026',
 				'vorname'                => 'Max',
 				'name'                   => 'Mustermann',
@@ -105,7 +107,8 @@ return [
 			['nr' => '2026-J-90003'],
 			$empfaenger + [
 				'rechnungsnummer'        => '2026-J-90003',
-				'created_at'             => '2026-01-15 09:00:00',
+				// Winterzeit: 14.01. 23:30 UTC = 15.01. 00:30 Ortszeit.
+				'created_at'             => '2026-01-14 23:30:00',
 				'zahlungsfrist_original' => '05.02.2026',
 				'rechnungsposten'        => [
 					['bezeichnung' => 'Taschenmesser mit Gravur', 'anzahl' => '2', 'einzelpreis' => 29.41, 'gesamtpreis' => 58.82],

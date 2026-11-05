@@ -646,9 +646,18 @@ To-do, in dieser Reihenfolge:
    `tests/render-rechnungen.php` mit Snapshots für alle 9 Rechnungs- und
    Mahnungs-Templates. Einzige bekannte Ausnahme der Reinheitsprüfung:
    Zeitzone in `trait-pdf-header.php` (Phase 3).
-5. **Phase 3** (Zeitzone über die Plattform, Vereinstexte). Vorher prüfen, ob
-   `created_at` der Quform-Einträge in UTC gespeichert ist. Erwartete
-   Snapshot-Änderungen: Ortsname und ggf. Zahlungsfrist Vorbereitungslehrgang.
+5. **Phase 3** (Zeitzone über die Plattform, Vereinstexte).
+   - **Rechnungsdaten in Vereinszeitzone: umgesetzt 2026-11-05, noch nicht
+     auf dem Server.** Befund: Quform speichert `created_at` in UTC; belegt
+     an nächtlichen Einträgen von Mitgliedsantrag (eid 12706), Schnupperpass/
+     Erlaubnis (eid 15468) und Jubiläumsruten/Merchandise (eid 7120) – die
+     Rechnungen zeigten den Vortag. `PdfRechnungBase::now()` und
+     `::localDateTime()` rechnen über `PdfRuntime::platform()->getTimezone()`;
+     Rechnungsdatum, Standardfrist, Mahnungsdatum und Mahnfrist nutzen sie.
+     Test: `tests/test-datum.php`, Fixtures mit nächtlichen UTC-Zeitstempeln.
+   - Offen: Zeitzone in `trait-pdf-header.php` (Listen, Statistiken),
+     „Ehingen, den“ und Copyright aus Daten, Zahlungsfrist Vorbereitungslehrgang
+     ab Rechnungsdatum.
 6. **Phase 5 / Admidio** nach KONZEPT-ADMIDIO-RECHNUNGEN.md, Abschnitt 8.
    Unabhängig davon jederzeit möglich: `PdfJoiner` (dort Schritt 9a).
 

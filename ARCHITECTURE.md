@@ -183,6 +183,7 @@ war:
 | `prepareMahnung(array, string $documenttype, ?bool $zweite, ?bool $ohneGebuehr)` | Zahlungserinnerungs-Überschrift, Mahngebühr aus Option `mahngebuehr` (doppelt bei zweiter Mahnung), erhöht `brutto`, setzt Texte. Bei `brutto` 0,00 unverändert. `null` liest die URL-Parameter `zweitemahnung`/`ohnemahngebuehr` |
 | `mahnungTextsBefore(array)` / `mahnungTextBelow(array)` | Mahnungstexte; überschreibbar |
 | `formatBetrag(float)` / `posten(...)` | Hilfsfunktionen für Beträge und Rechnungsposten |
+| `now()` / `localDateTime(mixed)` | Datum in der Vereinszeitzone der Plattform. `created_at` ohne Zeitzonenangabe gilt als UTC (Quform) und wird umgerechnet; Werte mit Offset behalten ihn |
 
 Ein konkretes Template implementiert nur `loadData()`. Die Basis ruft keine
 WordPress- oder Admidio-Funktion auf und ist damit auf beiden Hosts nutzbar.
@@ -441,6 +442,7 @@ Plattformtrennung).
 | `php tools/check-engine-purity.php` | keine WordPress-/Admidio-Funktionen, Superglobals oder Host-Konstanten in `include/` (Tokenizer, Kommentare zählen nicht) |
 | `php tests/render-rechnungen.php` | alle 9 Rechnungs-/Mahnungs-Templates rendern ohne WordPress; Text gleich den Snapshots |
 | `php tests/render-rechnungen.php --update` | Snapshots nach gewollter Änderung neu schreiben |
+| `php tests/test-datum.php` | Umrechnung von Zeitstempeln (UTC/Offset) in die Vereinszeitzone |
 
 Die WordPress-Templates rufen `get_option()` auf; der Render-Test stellt dafür
 eine Minimalfassung bereit, die aus den Fixtures liest. Alles andere läuft über
