@@ -19,7 +19,7 @@ https://bfv-ehingen.de
                                                                Fotoüberweisung
 
 
-                                                                                 Ehingen, den <HEUTE>
+                                                                                 Musterstadt, den <HEUTE>
   Zahlungserinnerung
   Rechnung Nr. 2026-P-9001
 
@@ -31,14 +31,14 @@ https://bfv-ehingen.de
   gezwungen Mahngebühren in Rechnung zu stellen. Der offene Betrag setzt sich wie
   folgt zusammen:
 
-   Bezeichnung                                                   Anzahl                  Einzelpreis   Gesamtpreis
+   Bezeichnung                                                   Anzahl                  Einzelpreis    Gesamtpreis
    Erlaubnisschein Max Mustermann
-   vom 03.07.2026 bis 04.07.2026                                 2 Tage                     25,00 €          50,00 €
+   vom 03.07.2026 bis 04.07.2026                                 2 Tage                     25,00 €            50,00 €
 
 
-   Nettobetrag                                                                                               50,00 €
-   Mahngebühr                                                                                                 3,50 €
-   Rechnungsbetrag                                                                                           53,50 €
+   Nettobetrag                                                                                                 50,00 €
+   Mahngebühr                                                                                                   3,50 €
+   Rechnungsbetrag                                                                                             53,50 €
 
   Der offene Betrag von 53,50 € ist spätestens zum <HEUTE+7> fällig.
   Sollte bis dahin kein Zahlungseingang erfolgen, müssten wir weitere Schritte prüfen.

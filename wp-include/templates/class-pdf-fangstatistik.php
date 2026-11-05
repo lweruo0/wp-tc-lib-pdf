@@ -53,6 +53,8 @@ class PdfFangstatistik extends PdfTemplate {
 		}
 		$this->enableDefaultPageContent(true); // Enable default header/footer and page content
 		$this->initializeUrlData(); // Load $_GET parameters into $this->urldata
+		// Vereinsdaten für die Copyright-Zeile der Fußzeile (PdfHeaderTrait::footerCopyright()).
+		$this->setAddressdata(get_option('bfv_adressen') ?: []);
 		$this->setHeaderTitlePosition(120.0, 5.0);
 		$this->setHeaderSubtitlePosition(20.0, 22.0);
 		$this->setHeaderLogoPosition(270.0, 6.0);
@@ -71,7 +73,7 @@ class PdfFangstatistik extends PdfTemplate {
 	 */
 	protected function loadData(): void {
 		$verein = $this->getUrl('verein', '');
-        $year = (int) $this->getUrl('jahr', date('Y') - 1);
+        $year = (int) $this->getUrl('jahr', (int) $this->now()->format('Y') - 1);
 		$mnr = $this->getUrl('Mitgliedsnummer', null);
 		$SortByGew = $this->getUrl('SortByGew', null);
 
@@ -115,7 +117,11 @@ class PdfFangstatistik extends PdfTemplate {
 		if (empty($x)) {
 			$this->modifiedTime = '';
 		} else {
-			$this->modifiedTime = date('d.m.Y \u\m H:i', strtotime($x));
+			try {
+				$this->modifiedTime = (new DateTimeImmutable((string) $x, PdfRuntime::platform()->getTimezone()))->format('d.m.Y \u\m H:i');
+			} catch (Exception $e) {
+				$this->modifiedTime = '';
+			}
 		}
 		$this->setFooterModifiedTime((string) $x); // sync with trait footer
 	}
@@ -1456,7 +1462,7 @@ class PdfFangstatistik extends PdfTemplate {
 
 		$this->set_layout($this->getUrl('layout', ''));
 
-		$year               = $this->getForm('year', date('Y') - 1);
+		$year               = $this->getForm('year', (int) $this->now()->format('Y') - 1);
 		$gewaesserStatistik = $this->getForm('gewaesser_statistik', []);
 		$jahres_statistik = $this->getForm('jahres_statistik', []);
 		$gewaesserDetail    = $this->getForm('gewaesser_detail', []);
@@ -1510,7 +1516,7 @@ class PdfFangstatistikJahr extends PdfFangstatistik {
 	 */
 	protected function loadData(): void {
 		$verein = $this->getUrl('verein', '');
-        $year = (int) $this->getUrl('jahr', date('Y') - 1);
+        $year = (int) $this->getUrl('jahr', (int) $this->now()->format('Y') - 1);
 
 		if (function_exists('bfvfangbuch')) {
 			$instance = bfvfangbuch();
@@ -1655,7 +1661,7 @@ class PdfFangstatistikUser extends PdfFangstatistik {
 
 		$this->set_layout($this->getUrl('layout', ''));
 
-		$year               = $this->getForm('year', date('Y') - 1);
+		$year               = $this->getForm('year', (int) $this->now()->format('Y') - 1);
 		$user_statistik = $this->getForm('user_statistik', []);
 		$jahres_statistik = $this->getForm('jahres_statistik', []);
 		$gewaesserDetail    = $this->getForm('gewaesser_detail', []);

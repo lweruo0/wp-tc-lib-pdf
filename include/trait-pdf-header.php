@@ -12,6 +12,8 @@ if (!defined('TC_LIB_PDF_BOOTSTRAPPED')) {
 	exit;
 }
 
+require_once __DIR__ . '/platform/class-pdf-runtime.php';
+
 /**
  * Trait for header and footer functionality.
  */
@@ -85,7 +87,7 @@ trait PdfHeaderTrait {
 
 	/**
 	 * Set the static left-aligned text shown in every page footer.
-	 * Leave empty to use the default BFV copyright line.
+	 * Leave empty to use the copyright line from the address data (footerCopyright()).
 	 */
 	public function setFooterText(string $text): void {
 		$this->footerText = $text;
@@ -99,10 +101,30 @@ trait PdfHeaderTrait {
 		if ($dateTimeString === '') {
 			$this->footerModifiedTime = '';
 		} else {
-			$tz = get_option('timezone_string');
-			date_default_timezone_set($tz !== '' ? $tz : 'Europe/Berlin');
-			$this->footerModifiedTime = date('d.m.Y \u\m H:i', strtotime($dateTimeString));
+			// Der Zeitstempel ist Ortszeit des Vereins (wie bisher); nur umformatieren.
+			try {
+				$time = new DateTimeImmutable($dateTimeString, PdfRuntime::platform()->getTimezone());
+				$this->footerModifiedTime = $time->format('d.m.Y \u\m H:i');
+			} catch (Exception $e) {
+				$this->footerModifiedTime = '';
+			}
 		}
+	}
+
+	/**
+	 * Copyright-Zeile der Fußzeile aus den Vereinsdaten.
+	 *
+	 * addressdata 'footer_copyright', sonst '© ' + 'name_verein', sonst leer.
+	 *
+	 * @return string
+	 */
+	protected function footerCopyright(): string {
+		$text = trim((string) $this->getAddress('footer_copyright', ''));
+		if ($text !== '') {
+			return $text;
+		}
+		$name = trim((string) $this->getAddress('name_verein', ''));
+		return $name !== '' ? '© ' . $name : '';
 	}
 
 	/**
@@ -133,12 +155,13 @@ trait PdfHeaderTrait {
 		if ($this->footerText !== '') {
 			$leftText = $this->footerText;
 		} else {
-			$tz = get_option('timezone_string');
-			date_default_timezone_set($tz !== '' ? $tz : 'Europe/Berlin');
+			$copyright = $this->footerCopyright();
+			$prefix    = $copyright !== '' ? $copyright . ' ' : '';
 			if ($this->footerModifiedTime !== '') {
-				$leftText = '© Bezirksfischerei-Verein e.V. Ehingen/Donau (Letzte Änderung am ' . $this->footerModifiedTime . ')';
+				$leftText = $prefix . '(Letzte Änderung am ' . $this->footerModifiedTime . ')';
 			} else {
-				$leftText = '© Bezirksfischerei-Verein e.V. Ehingen/Donau (Erstellt am ' . date('d.m.Y \u\m H:i', time()) . ')';
+				$now      = new DateTimeImmutable('now', PdfRuntime::platform()->getTimezone());
+				$leftText = $prefix . '(Erstellt am ' . $now->format('d.m.Y \u\m H:i') . ')';
 			}
 		}
 

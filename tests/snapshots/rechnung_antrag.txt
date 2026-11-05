@@ -14,29 +14,29 @@ https://bfv-ehingen.de
     12345 Musterstadt                                                            IBAN:          DE02120300000000202051
                                                                                  BIC:                     BYLADEM1001
                                                                                  Rechnungsbetrag:              610,00 €
-                                                                                 Zahlungsfrist:              <HEUTE+7>
+                                                                                 Zahlungsfrist:              07.07.2026
                                                                                  Verwendungszweck:                 9005
                                                                Fotoüberweisung
 
 
-                                                                                 Ehingen, den 30.06.2026
+                                                                                 Musterstadt, den 30.06.2026
   Rechnung Nr. 9005
 
 
   Sehr geehrte Frau Musterfrau,
   für Ihren Mitgliedsantrag vom 30.06.2026 berechnen wir Ihnen:
 
-   Bezeichnung                                                   Anzahl                  Einzelpreis   Gesamtpreis
-   Bearbeitungsgebühr                                            1                          20,00 €          20,00 €
-   Erstbesatz                                                    1                        250,00 €         250,00 €
-   jährlicher Mitgliedsbeitrag                                   1                        310,00 €         310,00 €
-   Option Boot                                                   1                          30,00 €          30,00 €
+   Bezeichnung                                                   Anzahl                  Einzelpreis    Gesamtpreis
+   Bearbeitungsgebühr                                            1                          20,00 €            20,00 €
+   Erstbesatz                                                    1                         250,00 €        250,00 €
+   jährlicher Mitgliedsbeitrag                                   1                         310,00 €        310,00 €
+   Option Boot                                                   1                          30,00 €            30,00 €
 
 
    Nettobetrag                                                                                             610,00 €
    Rechnungsbetrag                                                                                         610,00 €
 
-  Der Rechnungsbetrag von 610,00 € ist spätestens zum <HEUTE+7> fällig.
+  Der Rechnungsbetrag von 610,00 € ist spätestens zum 07.07.2026 fällig.
   Nach § 286 Abs. 3 BGB tritt Verzug auch ohne Mahnung ein, wenn die Zahlung nicht innerhalb
   von 30 Tagen erfolgt. Soweit nicht anders angegeben, entspricht das Rechnungsdatum dem
   Leistungsdatum.

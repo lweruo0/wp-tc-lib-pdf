@@ -14,28 +14,28 @@ https://bfv-ehingen.de
     12345 Musterstadt                                                            IBAN:          DE02120300000000202051
                                                                                  BIC:                     BYLADEM1001
                                                                                  Rechnungsbetrag:              350,50 €
-                                                                                 Zahlungsfrist:              <HEUTE+7>
+                                                                                 Zahlungsfrist:              20.08.2026
                                                                                  Verwendungszweck:          2026-L-9004
                                                                Fotoüberweisung
 
 
-                                                                                 Ehingen, den 13.08.2026
+                                                                                 Musterstadt, den 13.08.2026
   Rechnung Nr. 2026-L-9004
 
 
   Sehr geehrter Herr Mustermann,
   für den am 13.08.2026 angemeldeten Vorbereitungslehrgang berechnen wir Ihnen:
 
-   Bezeichnung                                                   Anzahl                  Einzelpreis   Gesamtpreis
-   Theorieunterricht                                             1x                       100,00 €         100,00 €
-   Praxistag                                                     1x                       160,00 €         160,00 €
-   Prüfungsgebühr                                                1x                         50,00 €          50,00 €
-   Getränkepauschale                                             4x                          7,00 €          28,00 €
-   Mittagessen Samstag                                           1x                         12,50 €          12,50 €
+   Bezeichnung                                                   Anzahl                  Einzelpreis    Gesamtpreis
+   Theorieunterricht                                             1x                        100,00 €        100,00 €
+   Praxistag                                                     1x                        160,00 €        160,00 €
+   Prüfungsgebühr                                                1x                         50,00 €            50,00 €
+   Getränkepauschale                                             4x                          7,00 €            28,00 €
+   Mittagessen Samstag                                           1x                         12,50 €            12,50 €
 
 
    Nettobetrag                                                                                             345,00 €
-   Umsatzsteuer 7% (Verzehr) / 19% (Getränke)                                                                 5,32 €
+   Umsatzsteuer 7% (Verzehr) / 19% (Getränke)                                                                   5,32 €
    Rechnungsbetrag                                                                                         350,50 €
 
   Die Anmeldung zum Lehrgang wird erst mit Zahlungseingang verbindlich.

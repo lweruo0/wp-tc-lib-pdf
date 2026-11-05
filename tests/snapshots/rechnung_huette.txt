@@ -19,19 +19,19 @@ https://bfv-ehingen.de
                                                                Fotoüberweisung
 
 
-                                                                                 Ehingen, den 04.04.2026
+                                                                                 Musterstadt, den 04.04.2026
   Rechnung Nr. 2026-H-9002
 
 
   Sehr geehrter Herr Mustermann,
   für die Hüttenbuchung am 01.05.2026 berechnen wir Ihnen:
 
-   Bezeichnung                                                   Anzahl                  Einzelpreis   Gesamtpreis
-   Buchungspauschale kurz                                        1                        126,05 €         126,05 €
+   Bezeichnung                                                   Anzahl                  Einzelpreis    Gesamtpreis
+   Buchungspauschale kurz                                        1                         126,05 €        126,05 €
 
 
    Nettobetrag                                                                                             126,05 €
-   Umsatzsteuer 19%                                                                                          23,95 €
+   Umsatzsteuer 19%                                                                                            23,95 €
    Rechnungsbetrag                                                                                         150,00 €
 
   Der Rechnungsbetrag von 150,00 € ist spätestens zum 25.04.2026 fällig.

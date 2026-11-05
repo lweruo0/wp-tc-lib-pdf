@@ -19,7 +19,7 @@ https://bfv-ehingen.de
                                                                Fotoüberweisung
 
 
-                                                                                 Ehingen, den <HEUTE>
+                                                                                 Musterstadt, den <HEUTE>
   Zahlungserinnerung
   Rechnung Nr. 2026-H-9002
 
@@ -31,13 +31,13 @@ https://bfv-ehingen.de
   gezwungen Mahngebühren in Rechnung zu stellen. Der offene Betrag setzt sich wie
   folgt zusammen:
 
-   Bezeichnung                                                   Anzahl                  Einzelpreis   Gesamtpreis
-   Buchungspauschale kurz                                        1                        126,05 €         126,05 €
+   Bezeichnung                                                   Anzahl                  Einzelpreis    Gesamtpreis
+   Buchungspauschale kurz                                        1                         126,05 €        126,05 €
 
 
    Nettobetrag                                                                                             126,05 €
-   Umsatzsteuer 19%                                                                                          23,95 €
-   Mahngebühr                                                                                                 3,50 €
+   Umsatzsteuer 19%                                                                                            23,95 €
+   Mahngebühr                                                                                                   3,50 €
    Rechnungsbetrag                                                                                         153,50 €
 
   Der offene Betrag von 153,50 € ist spätestens zum <HEUTE+7> fällig.

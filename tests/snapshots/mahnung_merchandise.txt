@@ -19,7 +19,7 @@ https://bfv-ehingen.de
                                                                Fotoüberweisung
 
 
-                                                                                 Ehingen, den <HEUTE>
+                                                                                 Musterstadt, den <HEUTE>
   Zahlungserinnerung
   Rechnung Nr. 2026-J-90003
 
@@ -31,17 +31,17 @@ https://bfv-ehingen.de
   gezwungen Mahngebühren in Rechnung zu stellen. Der offene Betrag setzt sich wie
   folgt zusammen:
 
-   Bezeichnung                                                   Anzahl                  Einzelpreis   Gesamtpreis
-   Taschenmesser mit Gravur                                      2                          29,41 €          58,82 €
-   Vereinsmütze                                                  1                          12,61 €          12,61 €
-   Druck-/Versandkostenpauschale                                                                              4,20 €
-   Rabatt (JUBI)                                                                                             -5,00 €
+   Bezeichnung                                                   Anzahl                  Einzelpreis    Gesamtpreis
+   Taschenmesser mit Gravur                                      2                          29,41 €            58,82 €
+   Vereinsmütze                                                  1                          12,61 €            12,61 €
+   Druck-/Versandkostenpauschale                                                                                4,20 €
+   Rabatt (JUBI)                                                                                               -5,00 €
 
 
-   Nettobetrag                                                                                               70,63 €
-   Umsatzsteuer 19%                                                                                          13,42 €
-   Mahngebühr                                                                                                 3,50 €
-   Rechnungsbetrag                                                                                           87,55 €
+   Nettobetrag                                                                                                 70,63 €
+   Umsatzsteuer 19%                                                                                            13,42 €
+   Mahngebühr                                                                                                   3,50 €
+   Rechnungsbetrag                                                                                             87,55 €
 
   Der offene Betrag von 87,55 € ist spätestens zum <HEUTE+7> fällig.
   Sollte bis dahin kein Zahlungseingang erfolgen, müssten wir weitere Schritte prüfen.

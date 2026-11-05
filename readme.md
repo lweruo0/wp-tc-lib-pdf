@@ -183,10 +183,21 @@ die Rechnungs-/Mahnung‑Templates):
 - `rechnungsnummer` — string
 - `rechnung_vorname`, `rechnung_name`, `rechnung_strasse`, `rechnung_plz`, `rechnung_ort`, `rechnung_email`
 - `brutto`, `netto`, `steuer`, `steuersatz` — numerische Werte
-- `zahlungsfrist_original` — Datum (string)
-- `created_at` — Erstellungsdatum (string)
+- `zahlungsfrist_original` — Datum (string); fehlt es, gilt Rechnungsdatum + 7 Tage
+- `created_at` — Erstellungszeitpunkt (string). Ohne Zeitzonenangabe gilt er als
+  UTC (Quform-Format `Y-m-d H:i:s`) und wird in die Vereinszeitzone umgerechnet;
+  Werte mit Angabe (`+02:00`, `Z`) und reine Datumsangaben bleiben beim Tag
 - `rechnungsposten` — array of line items, each item: `bezeichnung`, `anzahl`, `einzelpreis`, `gesamtpreis`, `steuersatz`
 - Optional: `documenttype`, `texts_before`, `text_below`, `sender`, `returnme`
+
+Vereinsdaten (`setAddressdata()`, in WordPress aus der Option `bfv_adressen`):
+`name_verein`, `addr_verein`, `ort_verein`, `iban_verein`, `bic_verein`,
+`bank_verein`, `steuernummer_verein`, `email_verein`, Vorstand (`name_1v` …).
+Optional:
+
+- `ort_verein_kurz` — Ort für „Ort, den Datum“; sonst `ort_verein` ohne PLZ
+- `footer_copyright` — Copyright-Zeile der Fußzeile (Listen, Statistiken,
+  Antrag); sonst „© “ + `name_verein`
 
 Wenn diese Struktur vorhanden ist, füllt das Template die Felder automatisch;
 ansonsten kannst du die Werte vorher mit `setFormdata()` setzen.

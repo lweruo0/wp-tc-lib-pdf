@@ -644,8 +644,7 @@ To-do, in dieser Reihenfolge:
    `tools/check-engine-purity.php` (auch als GitHub-Actions-Job
    `engine-purity`), `tests/class-pdf-fake-platform.php`,
    `tests/render-rechnungen.php` mit Snapshots für alle 9 Rechnungs- und
-   Mahnungs-Templates. Einzige bekannte Ausnahme der Reinheitsprüfung:
-   Zeitzone in `trait-pdf-header.php` (Phase 3).
+   Mahnungs-Templates. Seit Abschluss von Phase 3 ohne Ausnahmen.
 5. **Phase 3** (Zeitzone über die Plattform, Vereinstexte).
    - **Rechnungsdaten in Vereinszeitzone: umgesetzt 2026-11-05, noch nicht
      auf dem Server.** Befund: Quform speichert `created_at` in UTC; belegt
@@ -665,9 +664,16 @@ To-do, in dieser Reihenfolge:
      Templates sie nutzen; im Mitgliedsantrag-Template Dateiname-Jahr,
      „Ort, Datum“, Eintrittsjahr, Altersgrenze und „ab:“ (Infoblatt) darauf
      umgestellt. Noch nicht auf dem Server.
-   - Offen: Zeitzone in `trait-pdf-header.php` (Listen, Statistiken),
-     „Ehingen, den“ und Copyright aus Daten, Zahlungsfrist Vorbereitungslehrgang
-     ab Rechnungsdatum.
+   - **Rest von Phase 3: umgesetzt 2026-11-05, noch nicht auf dem Server.**
+     `trait-pdf-header.php`: Zeitzone über die Plattform, kein
+     `date_default_timezone_set()` mehr, Copyright aus `footer_copyright` bzw.
+     „© “ + `name_verein`. `trait-pdf-rechnungsdaten.php`: „Ort, den“ aus
+     `ort_verein_kurz` bzw. `ort_verein` ohne PLZ. `PdfRechnungBase`:
+     Standardfrist = Rechnungsdatum + 7 Tage (Vorbereitungslehrgang,
+     Mitgliedsantrag). Fangstatistik: Vereinsdaten für die Fußzeile, Jahr
+     über `now()`. Reinheitsprüfung ohne Ausnahmen. Snapshot-Änderungen nur
+     Ortsname und Zahlungsfrist (gegengeprüft mit gleichem Ortsnamen).
+     **Phase 3 damit abgeschlossen.**
 6. **Phase 5 / Admidio** nach KONZEPT-ADMIDIO-RECHNUNGEN.md, Abschnitt 8.
    Unabhängig davon jederzeit möglich: `PdfJoiner` (dort Schritt 9a).
 

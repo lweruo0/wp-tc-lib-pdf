@@ -153,8 +153,10 @@ abstract class PdfRechnungBase extends PdfTemplate {
 		$created = $this->localDateTime($formdata['created_at'] ?? null);
 		$formdata['date'] = ($created ?? $this->now())->format('d.m.Y');
 
+		// Ohne vorgegebene Frist: Rechnungsdatum + Zahlungsziel (nicht heute +
+		// Zahlungsziel, sonst verschiebt sich die Frist bei jedem Neuerzeugen).
 		$formdata['zahlungsfrist'] = $formdata['zahlungsfrist_original']
-			?? $this->now()->modify(static::ZAHLUNGSZIEL)->format('d.m.Y');
+			?? ($created ?? $this->now())->modify(static::ZAHLUNGSZIEL)->format('d.m.Y');
 
 		if (($formdata['steuersatz'] ?? 0) > 0) {
 			$formdata['bezeichnung_steuer'] = 'Umsatzsteuer ' . $formdata['steuersatz'] . '%';

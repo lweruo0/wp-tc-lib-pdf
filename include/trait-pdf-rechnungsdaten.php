@@ -225,7 +225,7 @@ trait PdfRechnungsdatenTrait {
 		$out .= $font['out'];
 
 		$out .= $this->getTextCell(
-			txt: 'Ehingen, den ' . $this->getForm('date', ''),
+			txt: $this->ortUndDatum((string) $this->getForm('date', '')),
 			posx: 125.0,
 			posy: $y,
 			width: 165.0,
@@ -455,5 +455,23 @@ trait PdfRechnungsdatenTrait {
 	): float {
 		$this->page->addContent($this->generiere_Zeile($x, $y, $h, $w1, $w2, $w3, $w4, $t1, $t2, $t3, $t4, $grey, $fontstyle));
 		return $y + $h;
+	}
+
+	/**
+	 * „Ort, den Datum“ für das Anschreiben.
+	 *
+	 * Ort aus addressdata 'ort_verein_kurz', sonst aus 'ort_verein' ohne
+	 * Postleitzahl ('89573 Ehingen' → 'Ehingen'). Ohne Ort nur das Datum.
+	 *
+	 * @param string $date
+	 *
+	 * @return string
+	 */
+	protected function ortUndDatum(string $date): string {
+		$ort = trim((string) $this->getAddress('ort_verein_kurz', ''));
+		if ($ort === '') {
+			$ort = trim((string) preg_replace('/^\d{4,5}\s+/', '', (string) $this->getAddress('ort_verein', '')));
+		}
+		return $ort !== '' ? $ort . ', den ' . $date : $date;
 	}
 }

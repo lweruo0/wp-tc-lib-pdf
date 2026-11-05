@@ -19,7 +19,7 @@ https://bfv-ehingen.de
                                                                Fotoüberweisung
 
 
-                                                                                 Ehingen, den <HEUTE>
+                                                                                 Musterstadt, den <HEUTE>
   Zahlungserinnerung
   Rechnung Nr. 9005
 
@@ -28,11 +28,11 @@ https://bfv-ehingen.de
   die Bezahlung der Rechnung Nr. 9005 war am fällig.
   Leider konnten wir bisher keinen Zahlungseingang verbuchen.
 
-   Bezeichnung                                                   Anzahl                  Einzelpreis   Gesamtpreis
-   Bearbeitungsgebühr                                            1                          20,00 €          20,00 €
-   Erstbesatz                                                    1                        250,00 €         250,00 €
-   jährlicher Mitgliedsbeitrag                                   1                        310,00 €         310,00 €
-   Option Boot                                                   1                          30,00 €          30,00 €
+   Bezeichnung                                                   Anzahl                  Einzelpreis    Gesamtpreis
+   Bearbeitungsgebühr                                            1                          20,00 €            20,00 €
+   Erstbesatz                                                    1                         250,00 €        250,00 €
+   jährlicher Mitgliedsbeitrag                                   1                         310,00 €        310,00 €
+   Option Boot                                                   1                          30,00 €            30,00 €
 
 
    Nettobetrag                                                                                             610,00 €

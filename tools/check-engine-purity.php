@@ -40,12 +40,7 @@ $forbiddenConstants = '/^(ABSPATH|WPINC|WP_CONTENT_DIR|WP_PLUGIN_DIR|ADMIDIO_PAT
  * Bekannte Ausnahmen, die noch abgebaut werden: Datei => [Name => Anzahl].
  * Jede Ausnahme hat ein Ziel; ist sie behoben, hier löschen.
  */
-$knownExceptions = [
-	'include/trait-pdf-header.php' => [
-		'get_option'               => 2, // Phase 3: Zeitzone über PdfRuntime::platform()->getTimezone()
-		'date_default_timezone_set' => 2, // Phase 3
-	],
-];
+$knownExceptions = [];
 
 $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($engineDir, FilesystemIterator::SKIP_DOTS));
 

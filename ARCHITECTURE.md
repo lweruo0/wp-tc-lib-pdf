@@ -135,7 +135,7 @@ PdfOutputInterface (ohne tc-lib-pdf)
 | Trait | Datei | Zweck |
 |---|---|---|
 | `PdfDataTrait` | trait-pdf-data.php | Datencontainer options/formdata/addressdata/urldata, Storage-Pfad, Dateiname |
-| `PdfHeaderTrait` | trait-pdf-header.php | Kopfzeile mit Logo/Titel, Fußzeile mit Zeitstempel |
+| `PdfHeaderTrait` | trait-pdf-header.php | Kopfzeile mit Logo/Titel, Fußzeile mit Copyright (aus Vereinsdaten) und Zeitstempel |
 | `PdfHeaderFooterTrait` | trait-pdf-header-footer.php | Kopf-/Fußzeile für Briefe (Rechnungen, Mahnungen) |
 | `PdfAdressTrait` | trait-pdf-adress.php | Anschriftenfeld nach DIN 5008 |
 | `PdfAbsenderTrait` | trait-pdf-absender.php | Absenderzeile über dem Anschriftenfeld |
@@ -178,7 +178,16 @@ rechnet Zeitstempel aus den Rohdaten dorthin um: Werte ohne Zeitzonenangabe
 gelten als UTC (Quform speichert `created_at` in UTC), Werte mit Angabe
 (`+02:00`, `Z`) behalten sie. Reine Datumsangaben (`25.10.2025`,
 `2025-10-25`) bleiben am selben Tag. Templates verwenden diese Funktionen
-statt `date()`, das unter WordPress immer UTC liefert.
+statt `date()`, das unter WordPress immer UTC liefert. Die Engine setzt nie
+`date_default_timezone_set()`.
+
+## Vereinstexte
+
+Die Engine enthält keine vereinsspezifischen Texte. „Ort, den Datum“ im
+Anschreiben (`PdfRechnungsdatenTrait::ortUndDatum()`) nimmt `ort_verein_kurz`
+bzw. `ort_verein` ohne PLZ; die Copyright-Zeile der Fußzeile
+(`PdfHeaderTrait::footerCopyright()`) nimmt `footer_copyright` bzw.
+„© “ + `name_verein`. In WordPress kommen beide aus der Option `bfv_adressen`.
 
 ## Rechnungsbasis (PdfRechnungBase)
 
@@ -298,13 +307,13 @@ Host setzt seine Implementierung einmal im Bootstrap
 | `getStorageBaseDir()` | `wp_upload_dir()['basedir']` |
 | `createDirectory()` / `protectDirectory()` | `wp_mkdir_p()` / `.htaccess` + `index.php` |
 | `getQueryParams()` | `wp_unslash($_GET)` |
-| `getTimezone()` | `wp_timezone()` (Nutzung ab Phase 3) |
+| `getTimezone()` | `wp_timezone()` |
 | `getSecret()` | `wp_salt('auth')` |
 | `fail()` | `wp_die()` |
 | `loadLibrary()` | `Tc_Lib_Pdf_Wp_Bootstrap::boot()` |
 
-Einzige verbliebene WordPress-Aufrufe in `include/`: `get_option('timezone_string')`
-in `trait-pdf-header.php` (Phase 3).
+Seit Phase 3 enthält `include/` keine WordPress-Aufrufe mehr
+(`tools/check-engine-purity.php` ohne Ausnahmen).
 
 ## Storage
 
