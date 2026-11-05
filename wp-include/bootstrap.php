@@ -14,6 +14,7 @@ defined('ABSPATH') || exit;
 // Plattform für die Engine (Speicherort, URL-Parameter, Zeitzone, Secret).
 require_once __DIR__ . '/class-wp-platform.php';
 PdfRuntime::setPlatform(new Tc_Lib_Pdf_Wp_Platform());
+require_once TC_LIB_PDF_DIR . '/include/class-pdf-dispatcher-core.php';
 
 final class Tc_Lib_Pdf_Wp_Bootstrap {
 	private static $initialized = false;
@@ -145,64 +146,40 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 	}
 
 	/**
-	 * URL-Parameter, die ein Template auswählen oder den Inhalt fachlich
-	 * verändern. Sie werden in fester Reihenfolge signiert (Langzeit-Link)
-	 * bzw. in die Nonce-Aktion aufgenommen. Wer einen dieser Parameter in
-	 * einem Link verändert, ergänzt oder entfernt, macht den Link ungültig.
+	 * Signierte Parameter. Verschoben nach PdfDispatcherCore::SIGNED_PARAMS
+	 * (Phase 2b); bleibt als Verweis für andere Plugins.
 	 *
-	 * Nicht signiert sind nur Darstellungs-Schalter (new, filedownload,
-	 * layout, page, SortByGew) sowie key, nonce und expires selbst.
-	 *
-	 * Reihenfolge nie ändern, nur hinten ergänzen: jede Änderung macht alle
-	 * bestehenden Links ungültig.
+	 * @deprecated 2026-11-05 PdfDispatcherCore::SIGNED_PARAMS verwenden.
 	 */
-	public const SIGNED_PARAMS = array(
-		'nr',
-		'mnr',
-		'jahr',
-		'dienst',
-		'veranstaltung',
-		'Mitgliedsnummer',
-		'verein',
-		'zweitemahnung',
-		'ohnemahngebuehr',
-	);
+	public const SIGNED_PARAMS = PdfDispatcherCore::SIGNED_PARAMS;
 
 	/**
-	 * Zu signierende Zeichenkette aus Template-ID, Ablaufdatum und allen
-	 * SIGNED_PARAMS bilden.
+	 * Verschoben nach PdfDispatcherCore::signaturePayload() (Phase 2b).
 	 *
-	 * Werte werden wie im Dispatcher mit sanitize_text_field() normalisiert
-	 * und rawurlencode()-kodiert, damit der Trenner '|' nie aus einem Wert
-	 * stammen kann ("nr=1|mnr=2" ist eindeutig). Fehlende Parameter gehen als
-	 * leerer Wert ein, damit auch das Hinzufügen eines Parameters auffällt.
+	 * @deprecated 2026-11-05 PdfDispatcherCore::signaturePayload() verwenden.
 	 *
-	 * @param string               $template_id Template-ID (get_pdf).
-	 * @param array<string, mixed> $params      Query-Parameter.
-	 * @param string               $expires     Ablaufdatum Y-m-d, '' bei Nonce.
+	 * @param string               $template_id
+	 * @param array<string, mixed> $params
+	 * @param string               $expires
 	 *
-	 * @return string|null null, wenn ein signierter Parameter kein Skalar ist.
+	 * @return string|null
 	 */
 	public static function signature_payload($template_id, array $params, $expires = '') {
-		$parts = array('v2', (string) $template_id, (string) $expires);
-		foreach (self::SIGNED_PARAMS as $name) {
-			$value = $params[$name] ?? '';
-			if (!is_scalar($value)) {
-				return null;
-			}
-			$value = sanitize_text_field((string) $value);
-			$parts[] = $name . '=' . rawurlencode($value);
-		}
-		return implode('|', $parts);
+		return PdfDispatcherCore::signaturePayload((string) $template_id, $params, (string) $expires);
 	}
 
 	/**
 	 * Build a signed PDF URL. Uses WordPress functions only, so it does not
 	 * load tc-lib-pdf.
 	 *
-	 * Alle Parameter aus SIGNED_PARAMS, die der Link tragen soll, müssen hier
-	 * in $query_args übergeben werden. Nachträglich an die fertige URL
-	 * angehängte Parameter aus dieser Liste machen den Link ungültig.
+	 * Alle Parameter aus PdfDispatcherCore::SIGNED_PARAMS, die der Link tragen
+	 * soll, müssen hier in $query_args übergeben werden. Nachträglich an die
+	 * fertige URL angehängte Parameter aus dieser Liste machen den Link
+	 * ungültig.
+	 *
+	 * Mit $expires entsteht ein signierter Langzeit-Link (key + expires,
+	 * PdfDispatcherCore::longTermKey()), sonst ein an die Sitzung gebundener
+	 * Nonce-Link.
 	 */
 	public static function build_pdf_url($template_id, array $query_args = array(), $expires = null) {
 		if (!is_string($template_id) || $template_id === '') {
@@ -215,13 +192,9 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 		}
 
 		// Werte so in die URL schreiben, wie sie signiert werden.
-		foreach (self::SIGNED_PARAMS as $name) {
-			if (array_key_exists($name, $query_args)) {
-				if (!is_scalar($query_args[$name])) {
-					return '';
-				}
-				$query_args[$name] = sanitize_text_field((string) $query_args[$name]);
-			}
+		$query_args = PdfDispatcherCore::normalizeParamsForLink($query_args);
+		if ($query_args === null) {
+			return '';
 		}
 
 		$query_args['get_pdf'] = $template_id;
@@ -232,14 +205,14 @@ final class Tc_Lib_Pdf_Wp_Bootstrap {
 				return '';
 			}
 
-			$payload = self::signature_payload($template_id, $query_args, $expires_date);
-			if ($payload === null) {
+			$key = PdfDispatcherCore::longTermKey($template_id, $query_args, $expires_date);
+			if ($key === null) {
 				return '';
 			}
-			$query_args['key'] = wp_hash($payload, 'auth');
+			$query_args['key'] = $key;
 			$query_args['expires'] = $expires_date;
 		} else {
-			$payload = self::signature_payload($template_id, $query_args, '');
+			$payload = PdfDispatcherCore::signaturePayload($template_id, $query_args, '');
 			if ($payload === null) {
 				return '';
 			}

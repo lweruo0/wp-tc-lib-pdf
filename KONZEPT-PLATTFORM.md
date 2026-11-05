@@ -611,12 +611,12 @@ To-do, in dieser Reihenfolge:
      (behoben 2026-11-05, 10,6 MB → 0,94 MB bei mnr 268).
 2. ~~**Sicherheitsbehebung signierte Links**~~ – **erledigt und auf dem
    Server 2026-11-05.** Signiert werden alle Parameter aus
-   `Tc_Lib_Pdf_Wp_Bootstrap::SIGNED_PARAMS` (`nr`, `mnr`, `jahr`, `dienst`,
+   `PdfDispatcherCore::SIGNED_PARAMS` (`nr`, `mnr`, `jahr`, `dienst`,
    `veranstaltung`, `Mitgliedsnummer`, `verein`, `zweitemahnung`,
    `ohnemahngebuehr`), in Langzeit-Link und Nonce. Rohwerte müssen
    `sanitize_text_field()`-stabil sein. Alte Langzeit-Links, die nur über `nr`
    auswählen, bleiben gültig, solange kein weiterer signierter Parameter im
-   Request steht (`verify_legacy_long_term_key()`, abschaltbar mit
+   Request steht (`verifyLegacyLongTermKey()`, abschaltbar mit
    `define('TC_LIB_PDF_LEGACY_KEYS', false)`). Dashboard-Widget: Listen nur
    Nonce; Button „Antragslinks neu erzeugen“ ruft `update_urls()` und schreibt
    die Quform-Felder Antrag, Rechnung und Infoblatt (`id_url`, `id_url2`,
@@ -632,7 +632,14 @@ To-do, in dieser Reihenfolge:
      Templates erhalten URL-Parameter ohne WordPress-Escape-Schrägstriche
      (`wp_unslash`). Lokal geprüft: alle 19 Templates laden, Rechnung wird
      gespeichert, Ordnerschutz entsteht.
-   - 2b Dispatcher-Kern: offen.
+   - **2b Dispatcher-Kern: umgesetzt 2026-11-05, noch nicht auf dem Server.**
+     `include/class-pdf-dispatcher-core.php` (`PdfDispatcherCore`): Routing
+     (`resolveTemplateId()`), `SIGNED_PARAMS`, `normalizeValue()`,
+     `signaturePayload()`, `longTermKey()`, `verifyLongTermKey()` inkl.
+     Legacy-Format, `render()`. `Pdf_Dispatcher` behält nur Hooks und Nonce;
+     `build_pdf_url()` nutzt den Kern. Lokal geprüft: mit dem bisherigen Code
+     erzeugte Links (Langzeit und Nonce) sind mit dem Kern gültig, neue Links
+     sind bytegleich, Manipulationen und abgelaufene Links werden abgewiesen.
 4. **Phase 3** (Zeitzone über die Plattform, Vereinstexte). Vorher prüfen, ob
    `created_at` der Quform-Einträge in UTC gespeichert ist.
 5. **Phase 5 / Admidio** nach KONZEPT-ADMIDIO-RECHNUNGEN.md, Abschnitt 8.

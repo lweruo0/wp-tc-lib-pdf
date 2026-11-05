@@ -31,13 +31,11 @@ sind umgesetzt. Die Rechnungserstellung in Admidio ist in
 ┌─────────────────────────────────────────────────────────────────┐
 │   wp-include/templates.php: PdfRegistry::register(…) je Template │
 │                                                                  │
-│   wp-include/class-wp-dispatcher.php: Pdf_Dispatcher             │
-│   1. init → should_render_pdf()                                  │
-│      ├─ sanitize_text_field(wp_unslash($_GET['get_pdf']))        │
-│      ├─ PdfRegistry::exists()                                    │
-│      └─ verify_long_term_authorisation() ODER verify_nonce()     │
-│   2. template_redirect → dispatch(): stream() oder output()      │
-│   3. Fehler → wp_die()                                           │
+│   wp-include/class-wp-dispatcher.php: Pdf_Dispatcher (Hooks)     │
+│   1. init → PdfDispatcherCore::resolveTemplateId()               │
+│      └─ PdfDispatcherCore::verifyLongTermKey() ODER verify_nonce()│
+│   2. template_redirect → PdfDispatcherCore::render()             │
+│   3. Fehler → PdfRuntime::platform()->fail() (wp_die)            │
 └────────────────────────┬────────────────────────────────────────┘
                          │
                          ▼
@@ -77,8 +75,9 @@ sind umgesetzt. Die Rechnungserstellung in Admidio ist in
    ```
 
 2. **Dispatcher empfängt Request** (Hook `init`)
-   - Sanitized `$_GET['get_pdf']`, prüft Registrierung
-   - Prüft `key`+`expires` per `wp_hash(…, 'auth')` und `hash_equals()`,
+   - `PdfDispatcherCore::resolveTemplateId()` prüft `get_pdf` gegen die Registry
+   - Prüft `key`+`expires` per `PdfDispatcherCore::verifyLongTermKey()`
+     (HMAC wie `wp_hash(…, 'auth')`, Secret von der Plattform),
      oder `nonce` per `wp_verify_nonce()`
    - Hängt bei Erfolg `dispatch()` an `template_redirect`
 
@@ -241,30 +240,36 @@ PdfRegistry::exists(id) ─── nein ─→ kein Hook, WordPress läuft normal
    │ ja
    ▼
 key + expires vorhanden?
-   ├─ ja → expires nicht abgelaufen (wp_timezone)
-   │        && hash_equals(wp_hash(signature_payload(id, params, expires), 'auth'), key)
+   ├─ ja → expires nicht abgelaufen (Plattform-Zeitzone)
+   │        && hash_equals(hmac(signaturePayload(id, params, expires)), key)
    │           ├─ gültig ─→ dispatch()
    │           ├─ altes Format (nur id.expires.nr, kein weiterer signierter
    │           │  Parameter im Request, TC_LIB_PDF_LEGACY_KEYS ≠ false) ─→ dispatch()
    │           └─ ungültig ─→ weiter mit nonce
    ▼
 nonce vorhanden?
-   ├─ ja → wp_verify_nonce(nonce, signature_payload(id, params, ''))
+   ├─ ja → wp_verify_nonce(nonce, signaturePayload(id, params, ''))
    │           ├─ gültig ─→ dispatch()
    │           └─ ungültig ─→ kein Hook
    └─ nein ─→ kein Hook
 
-dispatch()
-   ├─ PdfRegistry::create() wirft Exception ─→ wp_die(…, 500)
+PdfDispatcherCore::render()
+   ├─ PdfRegistry::create() wirft Exception ─→ platform()->fail() (wp_die, 500)
    └─ stream() / output() ─→ exit
 ```
 
-`signature_payload()` (in `Tc_Lib_Pdf_Wp_Bootstrap`) verbindet Template-ID,
-Ablaufdatum und alle Parameter aus `Tc_Lib_Pdf_Wp_Bootstrap::SIGNED_PARAMS`
+`PdfDispatcherCore::signaturePayload()` (`include/class-pdf-dispatcher-core.php`,
+seit Phase 2b) verbindet Template-ID,
+Ablaufdatum und alle Parameter aus `PdfDispatcherCore::SIGNED_PARAMS`
 (`nr`, `mnr`, `jahr`, `dienst`, `veranstaltung`, `Mitgliedsnummer`, `verein`,
 `zweitemahnung`, `ohnemahngebuehr`) in fester Reihenfolge, URL-kodiert und mit
 `|` getrennt. Fehlende Parameter gehen leer ein. Ein Request, dessen Rohwert
-sich durch `sanitize_text_field()` ändern würde, wird abgewiesen. Nicht signiert
+sich durch `PdfDispatcherCore::normalizeValue()` (entspricht
+`sanitize_text_field()`) ändern würde, wird abgewiesen. Den HMAC bildet
+`PdfDispatcherCore::hmac()` = `hash_hmac('md5', $data, getSecret())`, in
+WordPress identisch mit `wp_hash($data, 'auth')`; bestehende Links bleiben
+gültig. `Tc_Lib_Pdf_Wp_Bootstrap::SIGNED_PARAMS` und `::signature_payload()`
+bleiben als veraltete Verweise auf den Kern erhalten. Nicht signiert
 sind nur Darstellungs-Schalter (`new`, `filedownload`, `layout`, `page`,
 `SortByGew`).
 
@@ -283,7 +288,7 @@ Host setzt seine Implementierung einmal im Bootstrap
 | `createDirectory()` / `protectDirectory()` | `wp_mkdir_p()` / `.htaccess` + `index.php` |
 | `getQueryParams()` | `wp_unslash($_GET)` |
 | `getTimezone()` | `wp_timezone()` (Nutzung ab Phase 3) |
-| `getSecret()` | `wp_salt('auth')` (Nutzung ab Phase 2b) |
+| `getSecret()` | `wp_salt('auth')` |
 | `fail()` | `wp_die()` |
 | `loadLibrary()` | `Tc_Lib_Pdf_Wp_Bootstrap::boot()` |
 
@@ -308,6 +313,7 @@ wp-tc-lib-pdf/
 │   ├── platform/
 │   │   ├── interface-pdf-platform.php   PdfPlatformInterface (Storage, URL-Parameter, Zeitzone, Secret, fail, Library)
 │   │   └── class-pdf-runtime.php        PdfRuntime::setPlatform() / ::platform()
+│   ├── class-pdf-dispatcher-core.php    PdfDispatcherCore (Routing, Signatur, Langzeit-Links, Rendern)
 │   ├── class-pdf-registry.php           PdfRegistry
 │   ├── class-pdf-template.php           PdfTemplateBase, PdfTemplate
 │   ├── class-pdf-rechnung-base.php      PdfRechnungBase (Rechnung/Mahnung)
@@ -319,7 +325,7 @@ wp-tc-lib-pdf/
 ├── wp-include/                          HOST WordPress, prüft ABSPATH
 │   ├── bootstrap.php                    Tc_Lib_Pdf_Wp_Bootstrap, Hooks, URL-Builder, Hilfsfunktionen
 │   ├── class-wp-platform.php            Tc_Lib_Pdf_Wp_Platform (PdfPlatformInterface für WordPress)
-│   ├── class-wp-dispatcher.php          Pdf_Dispatcher (Nonce, Langzeit-Link, template_redirect)
+│   ├── class-wp-dispatcher.php          Pdf_Dispatcher (Hooks init/template_redirect, Nonce; Rest im Kern)
 │   ├── templates.php                    PdfRegistry::register(…) für alle WP-Templates
 │   ├── class-dashboard-pdf-links.php    Dashboard-Widget (nur Admin): Beispiel-Links, gd/exif-Status,
 │   │                                    Button „Antragslinks neu erzeugen“ (update_urls())

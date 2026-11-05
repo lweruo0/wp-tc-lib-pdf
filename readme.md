@@ -219,7 +219,7 @@ siehe insbesondere `wp-include/class-dashboard-pdf-links.php` und die Dispatcher
 
 ## Was wurde zuletzt gemacht (Repo‑Hinweis)
 - 2026-11-05: Signierte Links decken alle Auswahlparameter ab
-  (`Tc_Lib_Pdf_Wp_Bootstrap::SIGNED_PARAMS`); Links aus anderen Plugins müssen
+  (`PdfDispatcherCore::SIGNED_PARAMS`); Links aus anderen Plugins müssen
   alle diese Parameter an `tc_lib_pdf_wp_create_pdf_url()` übergeben, nicht
   nachträglich an die URL hängen. Fotos in Anhängen werden aufbereitet
   (`PdfImageNormalizer`). Details in ARCHITECTURE.md und KONZEPT-PLATTFORM.md.
