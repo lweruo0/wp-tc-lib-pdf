@@ -1,0 +1,56 @@
+Bezirksfischerei-Verein e.V. Ehingen/Donau
+https://bfv-ehingen.de
+
+
+
+
+    Muster-Angelverein e.V., Postfach 123, 12345 Musterstadt
+    falls unzustellbar, bitte zurück                                             Muster-Angelverein e.V.
+                                                                                 Postfach 123
+                                                                                 12345 Musterstadt
+    erika@example.org                                                            kasse@example.org
+    Erika Musterfrau                                                             Steuernummer: 12345/67890
+    Seestraße 3
+    12345 Musterstadt                                                            IBAN:          DE02120300000000202051
+                                                                                 BIC:                     BYLADEM1001
+                                                                                 Rechnungsbetrag:              610,00 €
+                                                                                 Zahlungsfrist:              <HEUTE+7>
+                                                                                 Verwendungszweck:                 9005
+                                                               Fotoüberweisung
+
+
+                                                                                 Ehingen, den <HEUTE>
+  Zahlungserinnerung
+  Rechnung Nr. 9005
+
+
+  Sehr geehrte Frau Musterfrau,
+  die Bezahlung der Rechnung Nr. 9005 war am fällig.
+  Leider konnten wir bisher keinen Zahlungseingang verbuchen.
+
+   Bezeichnung                                                   Anzahl                  Einzelpreis   Gesamtpreis
+   Bearbeitungsgebühr                                            1                          20,00 €          20,00 €
+   Erstbesatz                                                    1                        250,00 €         250,00 €
+   jährlicher Mitgliedsbeitrag                                   1                        310,00 €         310,00 €
+   Option Boot                                                   1                          30,00 €          30,00 €
+
+
+   Nettobetrag                                                                                             610,00 €
+   Rechnungsbetrag                                                                                         610,00 €
+
+  Der offene Betrag von 610,00 € ist spätestens zum <HEUTE+7> fällig.
+  Sollte bis dahin kein Zahlungseingang erfolgen, müssten wir weitere Schritte prüfen.
+  Falls Sie die Zahlung bereits veranlasst haben, betrachten Sie dieses Schreiben bitte als
+  gegenstandslos.
+
+
+
+
+  1. Vorsitzender               2. Vorsitzender            Kassier                   Schriftführer
+  Anna Erste                    Bernd Zweiter              Carla Kasse               Dieter Schrift
+  Am Weiher 1                   Am Weiher 2                Am Weiher 3               Am Weiher 4
+  12345 Musterstadt             12345 Musterstadt          12345 Musterstadt         12345 Musterstadt
+  0123 456701                   0123 456702                0123 456703               0123 456704
+  Bankverbindung
+  Muster-Angelverein e.V., Musterbank, BIC: BYLADEM1001, IBAN: DE02120300000000202051
+

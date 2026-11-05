@@ -211,6 +211,16 @@ siehe insbesondere `wp-include/class-dashboard-pdf-links.php` und die Dispatcher
 ## Code‑Qualität
 - PHPDoc und statische Analyse (z. B. PHPStan) sollten mit den Signaturen
   übereinstimmen; beim Refactoring wurden einige PHPDoc‑Tags bereits angepasst.
+- `php tools/check-engine-purity.php` prüft, dass `include/` keine
+  WordPress- oder Admidio-Funktionen aufruft (läuft auch in GitHub Actions,
+  Job `engine-purity`). Bekannte, noch abzubauende Ausnahmen stehen im Skript.
+- `php tests/render-rechnungen.php` rendert alle Rechnungs- und
+  Mahnungs-Templates ohne WordPress (`tests/class-pdf-fake-platform.php`,
+  Testdaten in `tests/fixtures-rechnungen.php`) und vergleicht den Text mit
+  `tests/snapshots/*.txt`. Braucht PHP 8.5 und `pdftotext` (poppler-utils).
+  Nach einer gewollten Änderung: `--update`, dann die Snapshot-Änderung im
+  Diff prüfen und mit committen. Datumswerte relativ zu heute erscheinen als
+  `<HEUTE>`, `<HEUTE+7>`.
 
 ## Troubleshooting
 - Wenn `composer install` fehlschlägt: prüfe zuerst Fehlermeldungen, speziell

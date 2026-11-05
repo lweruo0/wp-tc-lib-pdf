@@ -640,9 +640,16 @@ To-do, in dieser Reihenfolge:
      `build_pdf_url()` nutzt den Kern. Lokal geprüft: mit dem bisherigen Code
      erzeugte Links (Langzeit und Nonce) sind mit dem Kern gültig, neue Links
      sind bytegleich, Manipulationen und abgelaufene Links werden abgewiesen.
-4. **Phase 3** (Zeitzone über die Plattform, Vereinstexte). Vorher prüfen, ob
-   `created_at` der Quform-Einträge in UTC gespeichert ist.
-5. **Phase 5 / Admidio** nach KONZEPT-ADMIDIO-RECHNUNGEN.md, Abschnitt 8.
+4. **Phase 4 (Absicherung), vorgezogen: umgesetzt 2026-11-05.**
+   `tools/check-engine-purity.php` (auch als GitHub-Actions-Job
+   `engine-purity`), `tests/class-pdf-fake-platform.php`,
+   `tests/render-rechnungen.php` mit Snapshots für alle 9 Rechnungs- und
+   Mahnungs-Templates. Einzige bekannte Ausnahme der Reinheitsprüfung:
+   Zeitzone in `trait-pdf-header.php` (Phase 3).
+5. **Phase 3** (Zeitzone über die Plattform, Vereinstexte). Vorher prüfen, ob
+   `created_at` der Quform-Einträge in UTC gespeichert ist. Erwartete
+   Snapshot-Änderungen: Ortsname und ggf. Zahlungsfrist Vorbereitungslehrgang.
+6. **Phase 5 / Admidio** nach KONZEPT-ADMIDIO-RECHNUNGEN.md, Abschnitt 8.
    Unabhängig davon jederzeit möglich: `PdfJoiner` (dort Schritt 9a).
 
 Klein, jederzeit:

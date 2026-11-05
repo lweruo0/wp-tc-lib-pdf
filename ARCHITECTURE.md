@@ -333,6 +333,12 @@ wp-tc-lib-pdf/
 │       ├── class-pdf-*.php              Templates (siehe oben); laden Engine-Dateien über TC_LIB_PDF_DIR
 │       └── in.pdf                       LFVBW-Vorlage für PdfTemplateLFVBW
 │
+├── tools/check-engine-purity.php        prüft include/ auf Host-Aufrufe (CI-Job engine-purity)
+├── tests/
+│   ├── class-pdf-fake-platform.php      PdfFakePlatform: Plattform für CLI-Tests ohne Host
+│   ├── fixtures-rechnungen.php          erfundene Testdaten je Rechnungs-Template
+│   ├── render-rechnungen.php            rendert alle Rechnungen/Mahnungen, vergleicht Text mit Snapshots
+│   └── snapshots/*.txt                  erwarteter Text (pdftotext -layout)
 ├── font/core/                           Core-Font-Metriken (JSON), K_PATH_FONTS
 ├── vendor/                              tc-lib-pdf und Abhängigkeiten (Composer, versioniert)
 ├── stubs/                               PHPStan-Stubs (Quform, WP_User-Felder)
@@ -427,6 +433,18 @@ Plattformtrennung).
 - Templates werden per `require_once` erst bei Bedarf geladen
 - Fertige PDFs werden aus dem Upload-Ordner ausgeliefert, wenn vorhanden
 - `tc_lib_pdf_wp_create_pdf_url()` benötigt tc-lib-pdf nicht
+
+## Tests
+
+| Befehl | Prüft |
+|---|---|
+| `php tools/check-engine-purity.php` | keine WordPress-/Admidio-Funktionen, Superglobals oder Host-Konstanten in `include/` (Tokenizer, Kommentare zählen nicht) |
+| `php tests/render-rechnungen.php` | alle 9 Rechnungs-/Mahnungs-Templates rendern ohne WordPress; Text gleich den Snapshots |
+| `php tests/render-rechnungen.php --update` | Snapshots nach gewollter Änderung neu schreiben |
+
+Die WordPress-Templates rufen `get_option()` auf; der Render-Test stellt dafür
+eine Minimalfassung bereit, die aus den Fixtures liest. Alles andere läuft über
+`PdfFakePlatform`.
 
 ## Debugging
 

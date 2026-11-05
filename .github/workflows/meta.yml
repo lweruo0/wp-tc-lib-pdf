@@ -18,9 +18,18 @@ permissions:
   # statuses: write      # nur falls notwendig
 
 
+
+
 jobs:
   pylint:
     uses: lweruo0/workflows/.github/workflows/pylint_and_black.yml@main
 
   phpstan:
     uses: lweruo0/workflows/.github/workflows/phpstan_and_php_cs_fixer.yml@main
+
+  engine-purity:
+    # Engine (include/) darf keine WordPress- oder Admidio-Funktionen aufrufen.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: php tools/check-engine-purity.php

@@ -50,3 +50,6 @@ phpstan.neon.dist
 *.cache
 storage/
 bootstrap/cache/
+
+# Testausgabe (tests/render-rechnungen.php)
+tests/out/
