@@ -295,28 +295,53 @@ ausführen.
 | ZIP | `ZipArchive` mit den abgelegten Einzel-PDFs, Dateiname `rechnungen_2026-B_<datum>.zip` (Fork) |
 | Druck-PDF | Fork übergibt die Dateipfade an den abstrakten PDF-Join der Engine und liefert das Ergebnis aus |
 
-**PDF-Join in der Engine (abstrakt).** Eine plattformneutrale Klasse in
-`include/`, z. B. `PdfJoiner`, ohne Bezug zu Rechnungen, Admidio oder
-WordPress:
+**PDF-Join in der Engine (abstrakt, umgesetzt 2026-11-05).**
+`include/class-pdf-joiner.php`, plattformneutral, ohne Bezug zu Rechnungen,
+Admidio oder WordPress:
 
 ```php
 // Fügt vorhandene PDF-Dateien in der übergebenen Reihenfolge zusammen.
-PdfJoiner::join(
-    array $files,                 // absolute Pfade, nur lesbare PDF-Dateien
-    array $options = [],          // z. B. ['duplex' => true, 'title' => 'Druckstapel']
-): string;                        // PDF als Binärstring
+$result = PdfJoiner::join(
+    $files,                       // Pfade der abgelegten PDF-Dateien
+    ['duplex' => true, 'title' => 'Druckstapel', 'skip_invalid' => true],
+);
+$result->pdf;                     // PDF als Binärstring (nicht gespeichert)
+$result->pages;                   // Seiten inkl. Leerseiten
+$result->files;                   // übernommene Dateien
+$result->skipped;                 // ["rechnung_2026-B-0007.pdf: PDF nicht lesbar", …]
 ```
 
 - Umsetzung mit den Importfunktionen von tc-lib-pdf
-  (`setImportSourceData()`, `getSourcePageCount()`, `addPageFromImport()`),
-  wie heute die PDF-Anhänge im Mitgliedsantrag.
-- `duplex`: Hat ein Dokument eine ungerade Seitenzahl, folgt eine Leerseite,
-  damit jedes Dokument auf einer Vorderseite beginnt.
-- Nicht lesbare oder ungültige Dateien: Ausnahme mit Dateiname, damit der
-  Aufrufer sie melden kann (oder Option `skip_invalid`, dann Liste der
-  übersprungenen Dateien zurückgeben).
+  (`setImportSourceData()` mit `strict_limits`, `getSourcePageCount()`,
+  `addPageFromImport()`).
+- `duplex`: Hat ein Dokument eine ungerade Seitenzahl, folgt eine Leerseite
+  im Format der letzten Seite, damit jedes Dokument auf einer Vorderseite
+  beginnt.
+- Ungültige Dateien: `PdfJoinException` mit Dateiname (`getFileName()`);
+  mit `skip_invalid` stattdessen Eintrag in `$result->skipped`.
+  Überschrittene Grenzen: `PdfJoinLimitException`, auch mit `skip_invalid`.
 - Kein Speichern, keine Autorisierung, kein HTTP: Das macht der Aufrufer.
 - Nutzbar für jeden Sammeldruck, auch in WordPress (z. B. Erlaubnisscheine).
+
+**Sicherheit des PDF-Join (entschieden 2026-11-05).** Der Joiner prüft
+selbst, was man nicht vergessen darf; damit kann er auch bei einem
+unsauberen Aufrufer nie mehr ausliefern als PDFs aus der eigenen Ablage.
+
+| Im Joiner (Engine) | Regel |
+|---|---|
+| Wurzelordner | Jede Datei muss nach `realpath()` unterhalb des Ablageordners der Plattform (`getStorageBaseDir()`) liegen. `../`, Symlinks nach außen und fremde Ordner werden abgelehnt. Option `root` kann einen anderen Ordner setzen (der Aufrufer z. B. nur `…/beitrag`); er muss existieren und darf keine Laufwerks-/Dateisystemwurzel sein. |
+| Dateityp | reguläre, lesbare Datei, Endung `.pdf`, Inhalt beginnt mit `%PDF-`; leere Dateien und Pfade mit Nullbyte werden abgelehnt. |
+| Grenzen | höchstens 500 Dateien, 20 MB je Datei, 200 MB insgesamt, 2000 Seiten (Konstanten; per Option nur kleiner). Alle Pfade werden vor dem ersten Lesen geprüft. |
+| Meldungen | nennen nur den Dateinamen, nie den Pfad. |
+| Ergebnis | nur als String; keine Zwischendatei. Metadaten: Titel aus der Option, Autor und Betreff leer, keine Mitgliedsnamen. |
+
+| Beim Aufrufer (Fork, ebenso ein WordPress-Aufrufer) | Regel |
+|---|---|
+| Rechte | Admidio: nur Rollen mit Rechten auf die Beitragsverwaltung (wie `bill.php`); WordPress: `current_user_can('manage_options')`. |
+| CSRF | Druckstapel nur per POST mit Admidio-CSRF-Token bzw. WordPress-Nonce. |
+| Auswahl | Die Anfrage enthält nur Benutzer-IDs bzw. Rechnungsnummern. Die Pfade kommen aus der Datenbank (`mfi_pdf_file`), nie aus der Anfrage; Dateiname zusätzlich gegen `^(rechnung\|mahnung)_\d{4}-[A-Z]-\d{4}\.pdf$` prüfen. `root` auf den Unterordner (`beitrag`/`arbeitsdienst`) setzen. |
+| Auslieferung | nur als direkter Download in der laufenden Sitzung, **nie als signierter Link** (Daten vieler Mitglieder). Header: `Content-Type: application/pdf`, `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff`, `Cache-Control: no-store`. |
+| Protokoll | `mfi_sent_print` setzen; festhalten, wer den Stapel wann geladen hat. `$result->skipped` in der Ergebnisliste anzeigen. |
 
 Die Entscheidung „ein Dokument enthält genau eine Rechnung“ bleibt gültig:
 Der Druckstapel ist keine Rechnung, sondern eine Druckdatei aus fertigen
@@ -455,7 +480,7 @@ Zusatzblöcke:
 | 6 | wp-tc-lib-pdf | `PdfAdmRechnung`, Templates Beitrag und Arbeitsdienst | 3, 5 |
 | 7 | Fork (TODO) | `bill.php`: Rechnungen erstellen, Spalten, Filter | 5, 6 |
 | 8 | Fork (TODO) | Mail: Anhang, Platzhalter, Vorlagen | 7 |
-| 9a | wp-tc-lib-pdf | `PdfJoiner` in der Engine (abstrakter PDF-Join, 5.3) | – |
+| 9a | wp-tc-lib-pdf | `PdfJoiner` in der Engine (abstrakter PDF-Join, 5.3) – **erledigt 2026-11-05** | – |
 | 9b | Fork (TODO) | Druckstapel in `bill.php` aus vorhandenen PDFs (ZIP, Druck-PDF über `PdfJoiner`) | 7, 9a |
 | 10 | Fork (TODO) + wp-tc-lib-pdf | Mahnungen: Liste, Gebühr-Position zuordnen, Templates | 7 |
 | 11 | Fork (TODO) | Profil: eigene Rechnungen | 7 |
@@ -534,7 +559,11 @@ Gesammelt, nicht umgesetzt. Nummern in Klammern verweisen auf Abschnitt 8.
       erzeugte** PDFs (`mfi_pdf_file` bzw. Mahnungsdatei vorhanden), erzeugt
       nichts nach; fehlende Dateien in der Ergebnisliste melden; ZIP über
       `ZipArchive` oder Druck-PDF über `PdfJoiner::join()` der Engine;
-      `mfi_sent_print` setzen.
+      `mfi_sent_print` setzen. Sicherheit nach 5.3 (Aufruferseite): Recht
+      Beitragsverwaltung, POST + CSRF-Token, Pfade nur aus `mfi_pdf_file`
+      plus Dateinamen-Muster, `root` auf den Unterordner, kein signierter
+      Link, Download-Header, Protokoll; `$result->skipped` anzeigen. Gleiche
+      Regeln für das ZIP.
 - [ ] **Mahnungen** (10): Liste überfälliger, noch nicht gemahnter
       Rechnungen nach Abschnitt 6; nur **eine** Mahnung je Rechnung;
       `mfi_dunning_date`/`mfi_dunning_due` setzen; manuell angelegte

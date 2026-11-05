@@ -224,7 +224,7 @@ siehe insbesondere `wp-include/class-dashboard-pdf-links.php` und die Dispatcher
   übereinstimmen; beim Refactoring wurden einige PHPDoc‑Tags bereits angepasst.
 - `php tools/check-engine-purity.php` prüft, dass `include/` keine
   WordPress- oder Admidio-Funktionen aufruft (läuft auch in GitHub Actions,
-  Job `engine-purity`). Bekannte, noch abzubauende Ausnahmen stehen im Skript.
+  Job `engine-purity`). Ausnahmen gibt es keine mehr.
 - `php tests/render-rechnungen.php` rendert alle Rechnungs- und
   Mahnungs-Templates ohne WordPress (`tests/class-pdf-fake-platform.php`,
   Testdaten in `tests/fixtures-rechnungen.php`) und vergleicht den Text mit
@@ -234,6 +234,10 @@ siehe insbesondere `wp-include/class-dashboard-pdf-links.php` und die Dispatcher
   `<HEUTE>`, `<HEUTE+7>`.
 - `php tests/test-datum.php` prüft die Umrechnung von Zeitstempeln
   (`created_at` aus Quform ist UTC) in die Vereinszeitzone.
+- `php tests/test-joiner.php` prüft `PdfJoiner` (PDF-Join für den
+  Druckstapel): Zusammenfügen, Duplex-Leerseiten und dass Dateien außerhalb
+  des Ablageordners, `../`, Symlinks nach außen, Nicht-PDFs und zu große
+  Stapel abgelehnt werden.
 
 ## Troubleshooting
 - Wenn `composer install` fehlschlägt: prüfe zuerst Fehlermeldungen, speziell

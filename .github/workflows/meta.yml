@@ -31,5 +31,15 @@ jobs:
     # Engine (include/) darf keine WordPress- oder Admidio-Funktionen aufrufen.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: php tools/check-engine-purity.php
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: gd, exif
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      - name: pdftotext für den Snapshot-Vergleich
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - run: php tests/test-datum.php
+      - run: php tests/test-joiner.php
+      - run: php tests/render-rechnungen.php

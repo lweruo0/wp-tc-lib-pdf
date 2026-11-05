@@ -338,6 +338,7 @@ wp-tc-lib-pdf/
 │   ├── class-pdf-template.php           PdfTemplateBase, PdfTemplate
 │   ├── class-pdf-rechnung-base.php      PdfRechnungBase (Rechnung/Mahnung)
 │   ├── class-pdf-image-normalizer.php   PdfImageNormalizer (Fotos drehen/verkleinern, siehe unten)
+│   ├── class-pdf-joiner.php             PdfJoiner (vorhandene PDFs zusammenfügen, Druckstapel, siehe unten)
 │   ├── interface-pdf-output.php         PdfOutputInterface
 │   ├── trait-pdf-*.php                  8 Traits (siehe oben)
 │   └── images/                          Logos, Unterschrift (vereinsweit)
@@ -358,6 +359,8 @@ wp-tc-lib-pdf/
 │   ├── class-pdf-fake-platform.php      PdfFakePlatform: Plattform für CLI-Tests ohne Host
 │   ├── fixtures-rechnungen.php          erfundene Testdaten je Rechnungs-Template
 │   ├── render-rechnungen.php            rendert alle Rechnungen/Mahnungen, vergleicht Text mit Snapshots
+│   ├── test-datum.php                   Zeitstempel → Vereinszeitzone
+│   ├── test-joiner.php                  PdfJoiner: Join, Duplex, Ablehnungen, Grenzen
 │   └── snapshots/*.txt                  erwarteter Text (pdftotext -layout)
 ├── font/core/                           Core-Font-Metriken (JSON), K_PATH_FONTS
 ├── vendor/                              tc-lib-pdf und Abhängigkeiten (Composer, versioniert)
@@ -393,9 +396,31 @@ bei einem Fehler werden die Originaldaten zurückgegeben; das PDF entsteht in
 jedem Fall. Bilder, die weder gedreht noch verkleinert werden müssen, bleiben
 unverändert.
 
-Geplant (KONZEPT-ADMIDIO-RECHNUNGEN.md, 5.3): `PdfJoiner` in `include/` zum
-Zusammenfügen vorhandener PDF-Dateien (Druckstapel), ebenfalls
-plattformneutral.
+## PDF-Join (PdfJoiner)
+
+`include/class-pdf-joiner.php`, plattformneutral. Fügt vorhandene PDF-Dateien
+zu einem Dokument zusammen, z. B. für den Druckstapel der Admidio-Rechnungen
+(KONZEPT-ADMIDIO-RECHNUNGEN.md, 5.3).
+
+```php
+$result = PdfJoiner::join($pfade, ['duplex' => true, 'skip_invalid' => true]);
+// $result->pdf, ->pages, ->files, ->skipped
+```
+
+| Option | Bedeutung |
+|---|---|
+| `duplex` | Leerseite nach Dokumenten mit ungerader Seitenzahl |
+| `title` | Titel in den Metadaten (Standard „Druckstapel“) |
+| `skip_invalid` | ungültige Dateien überspringen und in `skipped` melden |
+| `root` | Wurzelordner statt `getStorageBaseDir()` |
+| `max_files`, `max_file_bytes`, `max_total_bytes`, `max_pages` | kleinere Grenzen als `MAX_*` (500 / 20 MB / 200 MB / 2000) |
+
+Sicherheit im Joiner: nur Dateien, die nach `realpath()` unter dem
+Wurzelordner liegen (kein `../`, kein Symlink nach außen), Endung `.pdf`,
+Inhalt ab `%PDF-`, Grenzen, Meldungen nur mit Dateinamen, Ergebnis nur als
+String. Rechte, CSRF, Auswahl der Dateien und Auslieferung macht der
+Aufrufer. Fehler: `PdfJoinException` (`getFileName()`), Grenzen:
+`PdfJoinLimitException`.
 
 ## Extension Points
 
@@ -462,6 +487,7 @@ Plattformtrennung).
 | `php tests/render-rechnungen.php` | alle 9 Rechnungs-/Mahnungs-Templates rendern ohne WordPress; Text gleich den Snapshots |
 | `php tests/render-rechnungen.php --update` | Snapshots nach gewollter Änderung neu schreiben |
 | `php tests/test-datum.php` | Umrechnung von Zeitstempeln (UTC/Offset) in die Vereinszeitzone |
+| `php tests/test-joiner.php` | `PdfJoiner`: Join, Duplex-Leerseiten, Ablehnung von `../`, Symlink nach außen, fremden Ordnern, Nicht-PDFs; Grenzen; keine Pfade in Meldungen |
 
 Die WordPress-Templates rufen `get_option()` auf; der Render-Test stellt dafür
 eine Minimalfassung bereit, die aus den Fixtures liest. Alles andere läuft über
