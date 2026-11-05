@@ -76,7 +76,7 @@ final class PdfImageNormalizer {
 		}
 
 		$info = @getimagesizefromstring($data);
-		if ($info === false || ($info[2] ?? 0) !== IMAGETYPE_JPEG) {
+		if ($info === false || $info[2] !== IMAGETYPE_JPEG) {
 			return $data;
 		}
 
@@ -126,9 +126,10 @@ final class PdfImageNormalizer {
 				$newWidth  = max(1, (int) round($width * $scale));
 				$newHeight = max(1, (int) round($height * $scale));
 				$scaled    = imagecreatetruecolor($newWidth, $newHeight);
-				if ($scaled === false || !imagecopyresampled($scaled, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height)) {
+				if ($scaled === false) {
 					return null;
 				}
+				imagecopyresampled($scaled, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 				imagedestroy($image);
 				$image = $scaled;
 			}

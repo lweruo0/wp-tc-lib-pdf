@@ -89,7 +89,6 @@ final class Tc_Lib_Pdf_Wp_Platform implements PdfPlatformInterface {
 			esc_html__('PDF Generation Error', 'tc-lib-pdf-wp'),
 			['response' => $status]
 		);
-		exit; // wp_die() beendet den Request; exit nur für die Typprüfung.
 	}
 
 	/**
