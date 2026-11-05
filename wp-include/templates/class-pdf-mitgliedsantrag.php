@@ -75,7 +75,7 @@ abstract class PdfMitgliedsantragData extends PdfTemplate {
 		}
 
 		if (count($formdata) === 1) {
-			$year = isset($formdata[0]['created_at']) ? date("Y", strtotime($formdata[0]['created_at'])) : date("Y");
+			$year = ($this->localDateTime($formdata[0]['created_at'] ?? null) ?? $this->now())->format('Y');
 			$nachname = $formdata[0]['name'] ?? 'MUSTERMANN';
 			$vorname = $formdata[0]['vorname'] ?? 'MAX';
 			$filename = "mitgliedsantrag-{$year}-{$nachname}-{$vorname}.pdf";
@@ -337,7 +337,7 @@ class PdfMitgliedsantrag2 extends PdfMitgliedsantragData {
 		$out .= $this->getBox($x, $y, $box_height, $box_width, $row_height, $label);
 
 		$out .= $this->getTextCell(
-			txt: date('d.m.Y') . ', ',
+			txt: $this->now()->format('d.m.Y') . ', ',
 			posx: $x,
 			posy: $y + (0.5*$box_height),
 			width: 35.0,
@@ -729,7 +729,7 @@ class PdfMitgliedsantrag2 extends PdfMitgliedsantragData {
 		if (in_array($this->getForm('mitgliedschaft_ab', ''), ['nächstmöglich', 'naechstmoeglich'], true)) {
 			$text .= 'zum nächstmöglichen Termin.';
 		} else {
-			$text .= 'zum ' . date('d.m.Y', mktime(0, 0, 0, 1, 1, (int) date('Y') + 1));
+			$text .= 'zum 01.01.' . ((int) $this->now()->format('Y') + 1);
 		}
 
 		$gebuchte_optionen = [];
@@ -1107,9 +1107,9 @@ class PdfMitgliedsantragInfoBlatt extends PdfMitgliedsantragData {
 		$x4 = $x3 + $w3;
 
 		if (in_array($this->getForm('mitgliedschaft_ab', ''), ['nächstmöglich', 'naechstmoeglich'], true)) {
-			$v1 = date('d.m.Y', mktime(0, 0, 0, 1, 1, (int) date('Y')));
+			$v1 = '01.01.' . $this->now()->format('Y');
 		} else {
-			$v1 = date('d.m.Y', mktime(0, 0, 0, 1, 1, (int) date('Y') + 1));
+			$v1 = '01.01.' . ((int) $this->now()->format('Y') + 1);
 		}
 		$rows = [
 			['label' => 'ab:', 'value' => $v1, 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => 'Abteilung:', 'rightLabelX' => $x3, 'rightValue' => (string) $this->getForm('mitgliedschaft', ''), 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4],
@@ -1141,7 +1141,7 @@ class PdfMitgliedsantragInfoBlatt extends PdfMitgliedsantragData {
 			$rows[] = ['label' => 'BS:', 'value' => '???????', 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => 'BS', 'rightLabelX' => $x3, 'rightValue' => '???????', 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4];
 		}
 
-		if ((int) date('Y') - (int) date('Y', strtotime((string) $this->getForm('geburtstag', ''))) >= 60) {
+		if ((int) $this->now()->format('Y') - (int) date('Y', strtotime((string) $this->getForm('geburtstag', ''))) >= 60) {
 			$arbeitsV1 = 'Arbeitsdienst befreit!';
 			$arbeitsV2 = '';
 		} elseif ($aktive_mitgliedschaft) {
@@ -1267,7 +1267,7 @@ class PdfMitgliedsantragInfoBlatt extends PdfMitgliedsantragData {
 
 		$rows = [
 			['label' => 'IBAN:', 'value' =>$this->iban_to_human_format((string) $this->getForm('kontoinhaber_iban', '')), 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => 'BIC:', 'rightLabelX' => $x3, 'rightValue' => (string) $this->getForm('kontoinhaber_bic', ''), 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4],
-			['label' => 'ab:', 'value' => date('d.m.Y', strtotime((string) $this->getForm('created_at', ''))), 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => '', 'rightLabelX' => $x3, 'rightValue' => '', 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4],
+			['label' => 'ab:', 'value' => $this->localDateTime($this->getForm('created_at', ''))?->format('d.m.Y') ?? '', 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => '', 'rightLabelX' => $x3, 'rightValue' => '', 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4],
 			['label' => 'Name:', 'value' => ((string) $this->getForm('kontoinhaber_name', '') . ', ' . (string) $this->getForm('kontoinhaber_vorname', '')), 'labelX' => $x1, 'valueX' => $x2, 'labelW' => $w1, 'valueW' => $w2, 'rightLabel' => '', 'rightLabelX' => $x3, 'rightValue' => '!!  LS  !!    ' . ((string) $this->getForm('beitrag_summe', '')) . '€', 'rightValueX' => $x4, 'rightLabelW' => $w3, 'rightValueW' => $w4],
 		];
 

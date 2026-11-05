@@ -49,6 +49,7 @@ $cases = [
 	['2026-05-01T14:00:00+02:00', '01.05.2026 14:00'], // mit Offset (Hütte)
 	['2026-05-01T22:30:00Z', '02.05.2026 00:30'],      // UTC mit Z
 	['2026-07-01', '01.07.2026 02:00'],                // nur Datum: UTC-Mitternacht
+	['25.10.2025', '25.10.2025 02:00'],                // d.m.Y (bfv-mitgliedsantrag wp_date)
 	['', null],
 	['kein Datum', null],
 	[null, null],

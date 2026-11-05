@@ -55,6 +55,7 @@ sind umgesetzt. Die Rechnungserstellung in Admidio ist in
 │   ├─ abstract loadData()   Daten in options/formdata/address     │
 │   ├─ abstract render()     Seiteninhalt                          │
 │   ├─ initialize()          Titel/Autor aus Daten                 │
+│   ├─ now() / localDateTime() Datum in Vereinszeitzone (Plattform) │
 │   ├─ stream() / output()   inline / attachment, Datei-Cache      │
 │   └─ save()                PDF ins Upload-Verzeichnis            │
 │                                                                  │
@@ -169,6 +170,16 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 }
 ```
 
+## Datum und Zeitzone
+
+`PdfTemplateBase::now()` liefert „jetzt“ in der Zeitzone der Plattform
+(WordPress: Einstellung der Website, Europe/Berlin). `localDateTime($wert)`
+rechnet Zeitstempel aus den Rohdaten dorthin um: Werte ohne Zeitzonenangabe
+gelten als UTC (Quform speichert `created_at` in UTC), Werte mit Angabe
+(`+02:00`, `Z`) behalten sie. Reine Datumsangaben (`25.10.2025`,
+`2025-10-25`) bleiben am selben Tag. Templates verwenden diese Funktionen
+statt `date()`, das unter WordPress immer UTC liefert.
+
 ## Rechnungsbasis (PdfRechnungBase)
 
 `include/class-pdf-rechnung-base.php`. Abstrakte Klasse für alle Rechnungen und
@@ -183,7 +194,6 @@ war:
 | `prepareMahnung(array, string $documenttype, ?bool $zweite, ?bool $ohneGebuehr)` | Zahlungserinnerungs-Überschrift, Mahngebühr aus Option `mahngebuehr` (doppelt bei zweiter Mahnung), erhöht `brutto`, setzt Texte. Bei `brutto` 0,00 unverändert. `null` liest die URL-Parameter `zweitemahnung`/`ohnemahngebuehr` |
 | `mahnungTextsBefore(array)` / `mahnungTextBelow(array)` | Mahnungstexte; überschreibbar |
 | `formatBetrag(float)` / `posten(...)` | Hilfsfunktionen für Beträge und Rechnungsposten |
-| `now()` / `localDateTime(mixed)` | Datum in der Vereinszeitzone der Plattform. `created_at` ohne Zeitzonenangabe gilt als UTC (Quform) und wird umgerechnet; Werte mit Offset behalten ihn |
 
 Ein konkretes Template implementiert nur `loadData()`. Die Basis ruft keine
 WordPress- oder Admidio-Funktion auf und ist damit auf beiden Hosts nutzbar.

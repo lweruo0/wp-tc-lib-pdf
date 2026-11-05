@@ -655,6 +655,16 @@ To-do, in dieser Reihenfolge:
      `::localDateTime()` rechnen über `PdfRuntime::platform()->getTimezone()`;
      Rechnungsdatum, Standardfrist, Mahnungsdatum und Mahnfrist nutzen sie.
      Test: `tests/test-datum.php`, Fixtures mit nächtlichen UTC-Zeitstempeln.
+     Auf dem Server geprüft: Erlaubnis eid 15468 und Merchandise eid 7120
+     zeigen jetzt das richtige Datum.
+   - **Mitgliedsantrag (2026-11-05):** bfv-mitgliedsantrag lieferte
+     `created_at` schon als UTC-Datum (`date('d.m.Y', …)`), der Tag war damit
+     verloren. Im Plugin geändert (Nutzer): Zeile 316 `wp_date('d.m.Y')`,
+     Zeile 377 Rohwert `$entry['created_at']`. Dazu in wp-tc-lib-pdf:
+     `now()`/`localDateTime()` nach `PdfTemplateBase` verschoben, damit alle
+     Templates sie nutzen; im Mitgliedsantrag-Template Dateiname-Jahr,
+     „Ort, Datum“, Eintrittsjahr, Altersgrenze und „ab:“ (Infoblatt) darauf
+     umgestellt. Noch nicht auf dem Server.
    - Offen: Zeitzone in `trait-pdf-header.php` (Listen, Statistiken),
      „Ehingen, den“ und Copyright aus Daten, Zahlungsfrist Vorbereitungslehrgang
      ab Rechnungsdatum.
