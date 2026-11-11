@@ -33,7 +33,7 @@ class PdfListeJugendveranstaltung extends PdfTemplate {
 	/* column widths for the table */
 	private const COL_WIDTHS = [
 		7.0,  // Nr.
-		10.0, // MNr.
+		11.0, // MNr.
 		34.0, // Name, Vorname
 		34.0, // Tel.
 		34.0, // Tel. Erz
