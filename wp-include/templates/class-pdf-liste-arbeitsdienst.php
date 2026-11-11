@@ -249,10 +249,10 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 
 		$anmeldungen = $this->getForm('anmeldungen', []);
 
-		// Sort by 'mnr' key in ascending order
+		// Sort by 'mitgliedsnummer' key in ascending order
 		usort($anmeldungen, function ($a, $b) {
-			$mnrA = (int) ($a['mnr'] ?? 0);
-			$mnrB = (int) ($b['mnr'] ?? 0);
+			$mnrA = (int) ($a['mitgliedsnummer'] ?? 0);
+			$mnrB = (int) ($b['mitgliedsnummer'] ?? 0);
 			return $mnrA <=> $mnrB;
 		});
 
@@ -275,7 +275,7 @@ class PdfListeArbeitsdienst extends PdfTemplate {
 				$nr = 0;
 			}
 			$nr++;
-			$this->add_line_table($y, $nr, $anmeldung['name'], $anmeldung['beruf'], $anmeldung['mnr']);
+			$this->add_line_table($y, $nr, $anmeldung['name'] ?? '', $anmeldung['beruf'] ?? '', $anmeldung['mitgliedsnummer'] ?? '');
 			$y += self::ROW_HEIGHT;
 		}
         $Anzahl_leerzeilen = self::ROWS_PER_PAGE - $nr;
