@@ -317,6 +317,34 @@ trait PdfRechnungsdatenTrait {
 		return $y;
 	}
 
+	/**
+	 * Steuerbeträge je Satz aus formdata['steuer_je_satz'] (Satz => Betrag).
+	 *
+	 * Sätze ohne Betrag fallen weg, der höchste Satz steht oben. Der Satz ist für
+	 * die Anzeige formatiert (7 → "7", 7.5 → "7,5").
+	 *
+	 * @return array<int|string, float> PHP macht aus ganzzahligen Schlüsseln ("19") int-Schlüssel.
+	 */
+	protected function steuerJeSatz(): array {
+		$raw = $this->getForm('steuer_je_satz', []);
+		if (!is_array($raw)) {
+			return [];
+		}
+		$saetze = [];
+		foreach ($raw as $satz => $betrag) {
+			if (is_numeric($satz) && is_numeric($betrag) && (float) $betrag != 0.0) {
+				$saetze[] = [(float) $satz, (float) $betrag];
+			}
+		}
+		usort($saetze, static fn (array $a, array $b): int => $b[0] <=> $a[0]);
+
+		$out = [];
+		foreach ($saetze as [$satz, $betrag]) {
+			$out[str_replace('.', ',', (string) $satz)] = $betrag;
+		}
+		return $out;
+	}
+
 	public function add_rechnung_block($y): float {
 
 		$out = $this->graph->getStartTransform();
@@ -342,7 +370,13 @@ trait PdfRechnungsdatenTrait {
 		$y += self::ROW_HEIGHT;
 		$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 75, 30, 30, 30, 'Nettobetrag', '', '', number_format($this->getForm('netto', 0), 2, ',', '') . ' €', 255);
 
-		if ($this->getForm('steuer', 0) > 0) {
+		$steuerJeSatz = $this->steuerJeSatz();
+		if (count($steuerJeSatz) > 1) {
+			// Gemischte Steuersätze: je Satz eine Zeile (§ 14 Abs. 4 Nr. 8 UStG).
+			foreach ($steuerJeSatz as $satz => $betrag) {
+				$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 100, 5, 30, 30, 'Umsatzsteuer ' . $satz . '%', '', '', number_format($betrag, 2, ',', '') . ' €', 255);
+			}
+		} elseif ($this->getForm('steuer', 0) > 0) {
 			$y = $this->add_Zeile(25, $y, self::ROW_HEIGHT, 100, 5, 30, 30, $this->getForm('bezeichnung_steuer', 'Umsatzsteuer'), '', '', number_format($this->getForm('steuer', 0), 2, ',', '') . ' €', 255);
 		}
 

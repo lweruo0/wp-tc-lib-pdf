@@ -183,6 +183,9 @@ die Rechnungs-/Mahnung‑Templates):
 - `rechnungsnummer` — string
 - `rechnung_vorname`, `rechnung_name`, `rechnung_strasse`, `rechnung_plz`, `rechnung_ort`, `rechnung_email`
 - `brutto`, `netto`, `steuer`, `steuersatz` — numerische Werte
+- `steuer_je_satz` — optional, Steuerbetrag je Satz (`[19 => 32.73, 7 => 1.40]`). Bei mehr als
+  einem Satz druckt der Rechnungsblock eine Zeile „Umsatzsteuer X%“ je Satz statt der einen Zeile
+  aus `steuer`/`bezeichnung_steuer`
 - `zahlungsfrist_original` — Datum (string); fehlt es, gilt Rechnungsdatum + 7 Tage
 - `created_at` — Erstellungszeitpunkt (string). Ohne Zeitzonenangabe gilt er als
   UTC (Quform-Format `Y-m-d H:i:s`) und wird in die Vereinszeitzone umgerechnet;
